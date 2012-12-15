@@ -5,6 +5,7 @@ import java.util.Properties;
 
 import android.app.Activity;
 import android.content.res.AssetManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
@@ -29,16 +30,27 @@ public class MainActivity extends Activity {
 		Log.d("MainActivity", "on create");
 		setContentView(R.layout.main);
 		ChessYoUpRemoteService remoteService = new ChessYoUpRemoteService(p.getProperty("chessyoup_url"));
-		ConnectionManager connManager = ConnectionManagerFactory.getFactory()
+		final ConnectionManager connManager = ConnectionManagerFactory.getFactory()
 				.getGCMConnectionManager(remoteService, this.getApplicationContext());
 		final TextView mDisplay = (TextView) findViewById(R.id.display);
 		mDisplay.append("initialize manager" + "\n");
-		connManager.initialize(new ConnectionManagerListener() {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
-			public void onInitialize(boolean status) {
-				Log.d("MainActivity", "onInitialize :" + status);
+			protected Void doInBackground(Void... params) {
+				connManager.initialize(new ConnectionManagerListener() {
+
+					@Override
+					public void onInitialize(boolean status) {
+						Log.d("MainActivity", "onInitialize :" + status);
+					}
+				});
+				
+				return null;
 			}
-		});
+			
+		};
+		
+		task.execute();		
 	}
 }
