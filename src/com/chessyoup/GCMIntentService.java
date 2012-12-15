@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import com.chessyoup.R;
+import com.chessyoup.connector.Message;
 import com.chessyoup.connector.gcm.GCMConnectionManager;
 import com.google.android.gcm.GCMBaseIntentService;
 
@@ -28,18 +29,19 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onRegistered(Context context, String registrationId) {
 		Log.i(TAG, "Device registered: regId = " + registrationId);
-		GCMConnectionManager.getManager().getListener().onInitialize(true);		
+		GCMConnectionManager.getManager().gcmRegistered(registrationId);		
 	}
 
 	@Override
 	protected void onUnregistered(Context context, String registrationId) {
-		Log.i(TAG, "Device unregistered");		
+		Log.i(TAG, "Device unregistered");	
+		GCMConnectionManager.getManager().gcmUnRegistered(registrationId);
 	}
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
-		String message = getString(R.string.gcm_message);
-		Log.i(TAG, "Received message :" + intent.getExtras().getString("move"));
+		Log.i(TAG, "Received message :" + intent.getExtras().toString());		
+		GCMConnectionManager.getManager().hadleIncomingMessage(null);		
 	}
 
 	@Override

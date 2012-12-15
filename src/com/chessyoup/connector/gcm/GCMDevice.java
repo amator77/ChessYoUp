@@ -45,5 +45,12 @@ public class GCMDevice implements Device{
 
 	public void setDevicePhoneNumber(String devicePhoneNumber) {
 		this.devicePhoneNumber = devicePhoneNumber;
-	}		
+	}	
+	
+	@Override
+	public String toString() {
+		return "GCMDevice [registeredId=" + registeredId
+				+ ", deviceIdentifier=" + deviceIdentifier
+				+ ", devicePhoneNumber=" + devicePhoneNumber + "]";
+	}
 }

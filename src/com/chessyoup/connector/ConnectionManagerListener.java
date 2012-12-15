@@ -8,4 +8,9 @@ public interface ConnectionManagerListener {
 	 */
 	public void onInitialize(boolean status);
 	
+	/**
+	 * 
+	 * @param status
+	 */
+	public void onDispose(boolean status);
 }
