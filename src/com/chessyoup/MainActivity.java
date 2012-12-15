@@ -3,6 +3,8 @@ package com.chessyoup;
 import java.io.IOException;
 import java.util.Properties;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;

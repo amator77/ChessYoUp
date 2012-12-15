@@ -15,6 +15,12 @@ public interface Device {
 	public String getDevicePhoneNumber();
 	
 	/**
+	 * 
+	 * @return
+	 */
+	public String getGoogleAccount();
+	
+	/**
 	 * The device unique registration id ( For example GCM registration ID)
 	 * @return
 	 */

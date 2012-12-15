@@ -10,10 +10,13 @@ public class GCMDevice implements Device{
 	
 	private String devicePhoneNumber;
 	
-	public GCMDevice(String registeredId,String deviceIdentifier,String devicePhoneNumber){
+	private String googleAccount;
+	
+	public GCMDevice(String registeredId,String deviceIdentifier,String devicePhoneNumber,String googleAccount){
 		this.registeredId = registeredId;
 		this.deviceIdentifier = deviceIdentifier;
 		this.devicePhoneNumber = devicePhoneNumber;
+		this.googleAccount = googleAccount;
 	}
 
 	@Override
@@ -45,12 +48,22 @@ public class GCMDevice implements Device{
 
 	public void setDevicePhoneNumber(String devicePhoneNumber) {
 		this.devicePhoneNumber = devicePhoneNumber;
-	}	
+	}		
 	
+	public void setGoogleAccount(String googleAccount) {
+		this.googleAccount = googleAccount;
+	}
+
+	@Override
+	public String getGoogleAccount() {
+		return this.googleAccount;
+	}
+
 	@Override
 	public String toString() {
 		return "GCMDevice [registeredId=" + registeredId
 				+ ", deviceIdentifier=" + deviceIdentifier
-				+ ", devicePhoneNumber=" + devicePhoneNumber + "]";
+				+ ", devicePhoneNumber=" + devicePhoneNumber
+				+ ", googleAccount=" + googleAccount + "]";
 	}
 }

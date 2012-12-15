@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.accounts.Account;
+import android.accounts.AccountManager;
 import android.content.Context;
 import android.telephony.TelephonyManager;
 import android.util.Log;
@@ -49,7 +51,7 @@ public class GCMConnectionManager implements ConnectionManager {
 		
 		TelephonyManager tManager = (TelephonyManager)applicationContext.getSystemService(Context.TELEPHONY_SERVICE);
 		Log.d("GCMConnectionManager", "tManager : "+tManager.getSimSerialNumber());
-		this.device = new GCMDevice(null, new DeviceUuidFactory(applicationContext).getDeviceUuid().toString(), tManager.getLine1Number());
+		this.device = new GCMDevice(null, new DeviceUuidFactory(applicationContext).getDeviceUuid().toString(), tManager.getLine1Number(),getGoogleAccount());
 		Log.d("GCMConnectionManager", "device : "+this.device.toString());
 		
 		boolean initialized = false;		
@@ -89,6 +91,22 @@ public class GCMConnectionManager implements ConnectionManager {
 		}
 	}
 	
+	private String getGoogleAccount() {
+		String googleAccount = null;
+		
+		Account[] accounts = AccountManager.get(getApplicationContext()).getAccounts();
+		
+		for(Account ac : accounts ){
+			if(ac.type.equals("com.google")){
+				googleAccount = ac.name;
+				Log.d("GCMConnectionManager", "Google account :"+googleAccount);
+			}
+			
+		}
+		
+		return googleAccount;
+	}
+
 	private void fireoOnInitializeEvent(boolean initialized) {
 		
 		for(ConnectionManagerListener listener : this.listeners ){
@@ -98,6 +116,7 @@ public class GCMConnectionManager implements ConnectionManager {
 
 	public void gcmRegistered(String regId){
 		boolean initialized = false;
+		
 		this.device.setRegisteredId(regId);
 		
 		if (GCMRegistrar.isRegisteredOnServer(applicationContext)) {
@@ -125,19 +144,6 @@ public class GCMConnectionManager implements ConnectionManager {
 	
 	public void gcmUnRegistered(String regId){
 		GCMRegistrar.setRegisteredOnServer(applicationContext, false);
-		
-		try {
-			if(this.remoteService.unRegister(this.device)){	
-				Log.e("GCMConnectionManager",
-						"Error on unregistering on remote server");
-			}					
-			
-		} catch (IOException e) {
-			Log.e("GCMConnectionManager",
-					"Error on unregistering on remote server");
-			
-		}
-		
 		this.device = null;
 		this.fireoOnDispose(true);
 	}

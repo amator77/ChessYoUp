@@ -24,6 +24,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 		params.put("device_id", device.getDeviceIdentifier() );		
 		params.put("phone_number", device.getDevicePhoneNumber() != null ? device.getDevicePhoneNumber() : "");
 		params.put("gcm_registration_id", device.getRegistrationId());
+		params.put("google_account", device.getGoogleAccount());		
 		int status = HttpClient.getInstance().post(url+"/register.php", params);
 		Log.d("ChessYoUpRemoteService", "Remote serevr response status :"+status );
 		return status >= 200 && status < 300; 
@@ -31,7 +32,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 
 	@Override
 	public boolean unRegister(Device device) {
-		return false;
+		return true;
 	}
 
 	@Override

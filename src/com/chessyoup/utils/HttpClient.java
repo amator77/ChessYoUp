@@ -45,7 +45,7 @@ public class HttpClient {
 			}
 		}
 		String body = bodyBuilder.toString();
-		Log.v(TAG, "Posting '" + body + "' to " + url);
+		Log.d(TAG, "Posting '" + body + "' to " + url);
 		byte[] bytes = body.getBytes();
 		HttpURLConnection conn = null;
 		try {
