@@ -11,7 +11,7 @@ public class ConnectionManagerFactory {
 	public static final ConnectionManagerFactory factory = new ConnectionManagerFactory();
 	
 	private GCMConnectionManager gcmConnectionManager;
-		
+	
 	public static ConnectionManagerFactory getFactory(){
 		return ConnectionManagerFactory.factory;
 	}

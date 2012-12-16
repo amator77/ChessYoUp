@@ -41,7 +41,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onMessage(Context context, Intent intent) {
 		Log.i(TAG, "Received message :" + intent.getExtras().toString());		
-		GCMConnectionManager.getManager().hadleIncomingMessage(null);		
+		GCMConnectionManager.getManager().hadleIncomingMessage(intent.getExtras().getString("source_id"),intent.getExtras().getString("payload") );		
 	}
 
 	@Override

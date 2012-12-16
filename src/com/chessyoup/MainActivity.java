@@ -6,6 +6,7 @@ import java.util.Properties;
 import android.accounts.Account;
 import android.accounts.AccountManager;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -17,15 +18,22 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.chessyoup.chat.ChatActivity;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
+import com.chessyoup.connector.Device;
 import com.google.android.gcm.GCMRegistrar;
+import com.google.android.gcm.server.Message;
+import com.google.android.gcm.server.Sender;
+import com.google.android.gcm.server.Message.Builder;
 
 public class MainActivity extends Activity implements ConnectionManagerListener  {
 	
 	private ConnectionManager connManager;
 	
 	private Handler handler;
+	
+	private String API_KEY;
 	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,6 +52,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 			System.exit(1);
 		}				
 						
+		API_KEY = p.getProperty("api_key");
 		connManager = ConnectionManagerFactory.getFactory().getGCMConnectionManager(new ChessYoUpRemoteService(p.getProperty("chessyoup_url")), this.getApplicationContext());
 		connManager.registerListener(this);
 		final Button registerButton = (Button) findViewById(R.id.register);
@@ -102,8 +111,18 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 					protected Void doInBackground(Void... params) {
 						
 						final EditText editText = (EditText) findViewById(R.id.editText);
+						
 						try {
-							connManager.getRemoteService().findByAccount(editText.getEditableText().toString());
+							Device device = connManager.getRemoteService().findByAccount(editText.getEditableText().toString());							
+							Intent intent = new Intent(MainActivity.this, ChatActivity.class);
+							intent.putExtra("remote_device_id", device.getDeviceIdentifier());	
+							intent.putExtra("remote_phone_number", device.getDevicePhoneNumber());	
+							intent.putExtra("remote_gcm_registration_id", device.getRegistrationId());								
+							intent.putExtra("remote_account", device.getAccount());
+							
+							intent.putExtra("owner_account", connManager.getLocalDevice().getAccount());
+							
+							startActivity(intent);
 						} catch (IOException e) {
 							Log.d("MainActivity", "Error on searching :"+e.getMessage());				
 														
@@ -117,9 +136,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 				task.execute();	
 				
 			}
-		});
-		
-		
+		});			
 	}
 
 	@Override
@@ -132,7 +149,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 				display.append("onInitialize :"+status+"\n");
 				
 				if( status ){
-					display.append("Device  :"+connManager.getDevice().toString()+"\n");
+					display.append("Device  :"+connManager.getLocalDevice().toString()+"\n");
 				}
 			}
 		});

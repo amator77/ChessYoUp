@@ -1,12 +1,23 @@
 package com.chessyoup.connector;
 
 public interface Message {
-	
 	/**
-	 * Return the message unique id.
+	 * Sequence uniqu order by.
 	 * @return
 	 */
-	public int getId();
+	public int getSequence();
+	
+	/**
+	 * Source of the message
+	 * @return
+	 */
+	public String getSourceId();
+	
+	/**
+	 * Destination of the message
+	 * @return
+	 */
+	public String getDestinationId();
 	
 	/**
 	 * Return the message data

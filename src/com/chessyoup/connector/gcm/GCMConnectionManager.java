@@ -27,6 +27,8 @@ public class GCMConnectionManager implements ConnectionManager {
 
 	private List<ConnectionManagerListener> listeners;
 
+	private List<GCMConnection> connections;
+	
 	private RemoteService remoteService;
 
 	private Context applicationContext;
@@ -35,6 +37,7 @@ public class GCMConnectionManager implements ConnectionManager {
 	
 	private GCMConnectionManager() {
 		this.listeners = new ArrayList<ConnectionManagerListener>();
+		this.connections = new ArrayList<GCMConnection>();
 	}
 
 	public static GCMConnectionManager getManager() {
@@ -166,10 +169,13 @@ public class GCMConnectionManager implements ConnectionManager {
 	}
 
 	@Override
-	public Connection newConnection(Device remoteDevice,
+	public Connection connect(Device remoteDevice,
 			ConnectionListener listener) {
-
-		return new GCMConnection(remoteDevice, listener);
+		
+		GCMConnection conn =  new GCMConnection(remoteDevice, listener);
+		this.connections.add(conn);
+		
+		return conn;
 	}
 
 	public Context getApplicationContext() {
@@ -204,12 +210,32 @@ public class GCMConnectionManager implements ConnectionManager {
 	}
 	
 	@Override
-	public Device getDevice() {		
+	public Device getLocalDevice() {		
 		return this.device;
 	}
 
 	public void hadleIncomingMessage(Message newMessage) {
-		// TODO Auto-generated method stub
+		for(GCMConnection conn : this.connections ){
+			if(conn.getRemoteDevice().getDeviceIdentifier().equals(newMessage.getDestinationId())){
+				conn.messageReceived(newMessage);
+				break;
+			}
+		}		
+	}
+
+	public void hadleIncomingMessage(String source_id, String payload) {
 		
-	}		
+		for(GCMConnection conn : this.connections ){
+						
+			if(conn.getRemoteDevice().getRegistrationId().equals(source_id)){
+				GCMMessage gcmMessage = new GCMMessage();
+				gcmMessage.setDestinationRegistrationID(GCMConnectionManager.getManager().getLocalDevice().getRegistrationId());
+				gcmMessage.setMessage(payload);
+				gcmMessage.setSourceRegistrationID(source_id);
+				
+				conn.messageReceived(gcmMessage);
+				break;
+			}
+		}		
+	}
 }

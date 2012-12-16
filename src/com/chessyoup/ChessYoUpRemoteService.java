@@ -5,10 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import android.net.http.AndroidHttpClient;
 import android.util.Log;
 
 import com.chessyoup.connector.Device;
+import com.chessyoup.connector.GenericDevice;
 import com.chessyoup.connector.RemoteService;
 import com.chessyoup.connector.gcm.GCMDevice;
 import com.chessyoup.utils.HttpClient;
@@ -28,7 +32,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 		params.put("device_id", device.getDeviceIdentifier() );		
 		params.put("phone_number", device.getDevicePhoneNumber() != null ? device.getDevicePhoneNumber() : "");
 		params.put("gcm_registration_id", device.getRegistrationId());
-		params.put("google_account", device.getGoogleAccount());		
+		params.put("google_account", device.getAccount());		
 				
 		try {
 			HttpClientResponse reponse = HttpClient.getInstance().post(url+"/register", params);
@@ -67,8 +71,20 @@ public class ChessYoUpRemoteService implements RemoteService {
 		
 		HttpClientResponse reponse = HttpClient.getInstance().readEntity(findUrl.toString(), "");
 		Log.d("ChessYoUpRemoteService", "Remote server response:"+reponse );
-		
-		return null;
+		try {
+			JSONObject json = new JSONObject(reponse.getBody());
+			
+			GenericDevice device = new GenericDevice();
+			device.setDeviceIdentifier(json.getString("device_id"));
+			device.setRegisteredId(json.getString("gcm_registration_id"));
+			device.setAccount(account);
+			
+			return device;
+		} catch (JSONException e) {
+			Log.d("ChessYoUpRemoteService", "Not an json entity from server!");				
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override

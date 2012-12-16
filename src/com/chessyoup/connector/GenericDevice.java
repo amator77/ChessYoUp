@@ -1,8 +1,6 @@
-package com.chessyoup.connector.gcm;
+package com.chessyoup.connector;
 
-import com.chessyoup.connector.Device;
-
-public class GCMDevice implements Device{
+public class GenericDevice implements Device {
 	
 	private String registeredId;
 	
@@ -10,15 +8,9 @@ public class GCMDevice implements Device{
 	
 	private String devicePhoneNumber;
 	
-	private String googleAccount;
+	private String account;
 	
-	public GCMDevice(String registeredId,String deviceIdentifier,String devicePhoneNumber,String googleAccount){
-		this.registeredId = registeredId;
-		this.deviceIdentifier = deviceIdentifier;
-		this.devicePhoneNumber = devicePhoneNumber;
-		this.googleAccount = googleAccount;
-	}
-
+	
 	@Override
 	public String getDeviceIdentifier() {
 		return this.deviceIdentifier;
@@ -50,20 +42,20 @@ public class GCMDevice implements Device{
 		this.devicePhoneNumber = devicePhoneNumber;
 	}		
 	
-	public void setGoogleAccount(String googleAccount) {
-		this.googleAccount = googleAccount;
+	public void setAccount(String account) {
+		this.account = account;
 	}
 
 	@Override
 	public String getAccount() {
-		return this.googleAccount;
+		return this.account;
 	}
 
 	@Override
 	public String toString() {
-		return "GCMDevice [registeredId=" + registeredId
+		return "GenericDevice [registeredId=" + registeredId
 				+ ", deviceIdentifier=" + deviceIdentifier
-				+ ", devicePhoneNumber=" + devicePhoneNumber
-				+ ", googleAccount=" + googleAccount + "]";
+				+ ", devicePhoneNumber=" + devicePhoneNumber + ", account="
+				+ account + "]";
 	}
 }

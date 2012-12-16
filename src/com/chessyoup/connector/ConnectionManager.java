@@ -32,7 +32,7 @@ public interface ConnectionManager {
 	 * @param listener
 	 * @return
 	 */
-	public Connection newConnection(Device remoteDevice , ConnectionListener listener);
+	public Connection connect(Device remoteDevice , ConnectionListener listener);
 	
 	/**
 	 * Get remote ( third party service helper )
@@ -44,6 +44,6 @@ public interface ConnectionManager {
 	 * Get device info of this manager .
 	 * @return - an device only if this manager is initialized
 	 */
-	public Device getDevice();
+	public Device getLocalDevice();
 	
 }

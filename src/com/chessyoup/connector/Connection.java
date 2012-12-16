@@ -1,5 +1,7 @@
 package com.chessyoup.connector;
 
+import java.io.IOException;
+
 public interface Connection {
 	
 	/**
@@ -16,6 +18,7 @@ public interface Connection {
 	/**
 	 * Send a message 
 	 * @param message
+	 * @throws IOException 
 	 */
-	public void sendMessage(Message message);
+	public void sendMessage(Message message) throws IOException;
 }

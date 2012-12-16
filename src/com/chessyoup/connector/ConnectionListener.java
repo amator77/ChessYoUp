@@ -1,7 +1,18 @@
 package com.chessyoup.connector;
 
 public interface ConnectionListener {
-		
-	public Message messageReceived(Connection source);	
+	
+	/**
+	 * 
+	 * @param status
+	 */
+	public void onConnected(boolean status);
+	
+	/**
+	 * 
+	 * @param source
+	 * @param message
+	 */
+	public void messageReceived(Connection source,Message message);	
 	
 }
