@@ -1,6 +1,10 @@
 package com.chessyoup.utils;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -24,8 +28,56 @@ public class HttpClient {
 	public static HttpClient getInstance() {
 		return HttpClient.client;
 	}
-
-	public int post(String endpoint, Map<String, String> params)
+	
+	public HttpClientResponse readEntity(String entityUrl,String authorization) throws IOException {
+		
+		Log.d(TAG, "Reading '" + entityUrl);
+		
+		URL url;
+		try {
+			url = new URL(entityUrl);
+		} catch (MalformedURLException e) {
+			throw new IllegalArgumentException("invalid url: " + entityUrl);
+		}
+		
+		
+		
+		HttpURLConnection conn = null;
+		try {
+			conn = (HttpURLConnection) url.openConnection();
+			conn.setDoInput(true);
+			conn.setUseCaches(false);			
+			conn.setRequestMethod("GET");
+			conn.setRequestProperty("Authorization",authorization);
+			
+			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));			
+			StringBuffer reponseBody = new StringBuffer();
+			String line = null;
+			
+			while( (line  = br.readLine() )!= null ){
+				reponseBody.append(line);
+			}
+			
+			br.close();
+			
+			int status = conn.getResponseCode();
+			if (status != 200) {
+				throw new IOException("Post failed with error code " + status);
+			}
+			
+			HttpClientResponse response = new HttpClientResponse();
+			response.setStatus(status);
+			response.setBody(reponseBody.toString());
+			
+			return response;
+		} finally {
+			if (conn != null) {
+				conn.disconnect();
+			}
+		}		
+	}
+	
+	public HttpClientResponse post(String endpoint, Map<String, String> params)
 			throws IOException {
 		URL url;
 		try {
@@ -51,6 +103,7 @@ public class HttpClient {
 		try {
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setDoOutput(true);
+			conn.setDoInput(true);
 			conn.setUseCaches(false);
 			conn.setFixedLengthStreamingMode(bytes.length);
 			conn.setRequestMethod("POST");
@@ -60,13 +113,28 @@ public class HttpClient {
 			OutputStream out = conn.getOutputStream();
 			out.write(bytes);
 			out.close();
+			
+			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));			
+			StringBuffer reponseBody = new StringBuffer();
+			String line = null;
+			
+			while( (line  = br.readLine() )!= null ){
+				reponseBody.append(line);
+			}
+			
+			br.close();
+			
 			// handle the response
 			int status = conn.getResponseCode();
 			if (status != 200) {
 				throw new IOException("Post failed with error code " + status);
 			}
 			
-			return status;
+			HttpClientResponse response = new HttpClientResponse();
+			response.setStatus(status);
+			response.setBody(reponseBody.toString());
+			
+			return response;
 		} finally {
 			if (conn != null) {
 				conn.disconnect();

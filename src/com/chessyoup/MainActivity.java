@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import com.chessyoup.connector.ConnectionManager;
@@ -93,6 +94,27 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 			@Override
 			public void onClick(View v) {
 				Log.d("MainActivity", "sendButton onClick event");				
+				
+				
+				AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+					@Override
+					protected Void doInBackground(Void... params) {
+						
+						final EditText editText = (EditText) findViewById(R.id.editText);
+						try {
+							connManager.getRemoteService().findByAccount(editText.getEditableText().toString());
+						} catch (IOException e) {
+							Log.d("MainActivity", "Error on searching :"+e.getMessage());				
+														
+							e.printStackTrace();
+						}
+						
+						return null;
+					}					
+				};
+				
+				task.execute();	
 				
 			}
 		});
