@@ -19,49 +19,53 @@
     android:layout_height="fill_parent"
     android:orientation="vertical" >
 
-    <Button
-        android:id="@+id/register"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Register" />
-
-    <Button
-        android:id="@+id/unregister"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="UnRegister" />
-
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal" >
+        android:orientation="vertical" >
 
-        <Button
-            android:id="@+id/send"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
             android:layout_height="wrap_content"
-            android:text="Start Chat" />
+            android:orientation="horizontal" >
+
+            <Button
+                android:id="@+id/send"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Start Chat" />
+
+            <Spinner
+                android:id="@+id/spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>        
 
         <EditText
             android:id="@+id/editText"
             android:layout_width="fill_parent"
-            android:layout_height="fill_parent"           
-            />
+            android:layout_height="fill_parent" />
     </LinearLayout>
-	
-    <ScrollView 
+	<TextView
+            android:id="@+id/log"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="Log"
+            />
+    <ScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
-        android:layout_marginLeft="5dp" 
-        android:layout_marginRight="5dp"
-        >
-        
-         <TextView
-        android:id="@+id/display"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        />
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp" >
+
+        <TextView
+            android:id="@+id/display"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
     </ScrollView>
+
 </LinearLayout>

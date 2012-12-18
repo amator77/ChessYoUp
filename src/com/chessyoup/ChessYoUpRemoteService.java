@@ -51,7 +51,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 	}
 
 	@Override
-	public Device findByPhoneNumberlookup(String phoneNumber)
+	public Device findByPhoneNumber(String phoneNumber)
 			throws IOException {
 		
 		StringBuffer findUrl = new StringBuffer();
@@ -60,8 +60,20 @@ public class ChessYoUpRemoteService implements RemoteService {
 		HttpClientResponse reponse = HttpClient.getInstance().readEntity(findUrl.toString(), "");
 		Log.d("ChessYoUpRemoteService", "Remote server response:"+reponse );
 		
-		return null;
-		
+		try {
+			JSONObject json = new JSONObject(reponse.getBody());
+			
+			GenericDevice device = new GenericDevice();
+			device.setDeviceIdentifier(json.getString("device_id"));
+			device.setRegisteredId(json.getString("gcm_registration_id"));
+			device.setDevicePhoneNumber(phoneNumber);
+			
+			return device;
+		} catch (JSONException e) {
+			Log.d("ChessYoUpRemoteService", "Not an json entity from server!");				
+			e.printStackTrace();
+			return null;
+		}		
 	}
 
 	@Override
@@ -85,8 +97,8 @@ public class ChessYoUpRemoteService implements RemoteService {
 			e.printStackTrace();
 			return null;
 		}
-	}
-
+	}	
+	
 	@Override
 	public List<Device> search(String keyword) throws IOException {
 		// TODO Auto-generated method stub

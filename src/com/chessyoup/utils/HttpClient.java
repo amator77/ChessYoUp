@@ -28,55 +28,57 @@ public class HttpClient {
 	public static HttpClient getInstance() {
 		return HttpClient.client;
 	}
-	
-	public HttpClientResponse readEntity(String entityUrl,String authorization) throws IOException {
-		
+
+	public HttpClientResponse readEntity(String entityUrl, String authorization)
+			throws IOException {
+
 		Log.d(TAG, "Reading '" + entityUrl);
-		
+
 		URL url;
 		try {
 			url = new URL(entityUrl);
 		} catch (MalformedURLException e) {
 			throw new IllegalArgumentException("invalid url: " + entityUrl);
 		}
-		
-		
-		
+
 		HttpURLConnection conn = null;
 		try {
 			conn = (HttpURLConnection) url.openConnection();
 			conn.setDoInput(true);
-			conn.setUseCaches(false);			
+			conn.setUseCaches(false);
 			conn.setRequestMethod("GET");
-			conn.setRequestProperty("Authorization",authorization);
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));			
-			StringBuffer reponseBody = new StringBuffer();
-			String line = null;
-			
-			while( (line  = br.readLine() )!= null ){
-				reponseBody.append(line);
-			}
-			
-			br.close();
-			
+			conn.setRequestProperty("Authorization", authorization);
+
 			int status = conn.getResponseCode();
-			if (status != 200) {
-				throw new IOException("Post failed with error code " + status);
+			
+			if (status != 200) {				
+				throw new IOException("Read failed with error code " + status);
+			} else {
+
+				BufferedReader br = new BufferedReader(new InputStreamReader(
+						conn.getInputStream()));
+				StringBuffer reponseBody = new StringBuffer();
+				String line = null;
+
+				while ((line = br.readLine()) != null) {
+					reponseBody.append(line);
+				}
+
+				br.close();
+
+				HttpClientResponse response = new HttpClientResponse();
+				response.setStatus(status);
+				response.setBody(reponseBody.toString());
+
+				return response;
 			}
-			
-			HttpClientResponse response = new HttpClientResponse();
-			response.setStatus(status);
-			response.setBody(reponseBody.toString());
-			
-			return response;
 		} finally {
 			if (conn != null) {
 				conn.disconnect();
 			}
-		}		
+		}
 	}
-	
+
 	public HttpClientResponse post(String endpoint, Map<String, String> params)
 			throws IOException {
 		URL url;
@@ -113,27 +115,28 @@ public class HttpClient {
 			OutputStream out = conn.getOutputStream();
 			out.write(bytes);
 			out.close();
-			
-			BufferedReader br = new BufferedReader(new InputStreamReader(conn.getInputStream()));			
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(
+					conn.getInputStream()));
 			StringBuffer reponseBody = new StringBuffer();
 			String line = null;
-			
-			while( (line  = br.readLine() )!= null ){
+
+			while ((line = br.readLine()) != null) {
 				reponseBody.append(line);
 			}
-			
+
 			br.close();
-			
+
 			// handle the response
 			int status = conn.getResponseCode();
 			if (status != 200) {
 				throw new IOException("Post failed with error code " + status);
 			}
-			
+
 			HttpClientResponse response = new HttpClientResponse();
 			response.setStatus(status);
 			response.setBody(reponseBody.toString());
-			
+
 			return response;
 		} finally {
 			if (conn != null) {

@@ -9,7 +9,7 @@ public interface RemoteService {
 	
 	public boolean unRegister(Device device) throws IOException;
 	
-	public Device findByPhoneNumberlookup(String phoneNumber) throws IOException;
+	public Device findByPhoneNumber(String phoneNumber) throws IOException;
 	
 	public Device findByAccount(String account) throws IOException;
 	
