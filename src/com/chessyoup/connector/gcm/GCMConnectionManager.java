@@ -236,6 +236,9 @@ public class GCMConnectionManager implements ConnectionManager {
 				conn.messageReceived(gcmMessage);
 				break;
 			}
-		}		
+		}
+		
+		// if we are here - there is a new connection start incoming
+		
 	}
 }
