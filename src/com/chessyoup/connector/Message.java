@@ -23,5 +23,5 @@ public interface Message {
 	 * Return the message data
 	 * @return
 	 */
-	public byte[] getPayload();
+	public String getBody();
 }

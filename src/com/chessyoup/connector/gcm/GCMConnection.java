@@ -19,7 +19,7 @@ public class GCMConnection implements Connection {
 	public GCMConnection(Device remoteDevice, ConnectionListener listener) {
 		this.remoteDevice = remoteDevice;
 		this.listener = listener;
-		this.listener.onConnected(true);
+		this.listener.onConnected(this,true);
 	}
 
 	@Override
@@ -40,7 +40,7 @@ public class GCMConnection implements Connection {
 			Message gcmMessage = new Message.Builder().timeToLive(0)
 					.delayWhileIdle(true)
 					.addData("source_id", GCMConnectionManager.getManager().getLocalDevice().getRegistrationId())
-					.addData("payload", String.valueOf(message.getPayload())).build();
+					.addData("payload", message.getBody()).build();
 			Sender sender = new Sender(API_KEY);
 			sender.sendNoRetry(gcmMessage, remoteDevice.getRegistrationId());
 		}

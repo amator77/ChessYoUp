@@ -1,9 +1,7 @@
 package com.chessyoup.utils;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
@@ -50,8 +48,8 @@ public class HttpClient {
 			conn.setRequestProperty("Authorization", authorization);
 
 			int status = conn.getResponseCode();
-			
-			if (status != 200) {				
+
+			if (status != 200) {
 				throw new IOException("Read failed with error code " + status);
 			} else {
 

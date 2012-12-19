@@ -65,7 +65,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 			
 			GenericDevice device = new GenericDevice();
 			device.setDeviceIdentifier(json.getString("device_id"));
-			device.setRegisteredId(json.getString("gcm_registration_id"));
+			device.setRegistrationId(json.getString("gcm_registration_id"));
 			device.setDevicePhoneNumber(phoneNumber);
 			
 			return device;
@@ -88,7 +88,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 			
 			GenericDevice device = new GenericDevice();
 			device.setDeviceIdentifier(json.getString("device_id"));
-			device.setRegisteredId(json.getString("gcm_registration_id"));
+			device.setRegistrationId(json.getString("gcm_registration_id"));
 			device.setAccount(account);
 			
 			return device;

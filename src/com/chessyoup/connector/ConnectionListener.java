@@ -6,7 +6,7 @@ public interface ConnectionListener {
 	 * 
 	 * @param status
 	 */
-	public void onConnected(boolean status);
+	public void onConnected(Connection source,boolean status);
 	
 	/**
 	 * 

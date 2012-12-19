@@ -10,7 +10,7 @@ public class GCMMessage implements Message {
 	
 	private int sequnce;
 	
-	private String message;
+	private String body;
 	
 	@Override
 	public int getSequence() {
@@ -28,8 +28,8 @@ public class GCMMessage implements Message {
 	}
 
 	@Override
-	public byte[] getPayload() {
-		return this.message.getBytes();
+	public String getBody() {
+		return this.body;
 	}
 
 	public void setSourceRegistrationID(String sourceRegistrationID) {
@@ -44,7 +44,14 @@ public class GCMMessage implements Message {
 		this.sequnce = sequnce;
 	}
 
-	public void setMessage(String message) {
-		this.message = message;
+	public void setBody(String body) {
+		this.body = body;
 	}
+
+	@Override
+	public String toString() {
+		return "GCMMessage [sourceRegistrationID=" + sourceRegistrationID
+				+ ", destinationRegistrationID=" + destinationRegistrationID
+				+ ", sequnce=" + sequnce + ", body=" + body + "]";
+	}		
 }

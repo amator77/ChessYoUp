@@ -230,7 +230,7 @@ public class GCMConnectionManager implements ConnectionManager {
 			if(conn.getRemoteDevice().getRegistrationId().equals(source_id)){
 				GCMMessage gcmMessage = new GCMMessage();
 				gcmMessage.setDestinationRegistrationID(GCMConnectionManager.getManager().getLocalDevice().getRegistrationId());
-				gcmMessage.setMessage(payload);
+				gcmMessage.setBody(payload);
 				gcmMessage.setSourceRegistrationID(source_id);
 				
 				conn.messageReceived(gcmMessage);

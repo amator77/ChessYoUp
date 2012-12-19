@@ -18,7 +18,10 @@ public class GCMDevice implements Device{
 		this.devicePhoneNumber = devicePhoneNumber;
 		this.googleAccount = googleAccount;
 	}
-
+	
+	public GCMDevice(){		
+	}
+	
 	@Override
 	public String getDeviceIdentifier() {
 		return this.deviceIdentifier;

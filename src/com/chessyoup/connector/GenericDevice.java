@@ -1,38 +1,14 @@
 package com.chessyoup.connector;
 
 public class GenericDevice implements Device {
-	
-	private String registeredId;
-	
+
+	private String registrationId;
+
 	private String deviceIdentifier;
-	
+
 	private String devicePhoneNumber;
-	
+
 	private String account;
-	
-	
-	@Override
-	public String getDeviceIdentifier() {
-		return this.deviceIdentifier;
-	}
-
-	@Override
-	public String getRegistrationId() {
-		 return this.registeredId;
-	}
-
-	@Override
-	public String getDevicePhoneNumber() {
-		return this.devicePhoneNumber;
-	}
-
-	public String getRegisteredId() {
-		return registeredId;
-	}
-
-	public void setRegisteredId(String registeredId) {
-		this.registeredId = registeredId;
-	}
 
 	public void setDeviceIdentifier(String deviceIdentifier) {
 		this.deviceIdentifier = deviceIdentifier;
@@ -40,10 +16,20 @@ public class GenericDevice implements Device {
 
 	public void setDevicePhoneNumber(String devicePhoneNumber) {
 		this.devicePhoneNumber = devicePhoneNumber;
-	}		
-	
+	}
+
 	public void setAccount(String account) {
 		this.account = account;
+	}
+
+	@Override
+	public String getDeviceIdentifier() {
+		return this.deviceIdentifier;
+	}
+
+	@Override
+	public String getDevicePhoneNumber() {
+		return this.devicePhoneNumber;
 	}
 
 	@Override
@@ -52,10 +38,19 @@ public class GenericDevice implements Device {
 	}
 
 	@Override
+	public String getRegistrationId() {
+		return this.registrationId;
+	}
+
+	public void setRegistrationId(String registrationId) {
+		this.registrationId = registrationId;
+	}
+
+	@Override
 	public String toString() {
-		return "GenericDevice [registeredId=" + registeredId
+		return "GenericDevice [registrationId=" + registrationId
 				+ ", deviceIdentifier=" + deviceIdentifier
 				+ ", devicePhoneNumber=" + devicePhoneNumber + ", account="
 				+ account + "]";
-	}
+	}		
 }
