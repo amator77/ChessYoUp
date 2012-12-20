@@ -19,6 +19,7 @@ import android.widget.TextView;
 import com.chessyoup.R;
 import com.chessyoup.connector.Connection;
 import com.chessyoup.connector.ConnectionListener;
+import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
 import com.chessyoup.connector.Message;
 import com.chessyoup.connector.gcm.GCMConnection;
@@ -51,7 +52,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 		if( intent.getExtras().getString("connected") != null &&  intent.getExtras().getString("connected").equals("true")){
 			this.connection = GCMConnectionManager.getManager().getConnection(intent.getStringExtra("remote_gcm_registration_id"));
 			this.connection.setListener(this);	
-			this.setTitle("Chat with :" + (this.connection.getRemoteDevice().getAccount() != null ? this.connection.getRemoteDevice().getAccount() : this.connection.getRemoteDevice().getDevicePhoneNumber() ));
+			this.setTitle("Chat with :" +deviceLabel(this.connection.getRemoteDevice()));
 		}
 		else{		
 			this.runConnectTask(intent);
@@ -82,14 +83,22 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 	@Override
 	public void onConnected(Connection connection,
 			boolean status) {
+		
 		addMessage("system", status ? "Connected!!!" : "Error on conecting.");
-		GCMChatActivity.this.connection = (GCMConnection)connection;		
-		this.setTitle("Chat with :" + (this.connection.getRemoteDevice().getAccount() != null ? this.connection.getRemoteDevice().getAccount() : this.connection.getRemoteDevice().getDevicePhoneNumber() ));
+		GCMChatActivity.this.connection = (GCMConnection)connection;
+		
+		this.handler.post(new Runnable() {
+			
+			@Override
+			public void run() {
+				GCMChatActivity.this.setTitle("Chat with :" + deviceLabel(GCMChatActivity.this.connection.getRemoteDevice()));				
+			}
+		});		
 	}
 
 	@Override
 	public void messageReceived(Connection source, Message message) {
-		addMessage( this.connection.getRemoteDevice().getAccount() != null ? this.connection.getRemoteDevice() .getAccount() : this.connection.getRemoteDevice() .getDevicePhoneNumber(), message.getBody());
+		addMessage( deviceLabel(this.connection.getRemoteDevice()), message.getBody());
 	}
 	
 	private void addMessage(final String source, final String text) {
@@ -205,4 +214,20 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 			}
 		});
 	}	
+	
+	private String deviceLabel(Device device){
+		StringBuffer sb = new StringBuffer();
+		
+		if( device.getAccount() != null && device.getAccount().trim().length() > 0 ){
+			sb.append(device.getAccount());
+		}
+		else if( device.getDevicePhoneNumber() != null && device.getDevicePhoneNumber().trim().length() > 0 ){
+			sb.append(device.getDevicePhoneNumber());
+		}
+		else{
+			sb.append(device.getDeviceIdentifier());
+		}
+		
+		return sb.toString();
+	}
 }
