@@ -31,8 +31,6 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 	private ProgressDialog pd;
 
-	private GenericDevice remoteDevice;
-
 	private String ownerRegistrationId;
 
 	private String ownerAccount;
@@ -43,32 +41,20 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		this.handler = new Handler();
-		pd = ProgressDialog.show(GCMChatActivity.this, null,
-				"GCM registration...", true, false, null);
+		this.handler = new Handler();				
 		setContentView(R.layout.chat);
 
 		Intent intent = getIntent();
-		ownerAccount = intent.getStringExtra("owner_account");
-		ownerRegistrationId = intent
-				.getStringExtra("owner_gcm_registration_id");
-		this.remoteDevice = new GenericDevice();
-		this.remoteDevice.setAccount(intent.getStringExtra("remote_account"));
-		this.remoteDevice.setDeviceIdentifier(intent
-				.getStringExtra("remote_device_id"));
-		this.remoteDevice.setRegistrationId(intent
-				.getStringExtra("remote_gcm_registration_id"));
-		this.remoteDevice.setDevicePhoneNumber(intent
-				.getStringExtra("remote_phone_number"));
-		this.setTitle("Chat with :" + this.remoteDevice.getAccount());
+		ownerAccount = intent.getStringExtra("owner_account");			
 		this.installListeners();
 		
 		if( intent.getExtras().getString("connected") != null &&  intent.getExtras().getString("connected").equals("true")){
-			this.connection = GCMConnectionManager.getManager().getConnection(this.remoteDevice.getRegistrationId());
+			this.connection = GCMConnectionManager.getManager().getConnection(intent.getStringExtra("remote_gcm_registration_id"));
 			this.connection.setListener(this);	
+			this.setTitle("Chat with :" + (this.connection.getRemoteDevice().getAccount() != null ? this.connection.getRemoteDevice().getAccount() : this.connection.getRemoteDevice().getDevicePhoneNumber() ));
 		}
 		else{		
-			this.runConnectTask();
+			this.runConnectTask(intent);
 		}
 	}
 
@@ -97,12 +83,13 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 	public void onConnected(Connection connection,
 			boolean status) {
 		addMessage("system", status ? "Connected!!!" : "Error on conecting.");
-		GCMChatActivity.this.connection = (GCMConnection)connection;
+		GCMChatActivity.this.connection = (GCMConnection)connection;		
+		this.setTitle("Chat with :" + (this.connection.getRemoteDevice().getAccount() != null ? this.connection.getRemoteDevice().getAccount() : this.connection.getRemoteDevice().getDevicePhoneNumber() ));
 	}
 
 	@Override
 	public void messageReceived(Connection source, Message message) {
-		addMessage( remoteDevice.getAccount() != null ? remoteDevice .getAccount() : remoteDevice .getDevicePhoneNumber(), message.getBody());
+		addMessage( this.connection.getRemoteDevice().getAccount() != null ? this.connection.getRemoteDevice() .getAccount() : this.connection.getRemoteDevice() .getDevicePhoneNumber(), message.getBody());
 	}
 	
 	private void addMessage(final String source, final String text) {
@@ -133,7 +120,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 				Log.d("GCMChatActivity", "Send message request.");
 				GCMMessage message = new GCMMessage();
 				message.setSourceRegistrationID(ownerRegistrationId);
-				message.setDestinationRegistrationID(remoteDevice
+				message.setDestinationRegistrationID(connection.getRemoteDevice()
 						.getRegistrationId());
 				EditText editChatText = (EditText) findViewById(R.id.editChatText);
 				message.setBody(editChatText.getEditableText().toString());
@@ -143,14 +130,23 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 		});
 	}
 
-	private void runConnectTask() {
-
+	private void runConnectTask(final Intent onCreateIntent) {
 		this.showProgressDialog("Connecting...");
-
+				
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
+
+				GenericDevice remoteDevice = new GenericDevice(); 				
+				remoteDevice.setAccount(onCreateIntent.getStringExtra("remote_account"));
+				remoteDevice.setDeviceIdentifier(onCreateIntent
+						.getStringExtra("remote_device_id"));
+				remoteDevice.setRegistrationId(onCreateIntent
+						.getStringExtra("remote_gcm_registration_id"));
+				remoteDevice.setDevicePhoneNumber(onCreateIntent
+						.getStringExtra("remote_phone_number"));	
+				
 				GCMConnectionManager.getManager().connect(remoteDevice,GCMChatActivity.this);						
 				return null;
 			}
@@ -188,8 +184,14 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 			@Override
 			public void run() {
-				pd.setMessage(message);
-				pd.show();
+				if( pd == null ){
+					pd =  ProgressDialog.show(GCMChatActivity.this, null,
+							message, true, false, null);							
+				}
+				else{
+					pd.setMessage(message);
+					pd.show();
+				}								
 			}
 		});
 	}
