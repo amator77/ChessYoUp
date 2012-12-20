@@ -63,7 +63,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 		this.setTitle("Chat with :" + this.remoteDevice.getAccount());
 		this.installListeners();
 		
-		if( intent.getExtras().getString("new_connection") != null &&  intent.getExtras().getString("new_connection").equals("true")){
+		if( intent.getExtras().getString("connected") != null &&  intent.getExtras().getString("connected").equals("true")){
 			this.connection = GCMConnectionManager.getManager().getConnection(this.remoteDevice.getRegistrationId());
 			this.connection.setListener(this);	
 		}

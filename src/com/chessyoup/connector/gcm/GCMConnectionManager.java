@@ -286,8 +286,6 @@ public class GCMConnectionManager implements ConnectionManager {
 						
 				this.sendAsynkMessage(remoteDevice, CONNECT_ACCEPTED);
 				
-//				GCMMesssageSender.getSender().sendMessage(remoteDevice,
-//						CONNECT_ACCEPTED);
 				Intent chatIntent = new Intent(applicationContext, GCMChatActivity.class);
 				chatIntent.putExtra("remote_device_id",
 						remoteDevice.getDeviceIdentifier());
@@ -303,9 +301,8 @@ public class GCMConnectionManager implements ConnectionManager {
 								.getAccount() : this.device
 								.getDevicePhoneNumber());
 				this.connections.add(new GCMConnection(remoteDevice, null));
-				chatIntent.putExtra("new_connection", "true");
-				context.startActivity(chatIntent);
-			
+				chatIntent.putExtra("connected", "true");
+				applicationContext.startActivity(chatIntent);			
 		}		
 	}
 
