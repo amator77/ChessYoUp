@@ -283,12 +283,12 @@ public class GCMConnectionManager implements ConnectionManager {
 		
 		if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD).equals(
 				CONNECT_REQUEST)) {			
-
 						
 				this.sendAsynkMessage(remoteDevice, CONNECT_ACCEPTED);
+				
 //				GCMMesssageSender.getSender().sendMessage(remoteDevice,
 //						CONNECT_ACCEPTED);
-				Intent chatIntent = new Intent(context, GCMChatActivity.class);
+				Intent chatIntent = new Intent(applicationContext, GCMChatActivity.class);
 				chatIntent.putExtra("remote_device_id",
 						remoteDevice.getDeviceIdentifier());
 				chatIntent.putExtra("remote_phone_number",
