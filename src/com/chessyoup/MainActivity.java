@@ -60,8 +60,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 		this.installListeners();
 		pd.setMessage("Registering...");
 		pd.show();
-//		this.runGCMRegistrationTask();
-		this.runFindRoomsTask();
+		this.runGCMRegistrationTask();
 	}
 
 	@Override
