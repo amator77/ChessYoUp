@@ -83,6 +83,8 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 	@Override
 	public void onConnected(Connection connection,
 			boolean status) {
+				
+		this.hideProgressDialog();		
 		
 		addMessage("system", status ? "Connected!!!" : "Error on conecting.");
 		GCMChatActivity.this.connection = (GCMConnection)connection;
@@ -151,11 +153,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 				
 				GCMConnectionManager.getManager().connect(remoteDevice,GCMChatActivity.this);						
 				return null;
-			}
-
-			protected void onPostExecute(Void result) {
-				hideProgressDialog();
-			}
+			}			
 		};
 
 		task.execute();
