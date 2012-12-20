@@ -42,17 +42,12 @@ public class GCMConnection implements Connection {
 	}
 
 	@Override
-	public void sendMessage(com.chessyoup.connector.Message message) throws IOException {
+	public void sendMessage(String message) throws IOException {
 
 		if (isConnected()) {
-
-			Message gcmMessage = new Message.Builder().timeToLive(0)
-					.delayWhileIdle(true)
-					.addData("source_id", GCMConnectionManager.getManager().getLocalDevice().getRegistrationId())
-					.addData("payload", message.getBody()).build();
-			Sender sender = new Sender(API_KEY);
-			sender.sendNoRetry(gcmMessage, remoteDevice.getRegistrationId());
+			GCMConnectionManager.getManager().sendAsynkMessage(remoteDevice,message);						
 		}
+		
 	}
 	
 	public void messageReceived(com.chessyoup.connector.Message message){

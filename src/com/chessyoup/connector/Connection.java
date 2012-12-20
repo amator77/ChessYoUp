@@ -20,5 +20,5 @@ public interface Connection {
 	 * @param message
 	 * @throws IOException 
 	 */
-	public void sendMessage(Message message) throws IOException;
+	public void sendMessage(String message) throws IOException;
 }

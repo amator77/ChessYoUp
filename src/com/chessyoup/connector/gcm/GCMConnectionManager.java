@@ -19,6 +19,7 @@ import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
+import com.chessyoup.connector.Message;
 import com.chessyoup.connector.RemoteService;
 import com.chessyoup.gcm.chat.GCMChatActivity;
 import com.chessyoup.utils.DeviceUuidFactory;
@@ -318,7 +319,7 @@ public class GCMConnectionManager implements ConnectionManager {
 		return null;
 	}
 	
-	private void sendAsynkMessage(final Device remoteDevice ,final String message){
+	public void sendAsynkMessage(final Device remoteDevice ,final String message){
 		
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 

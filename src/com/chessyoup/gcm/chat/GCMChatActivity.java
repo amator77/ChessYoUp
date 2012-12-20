@@ -110,8 +110,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 				display.append(source);
 				display.append(",");
 				display.append(new Date().toString());
-				display.append("\n");
-				display.append(":");
+				display.append("\n");				
 				display.append(text);
 				display.append("\n");
 			}
@@ -126,15 +125,9 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 			@Override
 			public void onClick(View v) {
-				Log.d("GCMChatActivity", "Send message request.");
-				GCMMessage message = new GCMMessage();
-				message.setSourceRegistrationID(ownerRegistrationId);
-				message.setDestinationRegistrationID(connection.getRemoteDevice()
-						.getRegistrationId());
-				EditText editChatText = (EditText) findViewById(R.id.editChatText);
-				message.setBody(editChatText.getEditableText().toString());
-				message.setSequnce(sequnce++);
-				runSendMessageTask(message);
+				Log.d("GCMChatActivity", "Send message request.");				
+				EditText editChatText = (EditText) findViewById(R.id.editChatText);				
+				runSendMessageTask(editChatText.getEditableText().toString());
 			}
 		});
 	}
@@ -168,12 +161,12 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 		task.execute();
 	}
 
-	private void runSendMessageTask(final Message message) {
+	private void runSendMessageTask(final String message) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				addMessage(ownerAccount, message.getBody());
+				addMessage(ownerAccount, message);
 
 				try {
 					connection.sendMessage(message);
