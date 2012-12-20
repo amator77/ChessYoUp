@@ -109,11 +109,11 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 			@Override
 			public void run() {
 				TextView display = (TextView) findViewById(R.id.chatDisplay);
-				display.append(source);
+				display.append(source != null ? source : "null");
 				display.append(",");
 				display.append(new Date().toString());
 				display.append("\n");				
-				display.append(text);
+				display.append(text != null ? text : "null");
 				display.append("\n");
 			}
 		});
