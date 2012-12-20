@@ -12,6 +12,8 @@ public interface RemoteService {
 	public Device findByPhoneNumber(String phoneNumber) throws IOException;
 	
 	public Device findByAccount(String account) throws IOException;
+			
+	public List<Device> devices(String roomId) throws IOException;
 	
-	public List<Device> search(String keyword) throws IOException;
+	public List<Room> rooms() throws IOException;
 }

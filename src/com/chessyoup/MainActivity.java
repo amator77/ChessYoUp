@@ -60,7 +60,8 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 		this.installListeners();
 		pd.setMessage("Registering...");
 		pd.show();
-		this.runGCMRegistrationTask();
+//		this.runGCMRegistrationTask();
+		this.runFindRoomsTask();
 	}
 
 	@Override
@@ -261,7 +262,31 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 
 		task.execute();
 	}
+	
+	private void runFindRoomsTask() {
 
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+
+				try {
+					connManager.getRemoteService().rooms();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+				return null;
+			}
+
+			protected void onPostExecute(Void result) {
+			}
+		};
+
+		task.execute();
+	}
+	
 	private Properties loadAssets() {
 		AssetManager manager = this.getAssets();
 		Properties p = new Properties();

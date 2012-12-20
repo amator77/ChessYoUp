@@ -1,10 +1,12 @@
 package com.chessyoup;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -13,7 +15,9 @@ import android.util.Log;
 
 import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
+import com.chessyoup.connector.GenericRoom;
 import com.chessyoup.connector.RemoteService;
+import com.chessyoup.connector.Room;
 import com.chessyoup.connector.gcm.GCMDevice;
 import com.chessyoup.utils.HttpClient;
 import com.chessyoup.utils.HttpClientResponse;
@@ -97,11 +101,40 @@ public class ChessYoUpRemoteService implements RemoteService {
 			e.printStackTrace();
 			return null;
 		}
-	}	
-	
+	}
+
 	@Override
-	public List<Device> search(String keyword) throws IOException {
+	public List<Device> devices(String roomId) throws IOException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public List<Room> rooms() throws IOException {
+		List<Room> rooms = new ArrayList<Room>();
+		StringBuffer findUrl = new StringBuffer();
+		findUrl.append(this.url).append("/rooms");		
+		
+		HttpClientResponse reponse = HttpClient.getInstance().readEntity(findUrl.toString(), "");
+		Log.d("ChessYoUpRemoteService", "Remote server response:"+reponse );
+		
+		try {
+			JSONArray jsonArray = new JSONArray(reponse.getBody()); 
+			
+			for( int i = 0 ; i < jsonArray.length() ; i++ ){
+				JSONArray jsonArray2 = jsonArray.getJSONArray(i);
+				GenericRoom room = new GenericRoom();
+				room.setName(jsonArray2.getString(0));
+				room.setId(jsonArray2.getString(1));
+				rooms.add(room);
+			}
+			
+			Log.d("ChessYoUpRemoteService", "Online rooms :"+rooms.toString() );			
+			return rooms;
+		} catch (JSONException e) {
+			Log.d("ChessYoUpRemoteService", "Not an json entity from server!");				
+			e.printStackTrace();
+			return null;
+		}
 	}
 }

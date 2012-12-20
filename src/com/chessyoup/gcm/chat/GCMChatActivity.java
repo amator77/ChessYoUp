@@ -24,7 +24,6 @@ import com.chessyoup.connector.GenericDevice;
 import com.chessyoup.connector.Message;
 import com.chessyoup.connector.gcm.GCMConnection;
 import com.chessyoup.connector.gcm.GCMConnectionManager;
-import com.chessyoup.connector.gcm.GCMMessage;
 
 public class GCMChatActivity extends Activity implements ConnectionListener {
 
@@ -42,19 +41,21 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		this.handler = new Handler();				
+		this.handler = new Handler();
 		setContentView(R.layout.chat);
 
 		Intent intent = getIntent();
-		ownerAccount = intent.getStringExtra("owner_account");			
+		ownerAccount = intent.getStringExtra("owner_account");
 		this.installListeners();
-		
-		if( intent.getExtras().getString("connected") != null &&  intent.getExtras().getString("connected").equals("true")){
-			this.connection = GCMConnectionManager.getManager().getConnection(intent.getStringExtra("remote_gcm_registration_id"));
-			this.connection.setListener(this);	
-			this.setTitle("Chat with :" +deviceLabel(this.connection.getRemoteDevice()));
-		}
-		else{		
+
+		if (intent.getExtras().getString("connected") != null
+				&& intent.getExtras().getString("connected").equals("true")) {
+			this.connection = GCMConnectionManager.getManager().getConnection(
+					intent.getStringExtra("remote_gcm_registration_id"));
+			this.connection.setListener(this);
+			this.setTitle("Chat with :"
+					+ deviceLabel(this.connection.getRemoteDevice()));
+		} else {
 			this.runConnectTask(intent);
 		}
 	}
@@ -79,30 +80,32 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 	protected void onStop() {
 		super.onStop();
 	}
-	
+
 	@Override
-	public void onConnected(Connection connection,
-			boolean status) {
-				
-		this.hideProgressDialog();		
-		
+	public void onConnected(Connection connection, boolean status) {
+
+		this.hideProgressDialog();
+
 		addMessage("system", status ? "Connected!!!" : "Error on conecting.");
-		GCMChatActivity.this.connection = (GCMConnection)connection;
-		
+		GCMChatActivity.this.connection = (GCMConnection) connection;
+
 		this.handler.post(new Runnable() {
-			
+
 			@Override
 			public void run() {
-				GCMChatActivity.this.setTitle("Chat with :" + deviceLabel(GCMChatActivity.this.connection.getRemoteDevice()));				
+				GCMChatActivity.this.setTitle("Chat with :"
+						+ deviceLabel(GCMChatActivity.this.connection
+								.getRemoteDevice()));
 			}
-		});		
+		});
 	}
 
 	@Override
 	public void messageReceived(Connection source, Message message) {
-		addMessage( deviceLabel(this.connection.getRemoteDevice()), message.getBody());
+		addMessage(deviceLabel(this.connection.getRemoteDevice()),
+				message.getBody());
 	}
-	
+
 	private void addMessage(final String source, final String text) {
 		this.handler.post(new Runnable() {
 
@@ -112,7 +115,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 				display.append(source != null ? source : "null");
 				display.append(",");
 				display.append(new Date().toString());
-				display.append("\n");				
+				display.append("\n");
 				display.append(text != null ? text : "null");
 				display.append("\n");
 			}
@@ -127,8 +130,8 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 			@Override
 			public void onClick(View v) {
-				Log.d("GCMChatActivity", "Send message request.");				
-				EditText editChatText = (EditText) findViewById(R.id.editChatText);				
+				Log.d("GCMChatActivity", "Send message request.");
+				EditText editChatText = (EditText) findViewById(R.id.editChatText);
 				runSendMessageTask(editChatText.getEditableText().toString());
 			}
 		});
@@ -136,24 +139,26 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 	private void runConnectTask(final Intent onCreateIntent) {
 		this.showProgressDialog("Connecting...");
-				
+
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				GenericDevice remoteDevice = new GenericDevice(); 				
-				remoteDevice.setAccount(onCreateIntent.getStringExtra("remote_account"));
+				GenericDevice remoteDevice = new GenericDevice();
+				remoteDevice.setAccount(onCreateIntent
+						.getStringExtra("remote_account"));
 				remoteDevice.setDeviceIdentifier(onCreateIntent
 						.getStringExtra("remote_device_id"));
 				remoteDevice.setRegistrationId(onCreateIntent
 						.getStringExtra("remote_gcm_registration_id"));
 				remoteDevice.setDevicePhoneNumber(onCreateIntent
-						.getStringExtra("remote_phone_number"));	
-				
-				GCMConnectionManager.getManager().connect(remoteDevice,GCMChatActivity.this);						
+						.getStringExtra("remote_phone_number"));
+
+				GCMConnectionManager.getManager().connect(remoteDevice,
+						GCMChatActivity.this);
 				return null;
-			}			
+			}
 		};
 
 		task.execute();
@@ -184,14 +189,13 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 			@Override
 			public void run() {
-				if( pd == null ){
-					pd =  ProgressDialog.show(GCMChatActivity.this, null,
-							message, true, false, null);							
-				}
-				else{
+				if (pd == null) {
+					pd = ProgressDialog.show(GCMChatActivity.this, null,
+							message, true, false, null);
+				} else {
 					pd.setMessage(message);
 					pd.show();
-				}								
+				}
 			}
 		});
 	}
@@ -204,21 +208,21 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 				pd.dismiss();
 			}
 		});
-	}	
-	
-	private String deviceLabel(Device device){
+	}
+
+	private String deviceLabel(Device device) {
 		StringBuffer sb = new StringBuffer();
-		
-		if( device.getAccount() != null && device.getAccount().trim().length() > 0 ){
+
+		if (device.getAccount() != null
+				&& device.getAccount().trim().length() > 0) {
 			sb.append(device.getAccount());
-		}
-		else if( device.getDevicePhoneNumber() != null && device.getDevicePhoneNumber().trim().length() > 0 ){
+		} else if (device.getDevicePhoneNumber() != null
+				&& device.getDevicePhoneNumber().trim().length() > 0) {
 			sb.append(device.getDevicePhoneNumber());
-		}
-		else{
+		} else {
 			sb.append(device.getDeviceIdentifier());
 		}
-		
+
 		return sb.toString();
 	}
 }
