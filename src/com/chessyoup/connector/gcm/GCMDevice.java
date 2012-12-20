@@ -4,7 +4,7 @@ import com.chessyoup.connector.Device;
 
 public class GCMDevice implements Device{
 	
-	private String registeredId;
+	private String registrationId;
 	
 	private String deviceIdentifier;
 	
@@ -12,8 +12,8 @@ public class GCMDevice implements Device{
 	
 	private String googleAccount;
 	
-	public GCMDevice(String registeredId,String deviceIdentifier,String devicePhoneNumber,String googleAccount){
-		this.registeredId = registeredId;
+	public GCMDevice(String registrationId,String deviceIdentifier,String devicePhoneNumber,String googleAccount){
+		this.registrationId = registrationId;
 		this.deviceIdentifier = deviceIdentifier;
 		this.devicePhoneNumber = devicePhoneNumber;
 		this.googleAccount = googleAccount;
@@ -29,20 +29,16 @@ public class GCMDevice implements Device{
 
 	@Override
 	public String getRegistrationId() {
-		 return this.registeredId;
+		 return this.registrationId;
 	}
-
+		
+	public void setRegistrationId(String registrationId) {
+		 this.registrationId = registrationId;
+	}
+	
 	@Override
 	public String getDevicePhoneNumber() {
 		return this.devicePhoneNumber;
-	}
-
-	public String getRegisteredId() {
-		return registeredId;
-	}
-
-	public void setRegisteredId(String registeredId) {
-		this.registeredId = registeredId;
 	}
 
 	public void setDeviceIdentifier(String deviceIdentifier) {
@@ -64,7 +60,7 @@ public class GCMDevice implements Device{
 
 	@Override
 	public String toString() {
-		return "GCMDevice [registeredId=" + registeredId
+		return "GCMDevice [registeredId=" + registrationId
 				+ ", deviceIdentifier=" + deviceIdentifier
 				+ ", devicePhoneNumber=" + devicePhoneNumber
 				+ ", googleAccount=" + googleAccount + "]";

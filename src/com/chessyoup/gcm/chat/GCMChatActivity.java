@@ -21,10 +21,11 @@ import com.chessyoup.connector.Connection;
 import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.GenericDevice;
 import com.chessyoup.connector.Message;
+import com.chessyoup.connector.gcm.GCMConnection;
 import com.chessyoup.connector.gcm.GCMConnectionManager;
 import com.chessyoup.connector.gcm.GCMMessage;
 
-public class GCMChatActivity extends Activity {
+public class GCMChatActivity extends Activity implements ConnectionListener {
 
 	private Handler handler;
 
@@ -38,7 +39,7 @@ public class GCMChatActivity extends Activity {
 
 	private static int sequnce;
 
-	private Connection connection;
+	private GCMConnection connection;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -61,7 +62,14 @@ public class GCMChatActivity extends Activity {
 				.getStringExtra("remote_phone_number"));
 		this.setTitle("Chat with :" + this.remoteDevice.getAccount());
 		this.installListeners();
-		this.runConnectTask();
+		
+		if( intent.getExtras().getString("new_connection") != null &&  intent.getExtras().getString("new_connection").equals("true")){
+			this.connection = GCMConnectionManager.getManager().getConnection(this.remoteDevice.getRegistrationId());
+			this.connection.setListener(this);	
+		}
+		else{		
+			this.runConnectTask();
+		}
 	}
 
 	@Override
@@ -84,7 +92,19 @@ public class GCMChatActivity extends Activity {
 	protected void onStop() {
 		super.onStop();
 	}
+	
+	@Override
+	public void onConnected(Connection connection,
+			boolean status) {
+		addMessage("system", status ? "Connected!!!" : "Error on conecting.");
+		GCMChatActivity.this.connection = (GCMConnection)connection;
+	}
 
+	@Override
+	public void messageReceived(Connection source, Message message) {
+		addMessage( remoteDevice.getAccount() != null ? remoteDevice .getAccount() : remoteDevice .getDevicePhoneNumber(), message.getBody());
+	}
+	
 	private void addMessage(final String source, final String text) {
 		this.handler.post(new Runnable() {
 
@@ -131,29 +151,7 @@ public class GCMChatActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-
-				GCMConnectionManager.getManager().connect(remoteDevice,
-						new ConnectionListener() {
-
-							@Override
-							public void onConnected(Connection connection,
-									boolean status) {
-								addMessage("system", status ? "Connected!!!"
-										: "Error on conecting.");
-								GCMChatActivity.this.connection = connection;
-							}
-
-							@Override
-							public void messageReceived(Connection source,
-									Message message) {
-								addMessage(
-										remoteDevice.getAccount() != null ? remoteDevice
-												.getAccount() : remoteDevice
-												.getDevicePhoneNumber(),
-										message.getBody());
-							}
-						});
-
+				GCMConnectionManager.getManager().connect(remoteDevice,GCMChatActivity.this);						
 				return null;
 			}
 
@@ -204,5 +202,5 @@ public class GCMChatActivity extends Activity {
 				pd.dismiss();
 			}
 		});
-	}
+	}	
 }

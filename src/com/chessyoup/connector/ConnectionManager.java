@@ -32,7 +32,7 @@ public interface ConnectionManager {
 	 * @param listener
 	 * @return
 	 */
-	public Connection connect(Device remoteDevice , ConnectionListener listener);
+	public void connect(Device remoteDevice , ConnectionListener listener);
 	
 	/**
 	 * Get remote ( third party service helper )

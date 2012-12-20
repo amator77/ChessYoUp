@@ -283,7 +283,6 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 				TextView display = (TextView) findViewById(R.id.display);
 				display.append(new Date().toString());
 				display.append("\n");
-				display.append(":");
 				display.append(text);
 				display.append("\n");
 			}
