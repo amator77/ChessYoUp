@@ -24,6 +24,7 @@ import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
 import com.chessyoup.gcm.chat.GCMChatActivity;
+import com.chessyoup.remote.ChessYoUpRemoteService;
 
 public class MainActivity extends Activity implements ConnectionManagerListener {
 

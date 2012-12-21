@@ -7,8 +7,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
 
-import com.chessyoup.R;
-import com.chessyoup.connector.Message;
 import com.chessyoup.connector.gcm.GCMConnectionManager;
 import com.google.android.gcm.GCMBaseIntentService;
 
@@ -41,14 +39,12 @@ public class GCMIntentService extends GCMBaseIntentService {
 	@Override
 	protected void onMessage(Context context, Intent intent) {
 		Log.i(TAG, "Received message :" + intent.getExtras().toString());		
-		GCMConnectionManager.getManager().hadleIncomingMessage( context, intent);		
-//		GCMConnectionManager.getManager().hadleIncomingMessage(intent.getExtras().getString("source_id"),intent.getExtras().getString("payload") );		
+		GCMConnectionManager.getManager().hadleIncomingMessage( context, intent);				
 	}
 
 	@Override
 	protected void onDeletedMessages(Context context, int total) {
-		Log.i(TAG, "Received deleted messages notification");
-		String message = getString(R.string.gcm_deleted, total);
+		Log.i(TAG, "Received deleted messages notification");		
 	}
 
 	@Override
@@ -58,7 +54,6 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected boolean onRecoverableError(Context context, String errorId) {
-		// log message
 		Log.i(TAG, "Received recoverable error: " + errorId);
 		return super.onRecoverableError(context, errorId);
 	}
