@@ -14,13 +14,10 @@ import android.telephony.TelephonyManager;
 import android.util.Log;
 
 import com.chessyoup.GCMIntentService;
-import com.chessyoup.MainActivity;
 import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
-import com.chessyoup.connector.Message;
-import com.chessyoup.connector.RemoteService;
 import com.chessyoup.gcm.chat.GCMChatActivity;
 import com.chessyoup.utils.DeviceUuidFactory;
 import com.google.android.gcm.GCMRegistrar;
@@ -32,8 +29,6 @@ public class GCMConnectionManager implements ConnectionManager {
 	private List<ConnectionManagerListener> listeners;
 
 	private List<GCMConnection> connections;
-
-	private RemoteService remoteService;
 
 	private Context applicationContext;
 
@@ -54,6 +49,9 @@ public class GCMConnectionManager implements ConnectionManager {
 
 	@Override
 	public void initialize() {
+
+		boolean initialized = false;
+
 		if (applicationContext == null) {
 			Log.e("GCMConnectionManager", "No application context !");
 			this.fireoOnInitializeEvent(false);
@@ -62,14 +60,11 @@ public class GCMConnectionManager implements ConnectionManager {
 
 		TelephonyManager tManager = (TelephonyManager) applicationContext
 				.getSystemService(Context.TELEPHONY_SERVICE);
-		Log.d("GCMConnectionManager",
-				"tManager : " + tManager.getSimSerialNumber());
 		this.device = new GCMDevice(null, new DeviceUuidFactory(
 				applicationContext).getDeviceUuid().toString(),
 				tManager.getLine1Number(), getGoogleAccount());
 		Log.d("GCMConnectionManager", "device : " + this.device.toString());
 
-		boolean initialized = false;
 		GCMRegistrar.checkDevice(applicationContext);
 		GCMRegistrar.checkManifest(applicationContext);
 		String regId = GCMRegistrar.getRegistrationId(applicationContext);
@@ -80,29 +75,7 @@ public class GCMConnectionManager implements ConnectionManager {
 					GCMIntentService.config.get("sender_id"));
 		} else {
 			this.device.setRegistrationId(regId);
-
-			if (GCMRegistrar.isRegisteredOnServer(applicationContext)) {
-				Log.d("GCMConnectionManager",
-						"app allready registerd on the server ");
-				initialized = true;
-			} else {
-				Log.d("GCMConnectionManager",
-						" trying to register on remote server");
-
-				try {
-					if (this.remoteService.register(this.device)) {
-						GCMRegistrar.setRegisteredOnServer(applicationContext,
-								true);
-						initialized = true;
-					}
-
-				} catch (IOException e) {
-					e.printStackTrace();
-					Log.e("GCMConnectionManager",
-							"Error on registering on remote server");
-				}
-			}
-
+			initialized = true;
 			this.fireoOnInitializeEvent(initialized);
 		}
 	}
@@ -133,37 +106,13 @@ public class GCMConnectionManager implements ConnectionManager {
 	}
 
 	public void gcmRegistered(String regId) {
-		boolean initialized = false;
-
 		this.device.setRegistrationId(regId);
-
-		if (GCMRegistrar.isRegisteredOnServer(applicationContext)) {
-			Log.d("GCMConnectionManager",
-					"app allready registerd on the server ");
-			initialized = true;
-		} else {
-			Log.d("GCMConnectionManager",
-					" trying to register on remote server");
-
-			try {
-				if (this.remoteService.register(this.device)) {
-					GCMRegistrar
-							.setRegisteredOnServer(applicationContext, true);
-					initialized = true;
-				}
-
-			} catch (IOException e) {
-				Log.e("GCMConnectionManager",
-						"Error on registering on remote server");
-			}
-		}
-
-		this.fireoOnInitializeEvent(initialized);
+		this.fireoOnInitializeEvent(true);
 	}
 
 	public void gcmUnRegistered(String regId) {
-		GCMRegistrar.setRegisteredOnServer(applicationContext, false);
 		this.device = null;
+		this.connections.clear();
 		this.fireoOnDispose(true);
 	}
 
@@ -208,17 +157,8 @@ public class GCMConnectionManager implements ConnectionManager {
 		this.applicationContext = applicationContext;
 	}
 
-	public void setRemoteService(RemoteService remoteService) {
-		this.remoteService = remoteService;
-	}
-
 	@Override
-	public RemoteService getRemoteService() {
-		return this.remoteService;
-	}
-
-	@Override
-	public void registerListener(ConnectionManagerListener listener) {
+	public void addListener(ConnectionManagerListener listener) {
 
 		if (!this.listeners.contains(listener)) {
 			this.listeners.add(listener);
@@ -253,25 +193,25 @@ public class GCMConnectionManager implements ConnectionManager {
 				"Hanlde new mesage :" + message.toString());
 
 		for (GCMConnection conn : this.connections) {
-			
-			if (conn.getRemoteDevice().getRegistrationId() .equals(message.getSourceId())) {
-				
-				if( extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD).equals(
-						CONNECT_ACCEPTED)){
-					if( conn.getListener() != null ){
-						conn.getListener().onConnected(conn, true);						
+
+			if (conn.getRemoteDevice().getRegistrationId()
+					.equals(message.getSourceId())) {
+
+				if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD).equals(
+						CONNECT_ACCEPTED)) {
+					if (conn.getListener() != null) {
+						conn.getListener().onConnected(conn, true);
 					}
-				}
-				else{
+				} else {
 					conn.messageReceived(message);
 				}
-								
+
 				return;
 			}
 		}
 
 		Log.d("GCMConnectionManager", "No connection for the  message!");
-		
+
 		GCMDevice remoteDevice = new GCMDevice();
 		remoteDevice.setDeviceIdentifier(extra
 				.getString(GCMMesssageSender.SOURCE_DEVICE_ID));
@@ -281,30 +221,28 @@ public class GCMConnectionManager implements ConnectionManager {
 				.getString(GCMMesssageSender.SOURCE_PHONE_NUMBER));
 		remoteDevice.setGoogleAccount(extra
 				.getString(GCMMesssageSender.SOURCE_ACCOUNT_ID));
-		
+
 		if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD).equals(
-				CONNECT_REQUEST)) {			
-						
-				this.sendAsynkMessage(remoteDevice, CONNECT_ACCEPTED);
-				
-				Intent chatIntent = new Intent(applicationContext, GCMChatActivity.class);
-				chatIntent.putExtra("remote_device_id",
-						remoteDevice.getDeviceIdentifier());
-				chatIntent.putExtra("remote_phone_number",
-						remoteDevice.getDevicePhoneNumber());
-				chatIntent.putExtra("remote_gcm_registration_id",
-						remoteDevice.getRegistrationId());
-				chatIntent
-						.putExtra("remote_account", remoteDevice.getAccount());
-				chatIntent.putExtra(
-						"owner_account",
-						this.device.getAccount() != null ? this.device
-								.getAccount() : this.device
-								.getDevicePhoneNumber());
-				this.connections.add(new GCMConnection(remoteDevice, null));
-				chatIntent.putExtra("connected", "true");
-				applicationContext.startActivity(chatIntent);			
-		}		
+				CONNECT_REQUEST)) {
+
+			this.sendAsynkMessage(remoteDevice, CONNECT_ACCEPTED);
+
+			Intent chatIntent = new Intent(applicationContext,
+					GCMChatActivity.class);
+			chatIntent.putExtra("remote_device_id",
+					remoteDevice.getDeviceIdentifier());
+			chatIntent.putExtra("remote_phone_number",
+					remoteDevice.getDevicePhoneNumber());
+			chatIntent.putExtra("remote_gcm_registration_id",
+					remoteDevice.getRegistrationId());
+			chatIntent.putExtra("remote_account", remoteDevice.getAccount());
+			chatIntent.putExtra("owner_account",
+					this.device.getAccount() != null ? this.device.getAccount()
+							: this.device.getDevicePhoneNumber());
+			this.connections.add(new GCMConnection(remoteDevice, null));
+			chatIntent.putExtra("connected", "true");
+			applicationContext.startActivity(chatIntent);
+		}
 	}
 
 	public GCMConnection getConnection(String registrationId) {
@@ -318,22 +256,23 @@ public class GCMConnectionManager implements ConnectionManager {
 
 		return null;
 	}
-	
-	public void sendAsynkMessage(final Device remoteDevice ,final String message){
-		
+
+	public void sendAsynkMessage(final Device remoteDevice, final String message) {
+
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
 				try {
-					GCMMesssageSender.getSender().sendMessage(remoteDevice,message);
+					GCMMesssageSender.getSender().sendMessage(remoteDevice,
+							message);
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
 				return null;
 			}
 
-			protected void onPostExecute(Void result) {				
+			protected void onPostExecute(Void result) {
 			}
 		};
 

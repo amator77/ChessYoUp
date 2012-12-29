@@ -1,4 +1,4 @@
-package com.chessyoup.remote;
+package com.chessyoup.server.gcm;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -14,23 +14,23 @@ import android.util.Log;
 
 import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
-import com.chessyoup.connector.RemoteService;
+import com.chessyoup.server.RemoteService;
 import com.chessyoup.server.Room;
-import com.chessyoup.server.gcm.GCMRoom;
 import com.chessyoup.utils.HttpClient;
 import com.chessyoup.utils.HttpClientResponse;
 
-public class ChessYoUpRemoteService implements RemoteService {
+public class GCMRemoteService implements RemoteService {
 
 	private String url;
 
-	public ChessYoUpRemoteService(String url) {
+	public GCMRemoteService(String url) {
 		this.url = url;
 	}
 
 	@Override
-	public boolean register(Device device) {
+	public boolean register(Device device,String roomId) {
 		Map<String, String> params = new HashMap<String, String>();
+		params.put("room_id", roomId);
 		params.put("device_id", device.getDeviceIdentifier());
 		params.put(
 				"phone_number",

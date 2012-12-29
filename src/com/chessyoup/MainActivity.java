@@ -24,7 +24,7 @@ import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
 import com.chessyoup.gcm.chat.GCMChatActivity;
-import com.chessyoup.remote.ChessYoUpRemoteService;
+import com.chessyoup.server.gcm.GCMRemoteService;
 
 public class MainActivity extends Activity implements ConnectionManagerListener {
 
@@ -44,7 +44,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 		this.handler = new Handler();
 		this.connManager = ConnectionManagerFactory.getFactory()
 				.getGCMConnectionManager(
-						new ChessYoUpRemoteService(
+						new GCMRemoteService(
 								this.chatProperties
 										.getProperty("chessyoup_url")),
 						this.getApplicationContext());
@@ -123,7 +123,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 	}
 
 	private void installListeners() {
-		connManager.registerListener(this);
+		connManager.addListener(this);
 		final Button sendButton = (Button) findViewById(R.id.send);
 
 		sendButton.setOnClickListener(new OnClickListener() {
@@ -158,17 +158,17 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 						pd.show();
 					}
 				});
-
-				try {
-					return connManager.getRemoteService().findByPhoneNumber(
-							phone);
-
-				} catch (IOException e) {
-					Log.d("MainActivity",
-							"Error on searching :" + e.getMessage());
-					log(e.getMessage());
-					e.printStackTrace();
-				}
+//
+//				try {
+//					return connManager.getRemoteService().findByPhoneNumber(
+//							phone);
+//
+//				} catch (IOException e) {
+//					Log.d("MainActivity",
+//							"Error on searching :" + e.getMessage());
+//					log(e.getMessage());
+//					e.printStackTrace();
+//				}
 
 				return null;
 			}
@@ -219,17 +219,17 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 					}
 				});
 
-				try {
-					return connManager.getRemoteService()
-							.findByAccount(account);
-
-				} catch (IOException e) {
-					Log.d("MainActivity",
-							"Error on searching :" + e.getMessage());
-
-					log(e.getMessage());
-					e.printStackTrace();
-				}
+//				try {
+//					return connManager.getRemoteService()
+//							.findByAccount(account);
+//					
+//				} catch (IOException e) {
+//					Log.d("MainActivity",
+//							"Error on searching :" + e.getMessage());
+//
+//					log(e.getMessage());
+//					e.printStackTrace();
+//				}
 
 				return null;
 			}
@@ -270,12 +270,12 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				try {
-					connManager.getRemoteService().rooms();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+//				try {
+//					connManager.getRemoteService().rooms();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
 
 				return null;
 			}

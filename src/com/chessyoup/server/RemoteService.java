@@ -1,13 +1,13 @@
-package com.chessyoup.connector;
+package com.chessyoup.server;
 
 import java.io.IOException;
 import java.util.List;
 
-import com.chessyoup.server.Room;
+import com.chessyoup.connector.Device;
 
 public interface RemoteService {
 	
-	public boolean register(Device device) throws IOException;
+	public boolean register(Device device,String roomId) throws IOException;
 	
 	public boolean unRegister(Device device) throws IOException;
 	

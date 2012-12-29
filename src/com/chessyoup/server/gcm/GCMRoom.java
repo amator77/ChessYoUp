@@ -1,20 +1,29 @@
 package com.chessyoup.server.gcm;
 
-import com.chessyoup.server.Room;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.chessyoup.server.Room;
+import com.chessyoup.server.RoomListener;
 
 public class GCMRoom implements Room {
-	
+
 	private String id;
-	
+
 	private String name;
-	
+
 	private String senderId;
-	
+
 	private String apiKey;
-	
+
 	private int usersCount;
-	
+
+	private List<RoomListener> listeners;
+
+	public GCMRoom() {
+		this.listeners = new ArrayList<RoomListener>();
+	}
+
 	@Override
 	public String getName() {
 		return this.name;
@@ -63,10 +72,23 @@ public class GCMRoom implements Room {
 	}
 
 	@Override
+	public void addRommListener(RoomListener listener) {
+		if (!this.listeners.contains(listener)) {
+			this.listeners.add(listener);
+		}
+	}
+
+	@Override
+	public void removeRommListener(RoomListener listener) {
+		if (this.listeners.contains(listener)) {
+			this.listeners.remove(listener);
+		}
+	}
+
+	@Override
 	public String toString() {
 		return "GCMRoom [id=" + id + ", name=" + name + ", senderId="
 				+ senderId + ", apiKey=" + apiKey + ", usersCount="
 				+ usersCount + "]";
 	}
-	
 }

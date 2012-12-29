@@ -6,7 +6,7 @@ public interface ConnectionManager {
 	 * 
 	 * @param listener
 	 */
-	public void registerListener(ConnectionManagerListener listener);
+	public void addListener(ConnectionManagerListener listener);
 	
 	/**
 	 * 
@@ -34,16 +34,10 @@ public interface ConnectionManager {
 	 */
 	public void connect(Device remoteDevice , ConnectionListener listener);
 	
-	/**
-	 * Get remote ( third party service helper )
-	 * @return - the helper
-	 */
-	public RemoteService getRemoteService();
 	
 	/**
 	 * Get device info of this manager .
 	 * @return - an device only if this manager is initialized
 	 */
 	public Device getLocalDevice();
-	
 }
