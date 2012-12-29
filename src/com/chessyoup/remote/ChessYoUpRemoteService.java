@@ -14,9 +14,9 @@ import android.util.Log;
 
 import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
-import com.chessyoup.connector.GenericRoom;
 import com.chessyoup.connector.RemoteService;
-import com.chessyoup.connector.Room;
+import com.chessyoup.server.Room;
+import com.chessyoup.server.gcm.GCMRoom;
 import com.chessyoup.utils.HttpClient;
 import com.chessyoup.utils.HttpClientResponse;
 
@@ -128,7 +128,7 @@ public class ChessYoUpRemoteService implements RemoteService {
 
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONArray jsonArray2 = jsonArray.getJSONArray(i);
-				GenericRoom room = new GenericRoom();
+				GCMRoom room = new GCMRoom();
 				room.setName(jsonArray2.getString(0));
 				room.setId(jsonArray2.getString(1));
 				rooms.add(room);

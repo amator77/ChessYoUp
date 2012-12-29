@@ -28,6 +28,7 @@ import com.chessyoup.remote.ChessYoUpRemoteService;
 
 public class MainActivity extends Activity implements ConnectionManagerListener {
 
+	
 	private ConnectionManager connManager;
 
 	private Handler handler;
@@ -47,8 +48,7 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 								this.chatProperties
 										.getProperty("chessyoup_url")),
 						this.getApplicationContext());
-		pd = ProgressDialog.show(MainActivity.this, null, "message", true,
-				false, null);
+		
 		setContentView(R.layout.main);
 
 		Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -59,8 +59,8 @@ public class MainActivity extends Activity implements ConnectionManagerListener 
 		spinner.setAdapter(adapter);
 
 		this.installListeners();
-		pd.setMessage("Registering...");
-		pd.show();
+		pd = ProgressDialog.show(MainActivity.this, null, "Registering...", true,
+				false, null);
 		this.runGCMRegistrationTask();
 	}
 

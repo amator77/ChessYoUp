@@ -3,6 +3,8 @@ package com.chessyoup.connector;
 import java.io.IOException;
 import java.util.List;
 
+import com.chessyoup.server.Room;
+
 public interface RemoteService {
 	
 	public boolean register(Device device) throws IOException;
