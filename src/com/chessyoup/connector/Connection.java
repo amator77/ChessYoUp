@@ -21,4 +21,17 @@ public interface Connection {
 	 * @throws IOException 
 	 */
 	public void sendMessage(String message) throws IOException;
+	
+	/**
+	 * 
+	 * @param listener
+	 */
+	public void setConnectionListener(ConnectionListener listener);
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public ConnectionListener getConnectionListener();
+	
 }

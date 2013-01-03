@@ -10,6 +10,12 @@ public interface ConnectionListener {
 	
 	/**
 	 * 
+	 * @param status
+	 */
+	public void onDisconnected(Connection source);
+	
+	/**
+	 * 
 	 * @param source
 	 * @param message
 	 */

@@ -1,8 +1,7 @@
-package com.chessyoup;
+package com.chessyoup.connector;
 
 import android.content.Context;
 
-import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.gcm.GCMConnectionManager;
 import com.chessyoup.server.RemoteService;
 
@@ -19,10 +18,10 @@ public class ConnectionManagerFactory {
 	public ConnectionManager getGCMConnectionManager(RemoteService remoteService,Context
 			appContext){
 		
-		if( gcmConnectionManager == null ){
-			this.gcmConnectionManager = GCMConnectionManager.getManager();			
-			this.gcmConnectionManager.setApplicationContext(appContext);
-		}
+//		if( gcmConnectionManager == null ){
+//			this.gcmConnectionManager = GCMConnectionManager.getManager();			
+//			this.gcmConnectionManager.setApplicationContext(appContext);
+//		}
 		
 		return this.gcmConnectionManager;
 	}

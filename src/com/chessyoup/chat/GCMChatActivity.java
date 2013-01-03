@@ -1,4 +1,4 @@
-package com.chessyoup.gcm.chat;
+package com.chessyoup.chat;
 
 import java.io.IOException;
 import java.util.Date;
@@ -22,8 +22,7 @@ import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
 import com.chessyoup.connector.Message;
-import com.chessyoup.connector.gcm.GCMConnection;
-import com.chessyoup.connector.gcm.GCMConnectionManager;
+import com.chessyoup.server.RoomsManager;
 
 public class GCMChatActivity extends Activity implements ConnectionListener {
 
@@ -37,7 +36,7 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 	private static int sequnce;
 
-	private GCMConnection connection;
+	private Connection connection;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -50,9 +49,14 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 
 		if (intent.getExtras().getString("connected") != null
 				&& intent.getExtras().getString("connected").equals("true")) {
-			this.connection = GCMConnectionManager.getManager().getConnection(
-					intent.getStringExtra("remote_gcm_registration_id"));
-			this.connection.setListener(this);
+
+			this.connection = RoomsManager
+					.getManager()
+					.getConnectionManager()
+					.getConnection(
+							intent.getStringExtra("remote_gcm_registration_id"));
+
+			this.connection.setConnectionListener(this);
 			this.setTitle("Chat with :"
 					+ deviceLabel(this.connection.getRemoteDevice()));
 		} else {
@@ -80,14 +84,20 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 	protected void onStop() {
 		super.onStop();
 	}
-
+	
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+		this.runOnDisconectTask();
+	}
+	
 	@Override
 	public void onConnected(Connection connection, boolean status) {
 
 		this.hideProgressDialog();
 
 		addMessage("system", status ? "Connected!!!" : "Error on conecting.");
-		GCMChatActivity.this.connection = (GCMConnection) connection;
+		this.connection = connection;
 
 		this.handler.post(new Runnable() {
 
@@ -155,8 +165,9 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 				remoteDevice.setDevicePhoneNumber(onCreateIntent
 						.getStringExtra("remote_phone_number"));
 
-				GCMConnectionManager.getManager().connect(remoteDevice,
-						GCMChatActivity.this);
+				RoomsManager.getManager().getConnectionManager()
+						.connect(remoteDevice, GCMChatActivity.this);
+
 				return null;
 			}
 		};
@@ -164,6 +175,25 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 		task.execute();
 	}
 
+	
+	private void runOnDisconectTask() {
+
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+
+				if( GCMChatActivity.this.connection != null ){
+					RoomsManager.getManager().getConnectionManager().closeConnection(GCMChatActivity.this.connection);
+				}
+
+				return null;
+			}
+		};
+
+		task.execute();
+	}
+	
 	private void runSendMessageTask(final String message) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
@@ -224,5 +254,11 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 		}
 
 		return sb.toString();
+	}
+
+	@Override
+	public void onDisconnected(Connection source) {
+		addMessage(deviceLabel(source.getRemoteDevice()), "Connections is closed!!!");
+		finish();
 	}
 }

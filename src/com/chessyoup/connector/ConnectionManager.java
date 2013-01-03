@@ -34,6 +34,18 @@ public interface ConnectionManager {
 	 */
 	public void connect(Device remoteDevice , ConnectionListener listener);
 	
+	/**
+	 * Close this connection.
+	 * @return
+	 */
+	public void closeConnection(Connection connection);
+	
+	/**
+	 * 
+	 * @param connectionId
+	 * @return
+	 */
+	public Connection getConnection(String connectionId);
 	
 	/**
 	 * Get device info of this manager .

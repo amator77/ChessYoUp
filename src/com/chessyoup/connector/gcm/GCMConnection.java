@@ -11,11 +11,14 @@ import com.chessyoup.connector.Device;
 public class GCMConnection implements Connection {
 
 	private Device remoteDevice;
-
+	
+	private Device localDevice;
+	
 	private ConnectionListener listener;
 
-	public GCMConnection(Device remoteDevice, ConnectionListener listener) {
+	public GCMConnection(Device localDevice , Device remoteDevice, ConnectionListener listener) {
 		this.remoteDevice = remoteDevice;
+		this.localDevice = localDevice;
 		this.listener = listener;
 	}
 
@@ -28,12 +31,14 @@ public class GCMConnection implements Connection {
 	public Device getRemoteDevice() {
 		return this.remoteDevice;
 	}
-
-	public void setListener(ConnectionListener listener) {
+	
+	@Override
+	public void setConnectionListener(ConnectionListener listener) {
 		this.listener = listener;
 	}
 
-	public ConnectionListener getListener() {
+	@Override
+	public ConnectionListener getConnectionListener() {
 		return listener;
 	}
 
@@ -41,8 +46,12 @@ public class GCMConnection implements Connection {
 	public void sendMessage(String message) throws IOException {
 
 		if (isConnected()) {
-			GCMConnectionManager.getManager().sendAsynkMessage(remoteDevice,
-					message);
+			try {
+				GCMMesssageSender.getSender()
+						.sendMessage(this.localDevice,this.remoteDevice, message);
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 

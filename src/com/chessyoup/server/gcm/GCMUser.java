@@ -1,16 +1,16 @@
 package com.chessyoup.server.gcm;
 
-import com.chessyoup.connector.gcm.GCMDevice;
+import com.chessyoup.connector.Device;
 import com.chessyoup.server.User;
 import com.chessyoup.server.UserStatus;
 
 public class GCMUser implements User {
 	
-	private GCMDevice device;
+	private Device device;
 	
 	private UserStatus userStatus;
 	
-	public GCMUser(GCMDevice device, UserStatus status){
+	public GCMUser(Device device, UserStatus status){
 		this.device = device;
 		this.userStatus = status;
 	}
@@ -28,5 +28,26 @@ public class GCMUser implements User {
 	@Override
 	public UserStatus getStatus() {
 		return this.userStatus;
+	}
+
+	@Override
+	public String toString() {
+		StringBuffer sb = new StringBuffer();
+		if( device.getAccount() != null && !device.getAccount().equals("null")){
+			sb.append(device.getAccount());
+		}
+		else if( device.getDevicePhoneNumber() != null && !device.getDevicePhoneNumber().equals("null")){
+			sb.append(device.getDevicePhoneNumber());
+		}
+		else{
+			sb.append(device.getDeviceIdentifier());
+		}
+		
+		return sb.toString();
+	}
+
+	@Override
+	public Device getDevice() {
+		return this.device;
 	}
 }

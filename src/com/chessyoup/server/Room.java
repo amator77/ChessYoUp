@@ -1,12 +1,8 @@
 package com.chessyoup.server;
 
+import java.util.Map;
+
 public interface Room {
-	
-	/**
-	 * Return the name of this room
-	 * @return
-	 */
-	public String getName();
 	
 	/**
 	 * The unique id of this room.
@@ -15,21 +11,26 @@ public interface Room {
 	public String getId();
 	
 	/**
+	 * Return the name of this room
+	 * @return
+	 */
+	public String getName();
+	
+	/**
+	 * Get max users limit for this room
+	 * @return
+	 */
+	public int getSize();
+	
+	/**
 	 * Count the total numbers of users (registered users)
 	 * @return
 	 */
-	public int countUsers();
+	public int getJoinedUsers();
 	
 	/**
-	 * Register a listener to this room for receving asynk notifications
-	 * @param listener
+	 * Extra (customs , depends on implementation ) params for this room
+	 * @return
 	 */
-	public void addRommListener(RoomListener listener);
-	
-	/**
-	 * Remove this listener from room
-	 * @param listener
-	 */
-	public void removeRommListener(RoomListener listener);
-	
+	public Map<String, String> getExtras();
 }

@@ -106,7 +106,7 @@ public class HttpClient {
 			conn.setDoInput(true);
 			conn.setUseCaches(false);
 			conn.setFixedLengthStreamingMode(bytes.length);
-			conn.setRequestMethod("POST");
+			conn.setRequestMethod("POST");			
 			conn.setRequestProperty("Content-Type",
 					"application/x-www-form-urlencoded;charset=UTF-8");
 			// post the request

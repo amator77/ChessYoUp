@@ -14,6 +14,7 @@ import android.util.Log;
 
 import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
+import com.chessyoup.connector.gcm.GCMDevice;
 import com.chessyoup.server.RemoteService;
 import com.chessyoup.server.Room;
 import com.chessyoup.utils.HttpClient;
@@ -54,7 +55,21 @@ public class GCMRemoteService implements RemoteService {
 
 	@Override
 	public boolean unRegister(Device device) {
-		return true;
+		
+		Map<String, String> params = new HashMap<String, String>();
+		params.put("device_id", device.getDeviceIdentifier());
+
+		try {
+			HttpClientResponse reponse = HttpClient.getInstance().post(
+					url + "/unregister", params);
+			Log.d("ChessYoUpRemoteService", "Remote server response:" + reponse);
+			return true;
+		} catch (IOException e) {
+			Log.e("ChessYoUpRemoteService",
+					"Remote server response error:" + e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	@Override
@@ -109,8 +124,35 @@ public class GCMRemoteService implements RemoteService {
 
 	@Override
 	public List<Device> devices(String roomId) throws IOException {
-		// TODO Auto-generated method stub
-		return null;
+		List<Device> devices = new ArrayList<Device>();
+		StringBuffer findUrl = new StringBuffer();
+		findUrl.append(this.url).append("/rooms/").append(roomId);
+
+		HttpClientResponse reponse = HttpClient.getInstance().readEntity(
+				findUrl.toString(), "");
+		Log.d("ChessYoUpRemoteService", "Remote server response:" + reponse);
+
+		try {
+			JSONArray jsonArray = new JSONArray(reponse.getBody());
+
+			for (int i = 0; i < jsonArray.length(); i++) {
+				JSONArray jsonArray2 = jsonArray.getJSONArray(i);
+				GCMDevice device = new GCMDevice();
+				device.setDeviceIdentifier(jsonArray2.getString(0));
+				device.setRegistrationId(jsonArray2.getString(1));
+				device.setGoogleAccount(jsonArray2.getString(2));
+				device.setDevicePhoneNumber(jsonArray2.getString(3));
+				
+				devices.add(device);
+			}
+
+			Log.d("ChessYoUpRemoteService", "Devices :" + devices.toString());
+			return devices;
+		} catch (JSONException e) {
+			Log.d("ChessYoUpRemoteService", "Not an json entity from server!");
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	@Override
@@ -129,8 +171,11 @@ public class GCMRemoteService implements RemoteService {
 			for (int i = 0; i < jsonArray.length(); i++) {
 				JSONArray jsonArray2 = jsonArray.getJSONArray(i);
 				GCMRoom room = new GCMRoom();
-				room.setName(jsonArray2.getString(0));
-				room.setId(jsonArray2.getString(1));
+				room.setId(jsonArray2.getString(0));
+				room.setName(jsonArray2.getString(1));
+				room.setSenderId(jsonArray2.getString(2));
+				room.setApiKey(jsonArray2.getString(3));
+				room.setJoinedUsers(jsonArray2.getInt(4));
 				rooms.add(room);
 			}
 

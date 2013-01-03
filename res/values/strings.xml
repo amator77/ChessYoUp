@@ -19,9 +19,9 @@
     <string name="options_clear">Clear</string>
     <string name="options_exit">Exit</string>
     
-    <string-array name="spinner_array">
-        <item>Account</item>
-        <item>Phone</item>        
+    <string-array name="action_array">     
+        <item>Send Game Challenge</item>
+        <item>Open Chat</item>
     </string-array>
     
 </resources>

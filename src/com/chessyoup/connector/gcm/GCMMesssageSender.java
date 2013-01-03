@@ -32,15 +32,14 @@ public class GCMMesssageSender {
 		return GCMMesssageSender.instance;
 	}
 	
-	public void sendMessage(Device remoteDevice , String message) throws IOException{		
-		Device localDevice = GCMConnectionManager.getManager().getLocalDevice();
+	public void sendMessage(Device sourceDevice , Device remoteDevice , String message) throws IOException{		
 		
 		Message gcmMessage = new Message.Builder().timeToLive(5)
 				.delayWhileIdle(true)
-				.addData(SOURCE_REGISTRATION_ID, localDevice.getRegistrationId())
-				.addData(SOURCE_DEVICE_ID, localDevice.getDeviceIdentifier())
-				.addData(SOURCE_ACCOUNT_ID, localDevice.getAccount() != null ? localDevice.getAccount() : "")
-				.addData(SOURCE_PHONE_NUMBER, localDevice.getDevicePhoneNumber() != null ? localDevice.getDevicePhoneNumber() : "")
+				.addData(SOURCE_REGISTRATION_ID, sourceDevice.getRegistrationId())
+				.addData(SOURCE_DEVICE_ID, sourceDevice.getDeviceIdentifier())
+				.addData(SOURCE_ACCOUNT_ID, sourceDevice.getAccount() != null ? sourceDevice.getAccount() : "")
+				.addData(SOURCE_PHONE_NUMBER, sourceDevice.getDevicePhoneNumber() != null ? sourceDevice.getDevicePhoneNumber() : "")
 				.addData(MESSAGE_ID, String.valueOf(sequence++))
 				.addData(MESSAGE_PAYLOAD, message).build();
 		
