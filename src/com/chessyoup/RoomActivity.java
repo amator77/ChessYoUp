@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -240,7 +241,7 @@ public class RoomActivity extends Activity implements RoomListener {
 									int which) {
 								switch (which) {
 								case 0:
-									Log.d("RoomActivity", "Not implemnetd");
+									launchChessboardActivity(selectedUser);
 									break;
 								case 1:
 									launchChatActivity(selectedUser);
@@ -261,6 +262,16 @@ public class RoomActivity extends Activity implements RoomListener {
 			}
 		});
 		
+		listView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view, int position,
+					long id) {
+				final User selectedUser =  (User)listView.getAdapter().getItem(position);	
+				launchChessboardActivity(selectedUser);				
+			}
+		});
+		
 		Button reloadButton = (Button)findViewById(R.id.reload_room_users);
 		reloadButton.setOnClickListener(new OnClickListener() {
 			
@@ -274,6 +285,21 @@ public class RoomActivity extends Activity implements RoomListener {
 	private void launchChatActivity(User selectedUser) {
 		Intent intent = new Intent(this,
 				GCMChatActivity.class);
+		intent.putExtra("remote_device_id",
+				selectedUser.getDevice().getDeviceIdentifier());
+		intent.putExtra("remote_phone_number",
+				selectedUser.getDevice().getDevicePhoneNumber());
+		intent.putExtra("remote_gcm_registration_id",
+				selectedUser.getDevice().getRegistrationId());
+		intent.putExtra("remote_account", selectedUser.getDevice().getAccount());
+
+		intent.putExtra("owner_account", RoomsManager.getManager(this).getConnectionManager().getLocalDevice().getAccount());
+		startActivity(intent);
+	}
+	
+	private void launchChessboardActivity(User selectedUser) {
+		Intent intent = new Intent(this,
+				ChessboardActivity.class);
 		intent.putExtra("remote_device_id",
 				selectedUser.getDevice().getDeviceIdentifier());
 		intent.putExtra("remote_phone_number",

@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.chessyoup.ChessboardActivity;
 import com.chessyoup.chat.GCMChatActivity;
 import com.chessyoup.connector.Connection;
 import com.chessyoup.connector.ConnectionListener;
@@ -248,7 +249,7 @@ public class GCMConnectionManager implements ConnectionManager {
 			}
 
 			Intent chatIntent = new Intent(applicationContext,
-					GCMChatActivity.class);
+					ChessboardActivity.class);
 			chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 			chatIntent.putExtra("remote_device_id",
 					remoteDevice.getDeviceIdentifier());

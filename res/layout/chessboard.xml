@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:layout_margin="0dp"
+    android:background="@android:color/background_dark"
+    android:orientation="horizontal" >
+
+    <view
+        android:id="@+id/chessboard"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        class="org.petero.droidfish.ChessBoardPlay" />
+
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:layout_marginLeft="2dp"
+        android:orientation="vertical" >
+
+        <TableLayout
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/red"
+            android:stretchColumns="*" >
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical" >
+
+                <TextView
+                    android:id="@+id/chessboard_white_player"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white"
+                    android:gravity="center|center_vertical"
+                    android:text="white player"
+                    android:textColor="@android:color/black" >
+                </TextView>
+
+                <TextView
+                    android:id="@+id/chessboard_black_player"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/black"
+                    android:gravity="center|center_vertical"
+                    android:text="black player"
+                    android:textColor="@android:color/white" >
+                </TextView>
+            </TableRow>
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical" >
+
+                <TextView
+                    android:id="@+id/chessboard_white_clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/white"
+                    android:gravity="center|center_vertical"
+                    android:text="00:00"
+                    android:textColor="@android:color/black" >
+                </TextView>
+
+                <TextView
+                    android:id="@+id/chessboard_black_clock"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@android:color/black"
+                    android:gravity="center|center_vertical"
+                    android:text="00:00"
+                    android:textColor="@android:color/white" >
+                </TextView>
+            </TableRow>
+        </TableLayout>
+
+        <TabHost
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@android:id/tabhost"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent" >
+
+            <LinearLayout
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                android:orientation="vertical" >
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="0.5dip"
+                    android:background="#000" />
+
+                <FrameLayout
+                    android:id="@android:id/tabcontent"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1" />
+
+                <TabWidget
+                    android:id="@android:id/tabs"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="0dip"
+                    android:layout_marginRight="0dip"
+                    android:layout_weight="0" />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dip"
+                    android:background="#696969" />
+
+                <View
+                    android:layout_width="fill_parent"
+                    android:layout_height="2dip"
+                    android:background="#000" />
+            </LinearLayout>
+        </TabHost>
+    </LinearLayout>
+
+</LinearLayout>
