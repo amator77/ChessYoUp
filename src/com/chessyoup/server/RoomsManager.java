@@ -12,6 +12,7 @@ import android.util.Log;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
+import com.chessyoup.connector.Message;
 import com.chessyoup.connector.gcm.GCMConnectionManager;
 import com.chessyoup.server.gcm.GCMRemoteService;
 import com.chessyoup.server.gcm.GCMRoom;
@@ -73,7 +74,8 @@ public class RoomsManager implements ConnectionManagerListener {
 		this.roomListener = roomListener;
 		this.connectionManager = new GCMConnectionManager(
 				this.applicationContext, room.getExtras()
-						.get(GCMRoom.SENDER_ID));
+						.get(GCMRoom.SENDER_ID),room.getExtras()
+						.get(GCMRoom.API_KEY));
 		this.connectionManager.addListener(this);
 		this.connectionManager.initialize();
 	}
@@ -139,7 +141,9 @@ public class RoomsManager implements ConnectionManagerListener {
 		
 		this.joinedRoom = null;
 	}
-
+	
+	
+	
 	public ConnectionManager getConnectionManager() {
 		return this.connectionManager;
 	}
@@ -159,5 +163,11 @@ public class RoomsManager implements ConnectionManagerListener {
 		} catch (IOException e) {					
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public void onNewConnectionRequest(Device remoteDevice,Message mesage) {
+		// TODO Auto-generated method stub
+		
 	}
 }

@@ -21,8 +21,12 @@ import com.chessyoup.R;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -146,6 +150,11 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		th.addTab(ts2);
 		th.addTab(ts1);
 		th.setCurrentTab(0);
+		
+		Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.border);
+	    BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(),bmp);
+	    bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);	    
+	    this.findViewById(R.id.chessboardLayout).setBackgroundDrawable(bitmapDrawable);
 	}
 
 	@Override

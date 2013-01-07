@@ -16,7 +16,8 @@ public class GCMMesssageSender {
 	
 	private Sender sender;
 	
-	private static final String API_KEY = "AIzaSyB6HkBz-SrHpnMgaX1-Wff3E-WQM2z2VIM";	
+	private String lastApiKey;
+	
 	public static final String SOURCE_REGISTRATION_ID = "sid";
 	public static final String SOURCE_DEVICE_ID = "sdi";
 	public static final String SOURCE_ACCOUNT_ID = "sai";
@@ -25,7 +26,7 @@ public class GCMMesssageSender {
 	public static final String MESSAGE_PAYLOAD = "mpl";		
 	
 	private GCMMesssageSender(){
-		this.sender = new Sender(API_KEY);
+		
 	}
 	
 	public static GCMMesssageSender getSender(){
@@ -33,6 +34,18 @@ public class GCMMesssageSender {
 	}
 	
 	public void sendMessage(Device sourceDevice , Device remoteDevice , String message) throws IOException{		
+		
+		if( this.sender == null ){
+			this.lastApiKey = GCMConnectionManager.getCurrentManager().getApiKey();
+			this.sender = new Sender(this.lastApiKey);
+			
+		}
+		else{
+			if( !GCMConnectionManager.getCurrentManager().getApiKey().equals(this.lastApiKey)){
+				this.lastApiKey = GCMConnectionManager.getCurrentManager().getApiKey();
+				this.sender = new Sender(this.lastApiKey);
+			}
+		}				
 		
 		Message gcmMessage = new Message.Builder().timeToLive(5)
 				.delayWhileIdle(true)

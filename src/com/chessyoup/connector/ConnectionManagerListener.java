@@ -13,4 +13,10 @@ public interface ConnectionManagerListener {
 	 * @param status
 	 */
 	public void onDispose(boolean status);
+	
+	/**
+	 * 
+	 * @param remoteDevice
+	 */
+	public void onNewConnectionRequest(Device remoteDevice,Message message);
 }

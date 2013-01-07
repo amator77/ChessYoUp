@@ -27,13 +27,19 @@ import org.petero.droidfish.gamelogic.Piece;
 import org.petero.droidfish.gamelogic.Position;
 import org.petero.droidfish.gamelogic.UndoInfo;
 
+import com.chessyoup.R;
+
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Rect;
+import android.graphics.Shader;
 import android.graphics.Typeface;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -85,7 +91,9 @@ public abstract class ChessBoard extends View {
     private Paint labelPaint;
     private Paint decorationPaint;
     private ArrayList<Paint> moveMarkPaint;
-
+    BitmapDrawable lightBitmapDrawable;
+    BitmapDrawable darkBitmapDrawable;
+    
     public ChessBoard(Context context, AttributeSet attrs) {
         super(context, attrs);
         pos = new Position();
@@ -138,14 +146,22 @@ public abstract class ChessBoard extends View {
         blackPiecePaint.setTypeface(chessFont);
 
         setColors();
+        
+        Bitmap lightBmp = BitmapFactory.decodeResource(getResources(), R.drawable.light);
+        Bitmap darkBmp = BitmapFactory.decodeResource(getResources(), R.drawable.dark);
+        lightBitmapDrawable = new BitmapDrawable(getResources(),lightBmp);
+        lightBitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+        darkBitmapDrawable = new BitmapDrawable(getResources(),darkBmp);
+        darkBitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);
+//        brightPaint = lightBitmapDrawable.getPaint();
+//	    darkPaint = darkBitmapDrawable.getPaint();	    
     }
 
     /** Must be called for new color theme to take effect. */
     public final void setColors() {
         ColorTheme ct = ColorTheme.instance();
-        darkPaint.setColor(ct.getColor(ColorTheme.DARK_SQUARE));
-        Log.d("aaaaaaaaaaaaaaa", darkPaint.getColor()+"");
-        brightPaint.setColor(ct.getColor(ColorTheme.BRIGHT_SQUARE));
+//        darkPaint.setColor(ct.getColor(ColorTheme.DARK_SQUARE));
+//        brightPaint.setColor(ct.getColor(ColorTheme.BRIGHT_SQUARE));
         selectedSquarePaint.setColor(ct.getColor(ColorTheme.SELECTED_SQUARE));
         cursorSquarePaint.setColor(ct.getColor(ColorTheme.CURSOR_SQUARE));
         whitePiecePaint.setColor(ct.getColor(ColorTheme.BRIGHT_PIECE));
@@ -153,8 +169,8 @@ public abstract class ChessBoard extends View {
         labelPaint.setColor(ct.getColor(ColorTheme.SQUARE_LABEL));
         decorationPaint.setColor(ct.getColor(ColorTheme.DECORATION));
         for (int i = 0; i < 6; i++)
-            moveMarkPaint.get(i).setColor(ct.getColor(ColorTheme.ARROW_0 + i));
-
+            moveMarkPaint.get(i).setColor(ct.getColor(ColorTheme.ARROW_0 + i));                
+        
         invalidate();
     }
 
@@ -400,9 +416,12 @@ public abstract class ChessBoard extends View {
             for (int y = 0; y < 8; y++) {
                 final int xCrd = getXCrd(x);
                 final int yCrd = getYCrd(y);
-                Paint paint = Position.darkSquare(x, y) ? darkPaint : brightPaint;
-                canvas.drawRect(xCrd, yCrd, xCrd+sqSize, yCrd+sqSize, paint);
-
+//                Paint paint = Position.darkSquare(x, y) ? darkPaint : brightPaint;
+                BitmapDrawable  bitmapDrawable = Position.darkSquare(x, y) ? darkBitmapDrawable : lightBitmapDrawable;
+                bitmapDrawable.setBounds(xCrd, yCrd, xCrd+sqSize, yCrd+sqSize);
+//                canvas.drawRect(xCrd, yCrd, xCrd+sqSize, yCrd+sqSize, paint);
+                bitmapDrawable.draw(canvas);
+                
                 int sq = Position.getSquare(x, y);
                 if (!animActive || !anim.squareHidden(sq)) {
                     int p = pos.getPiece(sq);
