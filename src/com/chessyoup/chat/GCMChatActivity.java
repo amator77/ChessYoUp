@@ -201,11 +201,11 @@ public class GCMChatActivity extends Activity implements ConnectionListener {
 			protected Void doInBackground(Void... params) {
 				addMessage(ownerAccount, message);
 
-				try {
-					connection.sendMessage(message);
-				} catch (IOException exception) {
-					addMessage("system", exception.getMessage());
-				}
+//				try {
+//					connection.sendMessage(message);
+//				} catch (IOException exception) {
+//					addMessage("system", exception.getMessage());
+//				}
 
 				return null;
 			}

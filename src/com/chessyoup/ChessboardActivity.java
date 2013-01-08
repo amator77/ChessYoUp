@@ -3,6 +3,7 @@ package com.chessyoup;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.petero.droidfish.ChessBoardPlay;
 import org.petero.droidfish.ChessController;
@@ -211,7 +212,6 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 				chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_BLACK_REMOTE));
 				chessCtrl.startGame();
 				Toast.makeText(getApplicationContext(), "Game started", Toast.LENGTH_SHORT).show();	
-//				ChessboardActivity.this.setTitle(connection.getRemoteDevice())
 			}
 		});
 		
@@ -223,7 +223,9 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 			
 			@Override
 			public void run() {
-				ChessboardActivity.this.chessCtrl.makeRemoteMove(message.getBody());				
+				if( message.getHeader().get(GameMessage.GAME_COMMAND).equals(GameMessage.MOVE) ){
+					ChessboardActivity.this.chessCtrl.makeRemoteMove(message.getBody());			
+				}
 			}
 		});		
 	}
@@ -465,8 +467,8 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				try {
-					connection.sendMessage(move);
+				try {					
+					connection.sendMessage(new GameMessage(GameMessage.MOVE, move));
 				} catch (IOException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -476,6 +478,35 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		};
 
 		task.execute();						
+	}
+	
+	class GameMessage implements Message{
+		
+		public static final String GAME_COMMAND = "cmd";
+		
+		public static final String CHAT = "chat";
+		
+		public static final String MOVE = "move";
+		
+		private Map<String, String> header;
+		
+		private String body;
+		
+		GameMessage(String type,String body){
+			header = new HashMap<String, String>();
+			header.put("GAME_COMMAND", type);
+			this.body = body;
+		}
+		
+		@Override
+		public String getBody() {
+			return this.body;
+		}
+
+		@Override
+		public Map<String, String> getHeader() {
+			return this.header;
+		}		
 	}
 	
 	/**

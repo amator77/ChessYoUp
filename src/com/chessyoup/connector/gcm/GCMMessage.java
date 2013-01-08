@@ -1,57 +1,52 @@
 package com.chessyoup.connector.gcm;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import com.chessyoup.connector.Message;
 
 public class GCMMessage implements Message {
-	
-	private String sourceRegistrationID;
-	
-	private String destinationRegistrationID;
-	
-	private int sequnce;
-	
+				
 	private String body;
 	
-	@Override
+	private Map<String, String> header;
+	
+	private int sequence;
+	
+	public GCMMessage(){
+		this.header = new HashMap<String, String>();
+		this.sequence = 0;
+	}
+	
 	public int getSequence() {
-		return this.sequnce;
+		return sequence;
 	}
 
-	@Override
-	public String getSourceId() {
-		return this.sourceRegistrationID;
-	}
-
-	@Override
-	public String getDestinationId() {
-		return this.destinationRegistrationID;
+	public void setSequence(int sequence) {
+		this.sequence = sequence;
 	}
 
 	@Override
 	public String getBody() {
 		return this.body;
 	}
-
-	public void setSourceRegistrationID(String sourceRegistrationID) {
-		this.sourceRegistrationID = sourceRegistrationID;
-	}
-
-	public void setDestinationRegistrationID(String destinationRegistrationID) {
-		this.destinationRegistrationID = destinationRegistrationID;
-	}
-
-	public void setSequnce(int sequnce) {
-		this.sequnce = sequnce;
-	}
-
+	
 	public void setBody(String body) {
 		this.body = body;
+	}	
+
+	@Override
+	public Map<String, String> getHeader() {
+		return this.header;
+	}		
+	
+	public void setHeader(String key,String value){
+		this.header.put(key, value);
 	}
 
 	@Override
 	public String toString() {
-		return "GCMMessage [sourceRegistrationID=" + sourceRegistrationID
-				+ ", destinationRegistrationID=" + destinationRegistrationID
-				+ ", sequnce=" + sequnce + ", body=" + body + "]";
-	}		
+		return "GCMMessage [body=" + body + ", header=" + header
+				+ ", sequence=" + sequence + "]";
+	}	
 }

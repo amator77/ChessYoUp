@@ -1,27 +1,18 @@
 package com.chessyoup.connector;
 
+import java.util.Map;
+
 public interface Message {
-	/**
-	 * Sequence uniqu order by.
-	 * @return
-	 */
-	public int getSequence();
-	
-	/**
-	 * Source of the message
-	 * @return
-	 */
-	public String getSourceId();
-	
-	/**
-	 * Destination of the message
-	 * @return
-	 */
-	public String getDestinationId();
-	
+			
 	/**
 	 * Return the message data
 	 * @return
 	 */
 	public String getBody();
+	
+	/**
+	 * Message header
+	 * @return
+	 */
+	public Map<String, String> getHeader();
 }

@@ -2,6 +2,7 @@ package com.chessyoup.connector.gcm;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import android.accounts.Account;
@@ -12,12 +13,12 @@ import android.os.Bundle;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-import com.chessyoup.ChessboardActivity;
 import com.chessyoup.connector.Connection;
 import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
+import com.chessyoup.connector.Message;
 import com.chessyoup.utils.DeviceUuidFactory;
 import com.google.android.gcm.GCMRegistrar;
 
@@ -27,8 +28,8 @@ public class GCMConnectionManager implements ConnectionManager {
 
 	private List<ConnectionManagerListener> listeners;
 
-	private List<GCMConnection> connections;
-
+	private List<GCMConnection> connections;	
+	
 	private Context applicationContext;
 
 	private GCMDevice device;
@@ -36,13 +37,7 @@ public class GCMConnectionManager implements ConnectionManager {
 	private String gcmSenderId;
 	
 	private String apiKey;
-	
-	private static final String CONNECT_REQUEST = "connect";
-
-	private static final String CONNECT_ACCEPTED = "connected";
-
-	private static final String CONNECTION_CLOSED = "connection_closed";
-
+		
 	public GCMConnectionManager(Context appContext, String gcmSenderId , String apiKey) {
 		this.applicationContext = appContext;
 		this.gcmSenderId = gcmSenderId;
@@ -109,11 +104,13 @@ public class GCMConnectionManager implements ConnectionManager {
 	@Override
 	public void connect(Device remoteDevice, ConnectionListener listener) {
 
-		try {
+		try {	
 			this.connections.add(new GCMConnection(device, remoteDevice,
 					listener));
-			GCMMesssageSender.getSender().sendMessage(device, remoteDevice,
-					CONNECT_REQUEST);
+			GCMMessage connectMessage = new GCMMessage();
+			connectMessage.setHeader(GCMMesssageSender.GCM_HEADER_COMMAND, GCMMesssageSender.CONNECT_REQUEST);
+			connectMessage.setBody("");
+			GCMMesssageSender.getSender().sendMessage(remoteDevice,connectMessage);
 		} catch (IOException e) {
 			Log.d("GCMConnectionManager",
 					"Error on sendind connect request to :"
@@ -127,8 +124,10 @@ public class GCMConnectionManager implements ConnectionManager {
 	public void closeConnection(Connection connection) {
 		try {
 			this.connections.remove(connection);
-			GCMMesssageSender.getSender().sendMessage(device,
-					connection.getRemoteDevice(), CONNECTION_CLOSED);
+			GCMMessage disconnectMessage = new GCMMessage();
+			disconnectMessage.setHeader(GCMMesssageSender.GCM_HEADER_COMMAND, GCMMesssageSender.CONNECTION_CLOSED);
+			disconnectMessage.setBody("");
+			GCMMesssageSender.getSender().sendMessage(connection.getRemoteDevice(), disconnectMessage);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -168,105 +167,88 @@ public class GCMConnectionManager implements ConnectionManager {
 		return "GCMConnectionManager [applicationContext=" + applicationContext
 				+ ", device=" + device + ", gcmSenderId=" + gcmSenderId + "]";
 	}
-
-	public void hadleIncomingMessage(Context context, Intent intent) {
-
-		Bundle extra = intent.getExtras();
-		Log.d("GCMConnectionManager",
-				"Extras to strig: :" + intent.getExtras().toString());
+			
+	public void hadleIncomingMessage(Context context, Intent intent) {		
+		String sourceId = intent.getExtras().getString(GCMMesssageSender.SOURCE_REGISTRATION_ID);
+		GCMDevice remoteDevice = this.extractRemoteDevice(intent);
+		GCMMessage message = this.extractMessage(intent);
 		
-		GCMDevice remoteDevice = new GCMDevice();
-		remoteDevice.setDeviceIdentifier(extra
-				.getString(GCMMesssageSender.SOURCE_DEVICE_ID));
-		remoteDevice.setRegistrationId(extra
-				.getString(GCMMesssageSender.SOURCE_REGISTRATION_ID));
-		remoteDevice.setDevicePhoneNumber(extra
-				.getString(GCMMesssageSender.SOURCE_PHONE_NUMBER));
-		remoteDevice.setGoogleAccount(extra
-				.getString(GCMMesssageSender.SOURCE_ACCOUNT_ID));
-
-		GCMMessage message = new GCMMessage();
-		message.setSourceRegistrationID(extra
-				.getString(GCMMesssageSender.SOURCE_REGISTRATION_ID));
-		message.setSequnce(Integer.valueOf(extra
-				.getString(GCMMesssageSender.MESSAGE_ID)));
-		message.setBody(extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD));
-		message.setDestinationRegistrationID(device.getRegistrationId());
-
 		Log.d("GCMConnectionManager",
-				"Hanlde new mesage :" + message.toString());
-
+				"Hanlde new mesage :" + message.toString() +" from :"+sourceId);
+		
+		GCMConnection connection = null;
+		String gcmCommand = message.getHeader().get(GCMMesssageSender.GCM_HEADER_COMMAND);
+		
 		for (GCMConnection conn : this.connections) {
 
 			if (conn.getRemoteDevice().getRegistrationId()
-					.equals(message.getSourceId())) {
-
-				Log.d("GCMConnectionManager",
-						"Connection found  :" + conn.toString());
-
-				if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD).equals(
-						CONNECT_REQUEST)) {
-
-					try {
-						GCMMesssageSender.getSender().sendMessage(device,
-								remoteDevice, CONNECT_ACCEPTED);
-						if (conn.getConnectionListener() != null) {
-							conn.getConnectionListener()
-									.onConnected(conn, true);
-						}
-					} catch (IOException e) {
-						e.printStackTrace();
+					.equals(sourceId)) {
+				connection = conn;
+				
+				if( connection.isConnected() ){
+					Log.d("GCMConnectionManager",
+							"Connection found  :" + conn.toString());
+					
+					if( gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECTION_CLOSED) ){
+						connection.getConnectionListener().onDisconnected(connection);
 					}
-
+					else{
+						conn.messageReceived(message);
+					}
+									
 					return;
-				} else if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD)
-						.equals(CONNECT_ACCEPTED)) {
-					if (conn.getConnectionListener() != null) {
-						conn.getConnectionListener().onConnected(conn, true);
-					}
-				} else if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD)
-						.equals(CONNECTION_CLOSED)) {
-					if (conn.getConnectionListener() != null) {
-						conn.getConnectionListener().onDisconnected(conn);
-					}
-				} else {
-					conn.messageReceived(message);
 				}
-
-				return;
 			}
 		}
 
-		Log.d("GCMConnectionManager", "No connection for the  message!");
-
-		if (extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD).equals(
-				CONNECT_REQUEST)) {
-
-			try {
-				GCMMesssageSender.getSender().sendMessage(device, remoteDevice,
-						CONNECT_ACCEPTED);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-
-			Intent chatIntent = new Intent(applicationContext,
-					ChessboardActivity.class);
-			chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			chatIntent.putExtra("remote_device_id",
-					remoteDevice.getDeviceIdentifier());
-			chatIntent.putExtra("remote_phone_number",
-					remoteDevice.getDevicePhoneNumber());
-			chatIntent.putExtra("remote_gcm_registration_id",
-					remoteDevice.getRegistrationId());
-			chatIntent.putExtra("remote_account", remoteDevice.getAccount());
-			chatIntent.putExtra("owner_account",
-					this.device.getAccount() != null ? this.device.getAccount()
-							: this.device.getDevicePhoneNumber());
-			this.connections.add(new GCMConnection(device, remoteDevice, null));
-			chatIntent.putExtra("connected", "true");
-
-			applicationContext.startActivity(chatIntent);
+		Log.d("GCMConnectionManager", "No open connection for the  message!");
+				
+		if ( gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECT_REQUEST )) {
+			this.fireoOnNewConnectionRequest(remoteDevice, message);
+			return;
+		}else if (gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECT_ACCEPTED )) {				
+			if( connection != null ){
+				connection.getConnectionListener().onConnected(connection, true);
+			}			
 		}
+		else if (gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECT_REJECTED )) {			
+			if( connection != null ){
+				connection.getConnectionListener().onDisconnected(connection);
+			}			
+		}				
+		else{
+			Log.d("GCMConnectionManager",
+					"Message discarded :" + message.toString());
+		}
+		
+//		if (message.getBody().equals(
+//				CONNECT_REQUEST)) {
+//
+//			try {
+//				GCMMesssageSender.getSender().sendMessage(device, remoteDevice,
+//						CONNECT_ACCEPTED);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			}
+//
+//			Intent chatIntent = new Intent(applicationContext,
+//					ChessboardActivity.class);
+//			chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//			chatIntent.putExtra("remote_device_id",
+//					remoteDevice.getDeviceIdentifier());
+//			chatIntent.putExtra("remote_phone_number",
+//					remoteDevice.getDevicePhoneNumber());
+//			chatIntent.putExtra("remote_gcm_registration_id",
+//					remoteDevice.getRegistrationId());
+//			chatIntent.putExtra("remote_account", remoteDevice.getAccount());
+//			chatIntent.putExtra("owner_account",
+//					this.device.getAccount() != null ? this.device.getAccount()
+//							: this.device.getDevicePhoneNumber());
+//			this.connections.add(new GCMConnection(device, remoteDevice, null));
+//			chatIntent.putExtra("connected", "true");
+//
+//			applicationContext.startActivity(chatIntent);
+//		}
 	}
 
 	public GCMConnection getConnection(String registrationId) {
@@ -280,7 +262,13 @@ public class GCMConnectionManager implements ConnectionManager {
 
 		return null;
 	}
-
+	
+	private void fireoOnNewConnectionRequest(Device remoteDevice , Message message) {
+		for (ConnectionManagerListener listener : this.listeners) {
+			listener.onNewConnectionRequest(remoteDevice, message);
+		}
+	}
+	
 	private void fireoOnDispose(boolean disposed) {
 		for (ConnectionManagerListener listener : this.listeners) {
 			listener.onDispose(disposed);
@@ -319,4 +307,41 @@ public class GCMConnectionManager implements ConnectionManager {
 	public String getApiKey() {
 		return apiKey;
 	}		
+	
+	private GCMMessage extractMessage( Intent gcmIntent){
+		Bundle extra = gcmIntent.getExtras();
+		
+		GCMMessage message = new GCMMessage();		
+		message.setSequence(Integer.valueOf(extra
+				.getString(GCMMesssageSender.MESSAGE_ID)).intValue());
+		message.setBody(extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD));
+				
+		Iterator<String> it  = extra.keySet().iterator();
+		while(it.hasNext()){
+			String key = it.next();
+			String value = extra.getString(key);
+			
+			if( !key.equals(GCMMesssageSender.MESSAGE_PAYLOAD) ){
+				message.setHeader(key, value);
+			}
+		}
+				
+		return message;
+	}
+	
+	private GCMDevice extractRemoteDevice( Intent gcmIntent){
+		Bundle extra = gcmIntent.getExtras();		
+		
+		GCMDevice remoteDevice = new GCMDevice();
+		remoteDevice.setDeviceIdentifier(extra
+				.getString(GCMMesssageSender.SOURCE_DEVICE_ID));
+		remoteDevice.setRegistrationId(extra
+				.getString(GCMMesssageSender.SOURCE_REGISTRATION_ID));
+		remoteDevice.setDevicePhoneNumber(extra
+				.getString(GCMMesssageSender.SOURCE_PHONE_NUMBER));
+		remoteDevice.setGoogleAccount(extra
+				.getString(GCMMesssageSender.SOURCE_ACCOUNT_ID));
+		
+		return remoteDevice;
+	}
 }

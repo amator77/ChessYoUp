@@ -29,15 +29,15 @@ public class RoomActivity extends Activity implements RoomListener {
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Log.d("RoomActivity", "on create");		
+		Log.d("RoomActivity", "on create");
 		this.initUI();
-		this.installListeners();		
+		this.installListeners();
 		this.runReloadUsersTask();
 	}
 
 	private void initUI() {
 		setContentView(R.layout.room);
-		
+
 		for (Room room : RoomsManager.getManager().getRooms()) {
 			if (room.getId()
 					.equals(getIntent().getExtras().getString("roomId"))) {
@@ -45,7 +45,7 @@ public class RoomActivity extends Activity implements RoomListener {
 				title.append("::").append(
 						deviceLabel(RoomsManager.getManager()
 								.getConnectionManager().getLocalDevice()));
-				
+
 				this.setTitle(title.toString());
 			}
 		}
@@ -99,8 +99,8 @@ public class RoomActivity extends Activity implements RoomListener {
 
 			@Override
 			public void run() {
-				ListView listView = (ListView) findViewById(R.id.room_users);								
-				
+				ListView listView = (ListView) findViewById(R.id.room_users);
+
 				ArrayAdapter<User> adapter = new ArrayAdapter<User>(
 						RoomActivity.this, android.R.layout.simple_list_item_1,
 						users);
@@ -124,7 +124,7 @@ public class RoomActivity extends Activity implements RoomListener {
 		task.execute();
 
 	}
-	
+
 	private void installListeners() {
 		RoomsManager.getManager().setRoomListener(this);
 		final ListView listView = (ListView) findViewById(R.id.room_users);

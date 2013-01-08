@@ -5,10 +5,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.AssetManager;
 import android.util.Log;
 
+import com.chessyoup.StartActivity;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
@@ -175,7 +178,34 @@ public class RoomsManager implements ConnectionManagerListener {
 
 	@Override
 	public void onNewConnectionRequest(Device remoteDevice,Message mesage) {
-		// TODO Auto-generated method stub
 		
+		AlertDialog.Builder db = new AlertDialog.Builder(this.applicationContext);
+		db.setTitle("Chalange from :");
+		String actions[] = new String[2];
+		actions[0] = "OK";
+		actions[1] = "Reject";
+		db.setItems(
+				actions,
+				new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(
+							DialogInterface dialog,
+							int which) {
+						switch (which) {
+						case 0:							
+							break;
+						case 1:							
+							break;
+						default:
+							break;
+						}
+					}
+				});
+
+		AlertDialog ad = db.create();
+		ad.setCancelable(true);
+		ad.setCanceledOnTouchOutside(true);
+		ad.show();				
 	}
 }

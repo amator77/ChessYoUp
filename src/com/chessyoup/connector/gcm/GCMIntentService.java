@@ -30,7 +30,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onUnregistered(Context context, String registrationId) {
-		Log.i("GCMIntentService", "Device unregistered");
+		Log.i("GCMIntentService", "Device unregistered :"+registrationId);
 		if (GCMConnectionManager.getCurrentManager() != null) {
 			GCMConnectionManager.getCurrentManager().gcmUnRegistered(registrationId);
 		}
@@ -38,7 +38,7 @@ public class GCMIntentService extends GCMBaseIntentService {
 
 	@Override
 	protected void onMessage(Context context, Intent intent) {
-		Log.i("GCMIntentService", "Received message :" + intent.getExtras().toString());
+		Log.i("GCMIntentService", "New GCM message :" + intent.getExtras().toString());
 		if (GCMConnectionManager.getCurrentManager() != null) {
 			GCMConnectionManager.getCurrentManager().hadleIncomingMessage(context, intent);
 		}

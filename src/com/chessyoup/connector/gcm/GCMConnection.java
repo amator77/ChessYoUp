@@ -7,18 +7,16 @@ import android.util.Log;
 import com.chessyoup.connector.Connection;
 import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.Device;
+import com.chessyoup.connector.Message;
 
 public class GCMConnection implements Connection {
 
 	private Device remoteDevice;
 	
-	private Device localDevice;
-	
 	private ConnectionListener listener;
 
 	public GCMConnection(Device localDevice , Device remoteDevice, ConnectionListener listener) {
-		this.remoteDevice = remoteDevice;
-		this.localDevice = localDevice;
+		this.remoteDevice = remoteDevice;		
 		this.listener = listener;
 	}
 
@@ -43,12 +41,11 @@ public class GCMConnection implements Connection {
 	}
 
 	@Override
-	public void sendMessage(String message) throws IOException {
+	public void sendMessage(Message message) throws IOException {
 
 		if (isConnected()) {
-			try {
-				GCMMesssageSender.getSender()
-						.sendMessage(this.localDevice,this.remoteDevice, message);
+			try { 
+				GCMMesssageSender.getSender().sendMessage(this.remoteDevice, message);
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
