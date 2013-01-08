@@ -184,7 +184,15 @@ public class GCMConnectionManager implements ConnectionManager {
 		return "GCMConnectionManager [applicationContext=" + applicationContext
 				+ ", device=" + device + ", gcmSenderId=" + gcmSenderId + "]";
 	}
-			
+	
+	public String getSenderId() {
+		return this.gcmSenderId;
+	}
+
+	public String getApiKey() {
+		return apiKey;
+	}	
+	
 	public void hadleIncomingMessage(Context context, Intent intent) {		
 		String sourceId = intent.getExtras().getString(GCMMesssageSender.SOURCE_REGISTRATION_ID);
 		GCMDevice remoteDevice = this.extractRemoteDevice(intent);
@@ -226,6 +234,7 @@ public class GCMConnectionManager implements ConnectionManager {
 			return;
 		}else if (gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECT_ACCEPTED )) {				
 			if( connection != null ){
+				Log.d("GCMConnectionManager", "Connection accepted!");
 				connection.setConnected(true);
 				connection.getConnectionListener().onConnected(connection, true);
 			}			
@@ -318,15 +327,7 @@ public class GCMConnectionManager implements ConnectionManager {
 		for (ConnectionManagerListener listener : this.listeners) {
 			listener.onInitialize(initialized);
 		}
-	}
-
-	public String getSenderId() {
-		return this.gcmSenderId;
-	}
-
-	public String getApiKey() {
-		return apiKey;
-	}		
+	}	
 	
 	private GCMMessage extractMessage( Intent gcmIntent){
 		Bundle extra = gcmIntent.getExtras();

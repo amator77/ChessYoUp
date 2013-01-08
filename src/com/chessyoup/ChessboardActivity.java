@@ -98,9 +98,16 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 				.getConnection(
 						intent.getStringExtra("remote_gcm_registration_id"));
 
-		this.connection.setConnectionListener(this);			
-		cb.flipped = true;
-		this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_WHITE_REMOTE));
+		this.connection.setConnectionListener(this);	
+		
+		if( intent.getStringExtra("color").equals("white") ){
+			this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_BLACK_REMOTE));		
+		}
+		else{
+			cb.flipped = true;
+			this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_WHITE_REMOTE));	
+		}
+		
 		this.chessCtrl.startGame();
 		Toast.makeText(getApplicationContext(), "Game started", Toast.LENGTH_SHORT).show();		
 	}

@@ -20,6 +20,7 @@ public class GCMConnection implements Connection {
 	public GCMConnection(Device localDevice , Device remoteDevice, ConnectionListener listener) {
 		this.remoteDevice = remoteDevice;		
 		this.listener = listener;
+		this.connected = false;
 	}
 
 	@Override

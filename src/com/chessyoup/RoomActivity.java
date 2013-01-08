@@ -4,6 +4,7 @@ import java.util.List;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
@@ -13,42 +14,29 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
 
-import com.chessyoup.chat.GCMChatActivity;
+import com.chessyoup.connector.Connection;
+import com.chessyoup.connector.ConnectionListener;
 import com.chessyoup.connector.Device;
+import com.chessyoup.connector.Message;
 import com.chessyoup.server.Room;
 import com.chessyoup.server.RoomListener;
 import com.chessyoup.server.RoomsManager;
 import com.chessyoup.server.User;
 
 public class RoomActivity extends Activity implements RoomListener {
-
+	
+	ProgressDialog pg;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("RoomActivity", "on create");
 		this.initUI();
 		this.installListeners();
 		this.runReloadUsersTask();
-	}
-
-	private void initUI() {
-		setContentView(R.layout.room);
-
-		for (Room room : RoomsManager.getManager().getRooms()) {
-			if (room.getId()
-					.equals(getIntent().getExtras().getString("roomId"))) {
-				StringBuffer title = new StringBuffer(room.getName());
-				title.append("::").append(
-						deviceLabel(RoomsManager.getManager()
-								.getConnectionManager().getLocalDevice()));
-
-				this.setTitle(title.toString());
-			}
-		}
 	}
 
 	@Override
@@ -108,103 +96,20 @@ public class RoomActivity extends Activity implements RoomListener {
 			}
 		});
 	}
-
-	private void runReloadUsersTask() {
-		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				RoomsManager.getManager(
-						RoomActivity.this.getApplicationContext()).loadUsers();
-
-				return null;
-			}
-		};
-
-		task.execute();
-
+	
+	@Override
+	public void chalangeAccepted(final User user) {		
+		launchChessboardActivity(user,false);	
 	}
 
-	private void installListeners() {
-		RoomsManager.getManager().setRoomListener(this);
-		final ListView listView = (ListView) findViewById(R.id.room_users);
-		listView.setOnItemLongClickListener(new OnItemLongClickListener() {
-
-			@Override
-			public boolean onItemLongClick(AdapterView<?> parent, View view,
-					int position, long id) {
-
-				final User selectedUser = (User) listView.getAdapter().getItem(
-						position);
-				Log.d("RoomActivity", selectedUser.toString());
-				AlertDialog.Builder db = new AlertDialog.Builder(
-						RoomActivity.this);
-				db.setTitle("Action");
-
-				db.setItems(R.array.action_array,
-						new DialogInterface.OnClickListener() {
-
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-								switch (which) {
-								case 0:
-									launchChessboardActivity(selectedUser);
-									break;
-								case 1:
-									launchChatActivity(selectedUser);
-									break;
-
-								default:
-									break;
-								}
-							}
-						});
-
-				AlertDialog ad = db.create();
-				ad.setCancelable(true);
-				ad.setCanceledOnTouchOutside(true);
-				ad.show();
-
-				return true;
-			}
-		});
-
-		listView.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				final User selectedUser = (User) listView.getAdapter().getItem(
-						position);
-				launchChessboardActivity(selectedUser);
-			}
-		});
-
-		Button reloadButton = (Button) findViewById(R.id.reload_room_users);
-		reloadButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				runReloadUsersTask();
-			}
-		});
+	@Override
+	public void chalangeRejected(User user) {
+		// TODO Auto-generated method stub
+		
+		
+		
 	}
-
-	public String deviceLabel(Device device) {
-		StringBuffer sb = new StringBuffer();
-		if (device.getAccount() != null && !device.getAccount().equals("null")) {
-			sb.append(device.getAccount());
-		} else if (device.getDevicePhoneNumber() != null
-				&& !device.getDevicePhoneNumber().equals("null")) {
-			sb.append(device.getDevicePhoneNumber());
-		} else {
-			sb.append(device.getDeviceIdentifier());
-		}
-
-		return sb.toString();
-	}
-
+	
 	@Override
 	public void chalangeReceived(final User user) {
 
@@ -238,25 +143,82 @@ public class RoomActivity extends Activity implements RoomListener {
 
 				AlertDialog ad = db.create();
 				ad.setCancelable(true);
-				ad.setCanceledOnTouchOutside(true);
+				ad.setCanceledOnTouchOutside(false);
 				ad.show();
 			}
 		});
 	}
+	
+	private void initUI() {
+		setContentView(R.layout.room);
 
-	private void launchChatActivity(User selectedUser) {
-		Intent intent = new Intent(this, GCMChatActivity.class);
-		intent.putExtra("remote_device_id", selectedUser.getDevice()
-				.getDeviceIdentifier());
-		intent.putExtra("remote_phone_number", selectedUser.getDevice()
-				.getDevicePhoneNumber());
-		intent.putExtra("remote_gcm_registration_id", selectedUser.getDevice()
-				.getRegistrationId());
-		intent.putExtra("remote_account", selectedUser.getDevice().getAccount());
+		for (Room room : RoomsManager.getManager().getRooms()) {
+			if (room.getId()
+					.equals(getIntent().getExtras().getString("roomId"))) {
+				StringBuffer title = new StringBuffer(room.getName());
+				title.append("::").append(
+						deviceLabel(RoomsManager.getManager()
+								.getConnectionManager().getLocalDevice()));
 
-		intent.putExtra("owner_account", RoomsManager.getManager(this)
-				.getConnectionManager().getLocalDevice().getAccount());
-		startActivity(intent);
+				this.setTitle(title.toString());
+			}
+		}
+	}
+	
+	private void runReloadUsersTask() {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				RoomsManager.getManager(
+						RoomActivity.this.getApplicationContext()).loadUsers();
+
+				return null;
+			}
+		};
+
+		task.execute();
+
+	}
+
+	private void installListeners() {
+		RoomsManager.getManager().setRoomListener(this);
+		final ListView listView = (ListView) findViewById(R.id.room_users);
+	
+		listView.setOnItemClickListener(new OnItemClickListener() {
+
+			@Override
+			public void onItemClick(AdapterView<?> parent, View view,
+					int position, long id) {
+				final User selectedUser = (User) listView.getAdapter().getItem(
+						position);
+				
+				runSendChalangeTask(selectedUser);
+			}			
+		});
+
+		Button reloadButton = (Button) findViewById(R.id.reload_room_users);
+		reloadButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				runReloadUsersTask();
+			}
+		});
+	}
+
+	private String deviceLabel(Device device) {
+		StringBuffer sb = new StringBuffer();
+		if (device.getAccount() != null && !device.getAccount().equals("null")) {
+			sb.append(device.getAccount());
+		} else if (device.getDevicePhoneNumber() != null
+				&& !device.getDevicePhoneNumber().equals("null")) {
+			sb.append(device.getDevicePhoneNumber());
+		} else {
+			sb.append(device.getDeviceIdentifier());
+		}
+
+		return sb.toString();
 	}
 
 	private void launchChessboardActivity(User selectedUser,boolean isLocalWhite) {
@@ -285,7 +247,38 @@ public class RoomActivity extends Activity implements RoomListener {
 
 		
 	}
+	
+	private void runSendChalangeTask(final User selectedUser) {
+		pg = ProgressDialog.show(this, "Action", "Chalange :"+selectedUser.getUsername(), true);
+				
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
+			@Override
+			protected Void doInBackground(Void... params) {
+				RoomsManager.getManager().getConnectionManager().connect(selectedUser.getDevice(),new ConnectionListener() {
+					
+					@Override
+					public void onDisconnected(Connection source) {
+						pg.dismiss();						
+					}
+					
+					@Override
+					public void onConnected(Connection source, boolean status) {
+						pg.dismiss();
+						launchChessboardActivity(selectedUser);
+					}
+					
+					@Override
+					public void messageReceived(Connection source, Message message) {						
+					}
+				});				
+				return null;
+			}
+		};
+
+		task.execute();		
+	}
+	
 	private void runAcceptChalangeTask(final User user) {
 		
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
@@ -301,14 +294,5 @@ public class RoomActivity extends Activity implements RoomListener {
 		task.execute();						
 	}
 
-	@Override
-	public void chalangeAccepted(final User user) {		
-		launchChessboardActivity(user,false);	
-	}
-
-	@Override
-	public void chalangeRejected(User user) {
-		// TODO Auto-generated method stub
-		
-	}
+	
 }
