@@ -24,7 +24,7 @@ public class RoomsManager implements ConnectionManagerListener {
 
 	private GCMRemoteService remoteService;
 
-	private List<Room> rooms;
+	private static List<Room> rooms;
 
 	private Room joinedRoom;
 
@@ -33,8 +33,6 @@ public class RoomsManager implements ConnectionManagerListener {
 	private GCMConnectionManager connectionManager;
 
 	private Context applicationContext;
-
-	private static final String TAG = "GCMRoomsManager";
 
 	public Room getJoinedRoom() {
 		return joinedRoom;
@@ -69,9 +67,8 @@ public class RoomsManager implements ConnectionManagerListener {
 		return RoomsManager.manager;
 	}
 	
-	public void joinRoom(Room room, RoomListener roomListener) {
-		this.joinedRoom = room;
-		this.roomListener = roomListener;
+	public void joinRoom(Room room) {
+		this.joinedRoom = room;		
 		this.connectionManager = new GCMConnectionManager(
 				this.applicationContext, room.getExtras()
 						.get(GCMRoom.SENDER_ID),room.getExtras()
@@ -88,11 +85,12 @@ public class RoomsManager implements ConnectionManagerListener {
 
 	public List<Room> getRooms() {
 
-		if (this.rooms != null && this.rooms.size() > 0) {
-			return this.rooms;
+		if (RoomsManager.rooms != null && RoomsManager.rooms.size() > 0) {
+			return RoomsManager.rooms;
 		} else {
 			try {
-				return this.remoteService.rooms();
+				RoomsManager.rooms = this.remoteService.rooms();
+				return RoomsManager.rooms;
 			} catch (IOException e) {
 				e.printStackTrace();
 				Log.e("RoomsManager", e.getMessage());
@@ -154,8 +152,10 @@ public class RoomsManager implements ConnectionManagerListener {
 			List<User> users = new ArrayList<User>();
 			
 			for( Device d : devices ){
-				GCMUser user = new GCMUser(d, UserStatus.ONLINE);
-				users.add(user);
+				if( !d.getDeviceIdentifier().equals(RoomsManager.getManager().getConnectionManager().getLocalDevice().getDeviceIdentifier())){
+					GCMUser user = new GCMUser(d, UserStatus.ONLINE);
+					users.add(user);
+				}
 			}
 			
 			this.roomListener.usersReceived(users);
@@ -163,6 +163,14 @@ public class RoomsManager implements ConnectionManagerListener {
 		} catch (IOException e) {					
 			e.printStackTrace();
 		}
+	}
+			
+	public RoomListener getRoomListener() {
+		return roomListener;
+	}
+
+	public void setRoomListener(RoomListener roomListener) {
+		this.roomListener = roomListener;
 	}
 
 	@Override
