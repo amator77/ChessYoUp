@@ -139,6 +139,18 @@ public class StartActivity extends Activity {
 								// TODO Auto-generated method stub
 								
 							}
+
+							@Override
+							public void chalangeAccepted(User user) {
+								// TODO Auto-generated method stub
+								
+							}
+
+							@Override
+							public void chalangeRejected(User user) {
+								// TODO Auto-generated method stub
+								
+							}
 						});
 
 				for (Room room : rooms) {

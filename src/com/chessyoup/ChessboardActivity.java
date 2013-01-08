@@ -91,25 +91,18 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		
 		Intent intent = getIntent();
 		this.installListeners();
-
-		if (intent.getExtras().getString("connected") != null
-				&& intent.getExtras().getString("connected").equals("true")) {
-
-			this.connection = RoomsManager
-					.getManager()
-					.getConnectionManager()
-					.getConnection(
-							intent.getStringExtra("remote_gcm_registration_id"));
-
-			this.connection.setConnectionListener(this);			
-			cb.flipped = true;
-			this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_WHITE_REMOTE));
-			this.chessCtrl.startGame();
-			Toast.makeText(getApplicationContext(), "Game started", Toast.LENGTH_SHORT).show();
-		} else {
-			this.runConnectTask(intent);
-		}
 		
+		this.connection = RoomsManager
+				.getManager()
+				.getConnectionManager()
+				.getConnection(
+						intent.getStringExtra("remote_gcm_registration_id"));
+
+		this.connection.setConnectionListener(this);			
+		cb.flipped = true;
+		this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_WHITE_REMOTE));
+		this.chessCtrl.startGame();
+		Toast.makeText(getApplicationContext(), "Game started", Toast.LENGTH_SHORT).show();		
 	}
 
 	private void initUI() {

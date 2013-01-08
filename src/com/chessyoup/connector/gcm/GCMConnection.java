@@ -14,7 +14,9 @@ public class GCMConnection implements Connection {
 	private Device remoteDevice;
 	
 	private ConnectionListener listener;
-
+	
+	private boolean connected;
+	
 	public GCMConnection(Device localDevice , Device remoteDevice, ConnectionListener listener) {
 		this.remoteDevice = remoteDevice;		
 		this.listener = listener;
@@ -22,7 +24,13 @@ public class GCMConnection implements Connection {
 
 	@Override
 	public boolean isConnected() {
-		return remoteDevice != null;
+		return connected;
+	}
+	
+	
+	
+	public void setConnected(boolean connected) {
+		this.connected = connected;
 	}
 
 	@Override

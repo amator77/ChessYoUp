@@ -259,7 +259,7 @@ public class RoomActivity extends Activity implements RoomListener {
 		startActivity(intent);
 	}
 
-	private void launchChessboardActivity(User selectedUser,boolean connected) {
+	private void launchChessboardActivity(User selectedUser,boolean isLocalWhite) {
 		Intent intent = new Intent(this, ChessboardActivity.class);
 		intent.putExtra("remote_device_id", selectedUser.getDevice()
 				.getDeviceIdentifier());
@@ -272,7 +272,7 @@ public class RoomActivity extends Activity implements RoomListener {
 		intent.putExtra("owner_account", RoomsManager.getManager(this)
 				.getConnectionManager().getLocalDevice().getAccount());
 		
-		intent.putExtra("connected", connected ? "true" : "false");
+		intent.putExtra("color", isLocalWhite ? "white" : "black");
 		
 		startActivity(intent);
 	}
@@ -299,5 +299,16 @@ public class RoomActivity extends Activity implements RoomListener {
 		};
 
 		task.execute();						
+	}
+
+	@Override
+	public void chalangeAccepted(final User user) {		
+		launchChessboardActivity(user,false);	
+	}
+
+	@Override
+	public void chalangeRejected(User user) {
+		// TODO Auto-generated method stub
+		
 	}
 }

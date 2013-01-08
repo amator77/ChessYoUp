@@ -202,9 +202,10 @@ public class GCMConnectionManager implements ConnectionManager {
 					.equals(sourceId)) {
 				connection = conn;
 				
+				Log.d("GCMConnectionManager",
+						"Connection found  :" + conn.toString());
+				
 				if( connection.isConnected() ){
-					Log.d("GCMConnectionManager",
-							"Connection found  :" + conn.toString());
 					
 					if( gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECTION_CLOSED) ){
 						connection.getConnectionListener().onDisconnected(connection);
@@ -225,12 +226,14 @@ public class GCMConnectionManager implements ConnectionManager {
 			return;
 		}else if (gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECT_ACCEPTED )) {				
 			if( connection != null ){
+				connection.setConnected(true);
 				connection.getConnectionListener().onConnected(connection, true);
 			}			
 		}
 		else if (gcmCommand != null && gcmCommand.equals(GCMMesssageSender.CONNECT_REJECTED )) {			
 			if( connection != null ){
 				connection.getConnectionListener().onDisconnected(connection);
+				this.connections.remove(connection);
 			}			
 		}				
 		else{

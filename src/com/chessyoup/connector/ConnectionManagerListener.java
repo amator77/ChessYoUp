@@ -19,4 +19,16 @@ public interface ConnectionManagerListener {
 	 * @param remoteDevice
 	 */
 	public void onNewConnectionRequest(Device remoteDevice,Message message);
+	
+	/**
+	 * 
+	 * @param remoteDevice
+	 */
+	public void onConnectionAccepted(Device remoteDevice,Message message);
+	
+	/**
+	 * 
+	 * @param remoteDevice
+	 */
+	public void onConnectionRejected(Device remoteDevice,Message message);
 }

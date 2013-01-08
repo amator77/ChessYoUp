@@ -28,4 +28,15 @@ public interface RoomListener {
 	 */
 	public void chalangeReceived(User user);
 	
+	/**
+	 * 
+	 * @param users
+	 */
+	public void chalangeAccepted(User user);
+	
+	/**
+	 * 
+	 * @param users
+	 */
+	public void chalangeRejected(User user);
 }

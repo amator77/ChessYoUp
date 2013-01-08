@@ -181,10 +181,32 @@ public class RoomsManager implements ConnectionManagerListener {
 	public void onNewConnectionRequest(Device remoteDevice, Message mesage) {
 		Log.d("connection request from :", remoteDevice.toString());
 		for( User user : users ){
-			if( user.getDevice().getDeviceIdentifier().equals(remoteDevice.getDeviceIdentifier())){
+			if( user.getDevice().getRegistrationId().equals(remoteDevice.getRegistrationId())){
 				this.roomListener.chalangeReceived(user);
 				break;
 			}
 		}				
+	}
+
+	@Override
+	public void onConnectionAccepted(Device remoteDevice, Message message) {
+		Log.d("connection accepted by :", remoteDevice.toString());
+		for( User user : users ){
+			if( user.getDevice().getRegistrationId().equals(remoteDevice.getRegistrationId())){
+				this.roomListener.chalangeAccepted(user);
+				break;
+			}
+		}		
+	}
+
+	@Override
+	public void onConnectionRejected(Device remoteDevice, Message message) {
+		Log.d("connection rejected by :", remoteDevice.toString());
+		for( User user : users ){
+			if( user.getDevice().getRegistrationId().equals(remoteDevice.getRegistrationId())){
+				this.roomListener.chalangeRejected(user);
+				break;
+			}
+		}	
 	}
 }
