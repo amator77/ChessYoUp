@@ -28,8 +28,8 @@
 
             <ImageButton
                 android:id="@+id/abortGameButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="left"
                 android:background="@null"
                 android:contentDescription="Send abort game request"
@@ -37,8 +37,8 @@
 
             <ImageButton
                 android:id="@+id/resignGameButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="left"
                 android:background="@null"
                 android:contentDescription="Resign game"
@@ -46,8 +46,8 @@
 
             <ImageButton
                 android:id="@+id/drawGameButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="left"
                 android:background="@null"
                 android:contentDescription="Send draw offer"
@@ -55,8 +55,8 @@
 
             <ImageButton
                 android:id="@+id/rematchGameButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
                 android:layout_gravity="left"
                 android:background="@null"
                 android:contentDescription="Send remtach request"
@@ -64,9 +64,9 @@
 
             <ImageButton
                 android:id="@+id/exitGameButton"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:layout_gravity="right"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:layout_gravity="left"
                 android:background="@null"
                 android:contentDescription="Exit"
                 android:src="@drawable/exit" />
