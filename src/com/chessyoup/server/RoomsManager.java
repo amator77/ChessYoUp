@@ -179,6 +179,7 @@ public class RoomsManager implements ConnectionManagerListener {
 
 	@Override
 	public void onNewConnectionRequest(Device remoteDevice, Message mesage) {
+		Log.d("connection request from :", remoteDevice.toString());
 		for( User user : users ){
 			if( user.getDevice().getDeviceIdentifier().equals(remoteDevice.getDeviceIdentifier())){
 				this.roomListener.chalangeReceived(user);
