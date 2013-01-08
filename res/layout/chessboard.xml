@@ -18,7 +18,60 @@
         android:layout_height="fill_parent"
         android:layout_marginLeft="2dp"
         android:orientation="vertical" >
+		
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"    
+            android:gravity="center"
+            android:orientation="horizontal" >
 
+            <ImageButton
+                android:id="@+id/abortGameButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="left"
+                android:background="@null"
+                android:contentDescription="Send abort game request"
+                android:src="@drawable/abort" />
+
+            <ImageButton
+                android:id="@+id/resignGameButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="left"
+                android:background="@null"
+                android:contentDescription="Resign game"
+                android:src="@drawable/resign" />
+
+            <ImageButton
+                android:id="@+id/drawGameButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="left"
+                android:background="@null"
+                android:contentDescription="Send draw offer"
+                android:src="@drawable/draw" />
+
+            <ImageButton
+                android:id="@+id/rematchGameButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="left"
+                android:background="@null"
+                android:contentDescription="Send remtach request"
+                android:src="@drawable/rematch" />
+
+            <ImageButton
+                android:id="@+id/exitGameButton"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_gravity="right"
+                android:background="@null"
+                android:contentDescription="Exit"
+                android:src="@drawable/exit" />
+        </LinearLayout>
+        
         <TableLayout
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
@@ -78,6 +131,8 @@
             </TableRow>
         </TableLayout>
 
+        
+
         <TabHost
             xmlns:android="http://schemas.android.com/apk/res/android"
             android:id="@android:id/tabhost"
@@ -99,44 +154,6 @@
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:layout_weight="1" />
-
-                <LinearLayout
-                    xmlns:android="http://schemas.android.com/apk/res/android"
-                    android:layout_width="fill_parent"
-                    android:layout_height="wrap_content"
-                    android:gravity="center"
-                    android:orientation="horizontal" >
-
-                    <ImageButton
-                        android:id="@+id/imageButton1"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/abort" />
-
-                    <ImageButton
-                        android:id="@+id/imageButton2"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/resign" />
-
-                    <ImageButton
-                        android:id="@+id/imageButton3"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/draw" />
-
-                    <ImageButton
-                        android:id="@+id/imageButton5"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/rematch" />
-
-                    <ImageButton
-                        android:id="@+id/imageButton4"
-                        android:layout_width="48dp"
-                        android:layout_height="48dp"
-                        android:src="@drawable/exit" />
-                </LinearLayout>
 
                 <TabWidget
                     android:id="@android:id/tabs"
