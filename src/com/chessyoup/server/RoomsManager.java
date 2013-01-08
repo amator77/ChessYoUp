@@ -5,13 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.res.AssetManager;
 import android.util.Log;
 
-import com.chessyoup.StartActivity;
 import com.chessyoup.connector.ConnectionManager;
 import com.chessyoup.connector.ConnectionManagerListener;
 import com.chessyoup.connector.Device;
@@ -28,6 +25,8 @@ public class RoomsManager implements ConnectionManagerListener {
 	private GCMRemoteService remoteService;
 
 	private static List<Room> rooms;
+
+	private static List<User> users;
 
 	private Room joinedRoom;
 
@@ -60,28 +59,28 @@ public class RoomsManager implements ConnectionManagerListener {
 
 		return RoomsManager.manager;
 	}
-	
+
 	public synchronized static RoomsManager getManager() {
-		
+
 		if (RoomsManager.manager == null) {
 			throw new RuntimeException("The manager is not initialized!");
 		}
 
 		return RoomsManager.manager;
 	}
-	
+
 	public void joinRoom(Room room) {
-		this.joinedRoom = room;		
+		this.joinedRoom = room;
 		this.connectionManager = new GCMConnectionManager(
 				this.applicationContext, room.getExtras()
-						.get(GCMRoom.SENDER_ID),room.getExtras()
-						.get(GCMRoom.API_KEY));
+						.get(GCMRoom.SENDER_ID), room.getExtras().get(
+						GCMRoom.API_KEY));
 		this.connectionManager.addListener(this);
 		this.connectionManager.initialize();
 	}
 
 	public void leaveRoom() {
-		if( this.joinedRoom != null){
+		if (this.joinedRoom != null) {
 			this.connectionManager.dispose();
 		}
 	}
@@ -122,7 +121,7 @@ public class RoomsManager implements ConnectionManagerListener {
 				this.connectionManager.getLocalDevice(),
 				this.joinedRoom.getId())) {
 			if (this.roomListener != null) {
-				this.roomListener.roomJoined(this.joinedRoom, true);				
+				this.roomListener.roomJoined(this.joinedRoom, true);
 				this.loadUsers();
 			}
 		} else {
@@ -135,39 +134,41 @@ public class RoomsManager implements ConnectionManagerListener {
 	@Override
 	public void onDispose(boolean status) {
 		this.remoteService.unRegister(this.connectionManager.getLocalDevice());
-		
+
 		if (this.roomListener != null) {
 			this.roomListener.roomLeaved(this.joinedRoom);
 		}
-		
+
 		this.joinedRoom = null;
 	}
-	
-	
-	
+
 	public ConnectionManager getConnectionManager() {
 		return this.connectionManager;
 	}
-	
-	public void loadUsers(){
+
+	public void loadUsers() {
 		try {
-			List<Device> devices = this.remoteService.devices(this.joinedRoom.getId());
+			List<Device> devices = this.remoteService.devices(this.joinedRoom
+					.getId());
 			List<User> users = new ArrayList<User>();
-			
-			for( Device d : devices ){
-				if( !d.getDeviceIdentifier().equals(RoomsManager.getManager().getConnectionManager().getLocalDevice().getDeviceIdentifier())){
+
+			for (Device d : devices) {
+				if (!d.getDeviceIdentifier().equals(
+						RoomsManager.getManager().getConnectionManager()
+								.getLocalDevice().getDeviceIdentifier())) {
 					GCMUser user = new GCMUser(d, UserStatus.ONLINE);
 					users.add(user);
 				}
 			}
-			
-			this.roomListener.usersReceived(users);
-			
-		} catch (IOException e) {					
+
+			RoomsManager.users = users;
+			this.roomListener.usersReceived(RoomsManager.users);
+
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
-			
+
 	public RoomListener getRoomListener() {
 		return roomListener;
 	}
@@ -177,35 +178,12 @@ public class RoomsManager implements ConnectionManagerListener {
 	}
 
 	@Override
-	public void onNewConnectionRequest(Device remoteDevice,Message mesage) {
-		
-		AlertDialog.Builder db = new AlertDialog.Builder(this.applicationContext);
-		db.setTitle("Chalange from :");
-		String actions[] = new String[2];
-		actions[0] = "OK";
-		actions[1] = "Reject";
-		db.setItems(
-				actions,
-				new DialogInterface.OnClickListener() {
-
-					@Override
-					public void onClick(
-							DialogInterface dialog,
-							int which) {
-						switch (which) {
-						case 0:							
-							break;
-						case 1:							
-							break;
-						default:
-							break;
-						}
-					}
-				});
-
-		AlertDialog ad = db.create();
-		ad.setCancelable(true);
-		ad.setCanceledOnTouchOutside(true);
-		ad.show();				
+	public void onNewConnectionRequest(Device remoteDevice, Message mesage) {
+		for( User user : users ){
+			if( user.getDevice().getDeviceIdentifier().equals(remoteDevice.getDeviceIdentifier())){
+				this.roomListener.chalangeReceived(user);
+				break;
+			}
+		}				
 	}
 }

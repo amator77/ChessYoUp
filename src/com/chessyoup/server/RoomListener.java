@@ -22,4 +22,10 @@ public interface RoomListener {
 	 */
 	public void usersReceived(List<User> users);
 	
+	/**
+	 * 
+	 * @param users
+	 */
+	public void chalangeReceived(User user);
+	
 }

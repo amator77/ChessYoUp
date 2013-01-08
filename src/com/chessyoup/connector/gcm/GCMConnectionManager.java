@@ -119,7 +119,24 @@ public class GCMConnectionManager implements ConnectionManager {
 			listener.onConnected(null, false);
 		}
 	}
-
+	
+	@Override
+	public void acceptConnection(Device remoteDevice) {
+		try {	
+			this.connections.add(new GCMConnection(device, remoteDevice,
+					null));
+			GCMMessage connectMessage = new GCMMessage();
+			connectMessage.setHeader(GCMMesssageSender.GCM_HEADER_COMMAND, GCMMesssageSender.CONNECT_ACCEPTED);
+			connectMessage.setBody("");
+			GCMMesssageSender.getSender().sendMessage(remoteDevice,connectMessage);
+		} catch (IOException e) {
+			Log.d("GCMConnectionManager",
+					"Error on sendind connect request to :"
+							+ remoteDevice.toString());
+			e.printStackTrace();
+		}
+	}
+	
 	@Override
 	public void closeConnection(Connection connection) {
 		try {

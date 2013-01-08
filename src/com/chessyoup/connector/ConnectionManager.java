@@ -52,4 +52,11 @@ public interface ConnectionManager {
 	 * @return - an device only if this manager is initialized
 	 */
 	public Device getLocalDevice();
+
+	/**
+	 * 
+	 * @param device
+	 * @return
+	 */
+	public void acceptConnection(Device remoteDevice);
 }

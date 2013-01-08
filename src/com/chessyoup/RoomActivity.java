@@ -191,6 +191,59 @@ public class RoomActivity extends Activity implements RoomListener {
 		});
 	}
 
+	public String deviceLabel(Device device) {
+		StringBuffer sb = new StringBuffer();
+		if (device.getAccount() != null && !device.getAccount().equals("null")) {
+			sb.append(device.getAccount());
+		} else if (device.getDevicePhoneNumber() != null
+				&& !device.getDevicePhoneNumber().equals("null")) {
+			sb.append(device.getDevicePhoneNumber());
+		} else {
+			sb.append(device.getDeviceIdentifier());
+		}
+
+		return sb.toString();
+	}
+
+	@Override
+	public void chalangeReceived(final User user) {
+
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				AlertDialog.Builder db = new AlertDialog.Builder(
+						RoomActivity.this);
+				db.setTitle("Chalange from :");
+				String actions[] = new String[2];
+				actions[0] = "OK";
+				actions[1] = "Reject";
+				db.setItems(actions, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						switch (which) {
+						case 0:							
+							runAcceptChalangeTask(user);
+							break;
+						case 1:
+							runRejectChalangeTask(user);
+							break;
+						default:
+							runRejectChalangeTask(user);
+							break;
+						}
+					}					
+				});
+
+				AlertDialog ad = db.create();
+				ad.setCancelable(true);
+				ad.setCanceledOnTouchOutside(true);
+				ad.show();
+			}
+		});
+	}
+
 	private void launchChatActivity(User selectedUser) {
 		Intent intent = new Intent(this, GCMChatActivity.class);
 		intent.putExtra("remote_device_id", selectedUser.getDevice()
@@ -206,7 +259,7 @@ public class RoomActivity extends Activity implements RoomListener {
 		startActivity(intent);
 	}
 
-	private void launchChessboardActivity(User selectedUser) {
+	private void launchChessboardActivity(User selectedUser,boolean connected) {
 		Intent intent = new Intent(this, ChessboardActivity.class);
 		intent.putExtra("remote_device_id", selectedUser.getDevice()
 				.getDeviceIdentifier());
@@ -218,20 +271,33 @@ public class RoomActivity extends Activity implements RoomListener {
 
 		intent.putExtra("owner_account", RoomsManager.getManager(this)
 				.getConnectionManager().getLocalDevice().getAccount());
+		
+		intent.putExtra("connected", connected ? "true" : "false");
+		
 		startActivity(intent);
 	}
+	
+	private void launchChessboardActivity(User selectedUser) {
+		launchChessboardActivity(selectedUser,false);
+	}
+	
+	private void runRejectChalangeTask(User user) {
 
-	public String deviceLabel(Device device) {
-		StringBuffer sb = new StringBuffer();
-		if (device.getAccount() != null && !device.getAccount().equals("null")) {
-			sb.append(device.getAccount());
-		} else if (device.getDevicePhoneNumber() != null
-				&& !device.getDevicePhoneNumber().equals("null")) {
-			sb.append(device.getDevicePhoneNumber());
-		} else {
-			sb.append(device.getDeviceIdentifier());
-		}
+		
+	}
 
-		return sb.toString();
+	private void runAcceptChalangeTask(final User user) {
+		
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				RoomsManager.getManager().getConnectionManager().acceptConnection(user.getDevice());
+				launchChessboardActivity(user,true);
+				return null;
+			}
+		};
+
+		task.execute();						
 	}
 }
