@@ -4,37 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <LinearLayout
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal" >
-
-        <ImageButton
-            android:id="@+id/imageButton1"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/abort" />
-
-        <ImageButton
-            android:id="@+id/imageButton2"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/resign" />
-
-        <ImageButton
-            android:id="@+id/imageButton3"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/draw" />
-
-        <ImageButton
-            android:id="@+id/imageButton4"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/exit" />
-    </LinearLayout>
+    
 
     <ScrollView
         android:id="@+id/moveListScroll"
