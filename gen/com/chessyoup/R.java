@@ -44,16 +44,21 @@ public final class R {
         public static final int white=0x7f040002;
     }
     public static final class drawable {
-        public static final int border=0x7f020000;
-        public static final int dark=0x7f020001;
-        public static final int ic_launcher=0x7f020002;
-        public static final int knight=0x7f020003;
-        public static final int light=0x7f020004;
-        public static final int loader=0x7f020005;
-        public static final int tab_bg_selected=0x7f020006;
-        public static final int tab_bg_selector=0x7f020007;
-        public static final int tab_bg_unselected=0x7f020008;
-        public static final int tab_text_selector=0x7f020009;
+        public static final int abort=0x7f020000;
+        public static final int border=0x7f020001;
+        public static final int dark=0x7f020002;
+        public static final int draw=0x7f020003;
+        public static final int exit=0x7f020004;
+        public static final int ic_launcher=0x7f020005;
+        public static final int knight=0x7f020006;
+        public static final int light=0x7f020007;
+        public static final int loader=0x7f020008;
+        public static final int rematch=0x7f020009;
+        public static final int resign=0x7f02000a;
+        public static final int tab_bg_selected=0x7f02000b;
+        public static final int tab_bg_selector=0x7f02000c;
+        public static final int tab_bg_unselected=0x7f02000d;
+        public static final int tab_text_selector=0x7f02000e;
     }
     public static final class id {
         public static final int black_clock=0x7f080013;
@@ -62,17 +67,17 @@ public final class R {
         public static final int chatScroll=0x7f080002;
         public static final int chessboard=0x7f080005;
         public static final int chessboardLayout=0x7f080004;
-        public static final int chessboard_abort=0x7f08000a;
         public static final int chessboard_black_clock=0x7f080009;
         public static final int chessboard_black_player=0x7f080007;
-        public static final int chessboard_draw=0x7f08000c;
-        public static final int chessboard_remtach=0x7f08000d;
-        public static final int chessboard_resign=0x7f08000b;
         public static final int chessboard_white_clock=0x7f080008;
         public static final int chessboard_white_player=0x7f080006;
         public static final int devices_label=0x7f08001b;
         public static final int editChatText=0x7f080001;
         public static final int first_title_line=0x7f080010;
+        public static final int imageButton1=0x7f08000a;
+        public static final int imageButton2=0x7f08000b;
+        public static final int imageButton3=0x7f08000c;
+        public static final int imageButton4=0x7f08000d;
         public static final int imageView1=0x7f08001f;
         public static final int join_room=0x7f080019;
         public static final int moveList=0x7f08000f;
