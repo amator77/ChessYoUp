@@ -1,9 +1,12 @@
 package com.chessyoup;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.petero.droidfish.ChessBoardPlay;
@@ -30,6 +33,7 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Html;
 import android.text.Layout;
 import android.text.Spannable;
 import android.text.SpannableStringBuilder;
@@ -85,7 +89,9 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 	private Button chatSendMessageButton;
 
 	private EditText chatEditText;
-
+	
+	private DateFormat dateFormat;
+	
 	private ChessController chessCtrl;
 
 	private Connection connection;
@@ -95,6 +101,7 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
 		Log.d("ChessboardActivity", "on create");
 		setContentView(R.layout.chessboard);
+		dateFormat = new SimpleDateFormat("EEEE, kk:mm", Locale.getDefault());
 		ColorTheme.instance().readColors(
 				PreferenceManager.getDefaultSharedPreferences(this));
 		PGNOptions pgnOptions = new PGNOptions();
@@ -102,31 +109,31 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 		this.chessCtrl = new ChessController(this, this.gameTextListener,
 				pgnOptions);
 		this.initUI();
-//		this.installListeners();
-//
-//		Intent intent = getIntent();
-//
-//		this.connection = RoomsManager
-//				.getManager()
-//				.getConnectionManager()
-//				.getConnection(
-//						intent.getStringExtra("remote_gcm_registration_id"));
-//
-//		this.connection.setConnectionListener(this);
-//
-//		if (intent.getStringExtra("color").equals("white")) {
-//			cb.flipped = false;
-//			this.chessCtrl.newGame(new GameMode(
-//					GameMode.TWO_PLAYERS_BLACK_REMOTE));
-//		} else {
-//			cb.flipped = true;
-//			this.chessCtrl.newGame(new GameMode(
-//					GameMode.TWO_PLAYERS_WHITE_REMOTE));
-//		}
-//
-//		this.chessCtrl.startGame();
-//		Toast.makeText(getApplicationContext(), "Game started",
-//				Toast.LENGTH_SHORT).show();
+		this.installListeners();
+
+		Intent intent = getIntent();
+
+		this.connection = RoomsManager
+				.getManager()
+				.getConnectionManager()
+				.getConnection(
+						intent.getStringExtra("remote_gcm_registration_id"));
+
+		this.connection.setConnectionListener(this);
+
+		if (intent.getStringExtra("color").equals("white")) {
+			cb.flipped = false;
+			this.chessCtrl.newGame(new GameMode(
+					GameMode.TWO_PLAYERS_BLACK_REMOTE));
+		} else {
+			cb.flipped = true;
+			this.chessCtrl.newGame(new GameMode(
+					GameMode.TWO_PLAYERS_WHITE_REMOTE));
+		}
+
+		this.chessCtrl.startGame();
+		Toast.makeText(getApplicationContext(), "Game started",
+				Toast.LENGTH_SHORT).show();
 	}
 
 	private void initUI() {
@@ -882,15 +889,15 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 
 	private void addMessage(final String source, final String text) {
 		this.runOnUIThread(new Runnable() {
-
+			
 			@Override
-			public void run() {
-				chatDisplay.append(source != null ? source : "null");
-				chatDisplay.append(",");
-				chatDisplay.append(new Date().toString());
-				chatDisplay.append("\n");
-				chatDisplay.append(text != null ? text : "null");
-				chatDisplay.append("\n");
+			public void run() {																
+				StringBuilder sb = new StringBuilder();
+				sb.append("<span style=\"color:red\">").append(dateFormat.format(new Date())).append(" </span>");															
+				sb.append(source != null ? source : "null").append(" : ");				
+				sb.append(text != null ? text : "null").append("<br/>");								
+				Spanned styledText = Html.fromHtml(sb.toString());				
+				chatDisplay.append(styledText);
 			}
 		});
 	}

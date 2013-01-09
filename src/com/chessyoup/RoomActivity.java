@@ -31,6 +31,8 @@ public class RoomActivity extends Activity implements RoomListener {
 	
 	ProgressDialog pg;
 	
+	AlertDialog chalangeDialog;
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("RoomActivity", "on create");
@@ -103,11 +105,16 @@ public class RoomActivity extends Activity implements RoomListener {
 	}
 
 	@Override
-	public void chalangeRejected(User user) {
-		// TODO Auto-generated method stub
-		
-		
-		
+	public void chalangeRejected(User user) {		
+		runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				if( chalangeDialog != null ){
+					chalangeDialog.dismiss();
+				}				
+			}
+		});						
 	}
 	
 	@Override
@@ -117,9 +124,18 @@ public class RoomActivity extends Activity implements RoomListener {
 
 			@Override
 			public void run() {
+				
+				if( chalangeDialog == null ){
+					chalangeDialog = createChalangeDialog();
+				}
+				
+				chalangeDialog.show();	
+			}
+
+			private AlertDialog createChalangeDialog() {
 				AlertDialog.Builder db = new AlertDialog.Builder(
 						RoomActivity.this);
-				db.setTitle("Chalange from :");
+				db.setTitle("Chalange from :"+user.getUsername());
 				String actions[] = new String[2];
 				actions[0] = "OK";
 				actions[1] = "Reject";
@@ -143,8 +159,8 @@ public class RoomActivity extends Activity implements RoomListener {
 
 				AlertDialog ad = db.create();
 				ad.setCancelable(true);
-				ad.setCanceledOnTouchOutside(false);
-				ad.show();
+				ad.setCanceledOnTouchOutside(false);				
+				return ad;
 			}
 		});
 	}
@@ -243,9 +259,17 @@ public class RoomActivity extends Activity implements RoomListener {
 		launchChessboardActivity(selectedUser,false);
 	}
 	
-	private void runRejectChalangeTask(User user) {
+	private void runRejectChalangeTask(final User user) {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
-		
+			@Override
+			protected Void doInBackground(Void... params) {
+				RoomsManager.getManager().getConnectionManager().rejectConnection(user.getDevice());					
+				return null;
+			}
+		};
+
+		task.execute();				
 	}
 	
 	private void runSendChalangeTask(final User selectedUser) {

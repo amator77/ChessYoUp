@@ -59,4 +59,11 @@ public interface ConnectionManager {
 	 * @return
 	 */
 	public void acceptConnection(Device remoteDevice);
+	
+	/**
+	 * 
+	 * @param device
+	 * @return
+	 */
+	public void rejectConnection(Device remoteDevice);
 }
