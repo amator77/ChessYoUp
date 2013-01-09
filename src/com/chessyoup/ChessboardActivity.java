@@ -514,13 +514,13 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 						&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)  && (event.getAction() == KeyEvent.ACTION_UP ) ) {
 					InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
 					Log.d("key event", event.toString());
-
+										
+					runSendMessageTask(chatEditText.getEditableText().toString());
+					chatEditText.setText("");
+					
 					in.hideSoftInputFromWindow(
 							v.getApplicationWindowToken(),
 							InputMethodManager.HIDE_NOT_ALWAYS);
-					
-					runSendMessageTask(chatEditText.getEditableText().toString());
-					chatEditText.setText("");
 					
 					return true;
 				}

@@ -31,12 +31,12 @@
         <activity
             android:name="com.chessyoup.RoomActivity"
             android:label="@string/app_name"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="portrait" >
         </activity>
         <activity
             android:name="com.chessyoup.StartActivity"
             android:label="@string/app_name"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
@@ -47,7 +47,7 @@
             android:name="com.chessyoup.ChessboardActivity"
             android:label="@string/app_name"
             android:parentActivityName="com.chessyoup.RoomActivity"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="portrait" >
         </activity>
 
         <receiver
