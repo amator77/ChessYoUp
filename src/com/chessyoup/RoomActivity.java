@@ -250,7 +250,8 @@ public class RoomActivity extends Activity implements RoomListener {
 	
 	private void runSendChalangeTask(final User selectedUser) {
 		pg = ProgressDialog.show(this, "Action", "Chalange :"+selectedUser.getUsername(), true);
-				
+		pg.setCancelable(true);	
+		
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
