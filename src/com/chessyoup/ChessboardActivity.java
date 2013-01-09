@@ -2,6 +2,7 @@ package com.chessyoup;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,25 +42,33 @@ import android.text.style.LeadingMarginSpan;
 import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.GestureDetector;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
 import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
+import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
 import com.chessyoup.connector.Connection;
 import com.chessyoup.connector.ConnectionListener;
+import com.chessyoup.connector.Device;
 import com.chessyoup.connector.GenericDevice;
 import com.chessyoup.connector.Message;
 import com.chessyoup.server.RoomsManager;
 
-public class ChessboardActivity extends Activity implements GUIInterface ,ConnectionListener {
+public class ChessboardActivity extends Activity implements GUIInterface,
+		ConnectionListener {
 
 	private boolean boardGestures = true;
 
@@ -71,10 +80,16 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 
 	private TextView moveListView;
 
+	private TextView chatDisplay;
+
+	private Button chatSendMessageButton;
+
+	private EditText chatEditText;
+
 	private ChessController chessCtrl;
-	
+
 	private Connection connection;
-	
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -88,10 +103,10 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 				pgnOptions);
 		this.initUI();
 		this.installListeners();
-		
+
 		Intent intent = getIntent();
 		this.installListeners();
-		
+
 		this.connection = RoomsManager
 				.getManager()
 				.getConnectionManager()
@@ -99,70 +114,81 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 						intent.getStringExtra("remote_gcm_registration_id"));
 
 		this.connection.setConnectionListener(this);
-		Log.d("muie", this.connection.isConnected()+"");
-		
-		
-		if( intent.getStringExtra("color").equals("white") ){
+
+		if (intent.getStringExtra("color").equals("white")) {
 			cb.flipped = false;
-			this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_BLACK_REMOTE));		
-		}
-		else{
+			this.chessCtrl.newGame(new GameMode(
+					GameMode.TWO_PLAYERS_BLACK_REMOTE));
+		} else {
 			cb.flipped = true;
-			this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_WHITE_REMOTE));	
+			this.chessCtrl.newGame(new GameMode(
+					GameMode.TWO_PLAYERS_WHITE_REMOTE));
 		}
-		
+
 		this.chessCtrl.startGame();
-		Toast.makeText(getApplicationContext(), "Game started", Toast.LENGTH_SHORT).show();		
+		Toast.makeText(getApplicationContext(), "Game started",
+				Toast.LENGTH_SHORT).show();
 	}
 
 	private void initUI() {
+		final View chatView = LayoutInflater.from(this).inflate(R.layout.chat,
+				null);
+		final View gameView = LayoutInflater.from(this).inflate(
+				R.layout.chessboard_game, null);
+		this.moveListView = (TextView) gameView.findViewById(R.id.moveList);
+		this.moveListScroll = (ScrollView) gameView
+				.findViewById(R.id.moveListScroll);
+		this.chatDisplay = (TextView) chatView.findViewById(R.id.chatDisplay);
+		this.chatEditText = (EditText) chatView.findViewById(R.id.editChatText);
+		this.chatSendMessageButton = (Button) chatView
+				.findViewById(R.id.sendChatButton);
+
 		cb = (ChessBoardPlay) findViewById(R.id.chessboard);
 		cb.setFocusable(true);
 		cb.requestFocus();
 		cb.setClickable(true);
 		cb.setPgnOptions(this.chessCtrl.getPgnOptions());
 
-		final View chatView = LayoutInflater.from(this).inflate(R.layout.chat,null);
-		final View gameView = LayoutInflater.from(this).inflate(R.layout.chessboard_game,null);
-		this.moveListView = (TextView)gameView.findViewById(R.id.moveList);
-		this.moveListScroll = (ScrollView)gameView.findViewById(R.id.moveListScroll);
-		
-		
 		TabHost th = (TabHost) findViewById(android.R.id.tabhost);
 		th.setup();
 
 		TabSpec ts1 = th.newTabSpec("Chat");
-		ts1.setIndicator(createTabView(this, "Chat")).setContent(new TabContentFactory() {
+		ts1.setIndicator(createTabView(this, "Chat")).setContent(
+				new TabContentFactory() {
 
-			@Override
-			public View createTabContent(String tag) {
-				return chatView;
-			}
-		});
+					@Override
+					public View createTabContent(String tag) {
+						return chatView;
+					}
+				});
 
 		TabSpec ts2 = th.newTabSpec("Game");
-		ts2.setIndicator(createTabView(this, "Game")).setContent(new TabContentFactory() {
+		ts2.setIndicator(createTabView(this, "Game")).setContent(
+				new TabContentFactory() {
 
-			@Override
-			public View createTabContent(String tag) {
-				return gameView;
-			}
-		});
+					@Override
+					public View createTabContent(String tag) {
+						return gameView;
+					}
+				});
 
 		th.addTab(ts2);
 		th.addTab(ts1);
 		th.setCurrentTab(0);
-		
-		Bitmap bmp = BitmapFactory.decodeResource(getResources(), R.drawable.border);
-	    BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(),bmp);
-	    bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT, Shader.TileMode.REPEAT);	    
-	    this.findViewById(R.id.chessboardLayout).setBackgroundDrawable(bitmapDrawable);
+
+		Bitmap bmp = BitmapFactory.decodeResource(getResources(),
+				R.drawable.border);
+		BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bmp);
+		bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT,
+				Shader.TileMode.REPEAT);
+		this.findViewById(R.id.chessboardLayout).setBackgroundDrawable(
+				bitmapDrawable);
 	}
 
 	@Override
 	public void onStart() {
 		super.onStart();
-		Log.d("ChessboardActivity", "on start");		
+		Log.d("ChessboardActivity", "on start");
 	}
 
 	@Override
@@ -201,34 +227,42 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		cb.setSelection(sq);
 		cb.userSelectedSquare = false;
 	}
-	
+
 	@Override
 	public void onConnected(Connection connection, boolean status) {
 		this.connection = connection;
-		
+
 		runOnUiThread(new Runnable() {
-			
+
 			@Override
 			public void run() {
-				chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_BLACK_REMOTE));
+				chessCtrl.newGame(new GameMode(
+						GameMode.TWO_PLAYERS_BLACK_REMOTE));
 				chessCtrl.startGame();
-				Toast.makeText(getApplicationContext(), "Game started", Toast.LENGTH_SHORT).show();	
+				Toast.makeText(getApplicationContext(), "Game started",
+						Toast.LENGTH_SHORT).show();
 			}
 		});
-		
+
 	}
 
 	@Override
-	public void messageReceived(Connection source,final Message message) {
+	public void messageReceived(final Connection source, final Message message) {
 		runOnUiThread(new Runnable() {
-			
+
 			@Override
 			public void run() {
-				if( message.getHeader().get(GameMessage.GAME_COMMAND).equals(GameMessage.MOVE) ){
-					ChessboardActivity.this.chessCtrl.makeRemoteMove(message.getBody());			
+				if (message.getHeader().get(GameMessage.GAME_COMMAND)
+						.equals(GameMessage.MOVE)) {
+					ChessboardActivity.this.chessCtrl.makeRemoteMove(message
+							.getBody());
+				} else if (message.getHeader().get(GameMessage.GAME_COMMAND)
+						.equals(GameMessage.CHAT)) {
+					addMessage(deviceLabel(source.getRemoteDevice()),
+							message.getBody());
 				}
 			}
-		});		
+		});
 	}
 
 	@Override
@@ -345,7 +379,7 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 	@Override
 	public void moveListUpdated() {
 		runOnUiThread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				moveListView.setText(gameTextListener.getSpannableData());
@@ -355,10 +389,10 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 					int line = layout.getLineForOffset(currPos);
 					int y = (int) ((line - 1.5) * moveListView.getLineHeight());
 					moveListScroll.scrollTo(0, y);
-				}			
+				}
 			}
-		});		
-		
+		});
+
 	}
 
 	@Override
@@ -371,9 +405,9 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		// Vibrator v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
 		// v.vibrate(500);
 	}
-	
+
 	private void runConnectTask(final Intent onCreateIntent) {
-		
+
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -398,7 +432,7 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 
 		task.execute();
 	}
-	
+
 	private void installListeners() {
 
 		final GestureDetector gd = new GestureDetector(this,
@@ -446,14 +480,14 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 						if (true) {
 							int sq = cb.eventToSquare(e);
 							Move m = cb.mousePressed(sq);
-							if (m != null){
-								if( chessCtrl.humansTurn() ){
+							if (m != null) {
+								if (chessCtrl.humansTurn()) {
 									chessCtrl.makeHumanMove(m);
 									sendMoveToRemote(TextIO.moveToUCIString(m));
 								}
 							}
 						}
-					}					
+					}
 				});
 		cb.setOnTouchListener(new OnTouchListener() {
 			public boolean onTouch(View v, MotionEvent event) {
@@ -461,47 +495,106 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 			}
 		});
 
+		chatSendMessageButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Log.d("GCMChatActivity", "Send message request.");
+				runSendMessageTask(chatEditText.getEditableText().toString());
+				chatEditText.setText("");
+			}
+		});
+
+		chatEditText.setOnEditorActionListener(new OnEditorActionListener() {
+
+			@Override
+			public boolean onEditorAction(TextView v, int actionId,
+					KeyEvent event) {
+				if (event != null
+						&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+					InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+
+					// NOTE: In the author's example, he uses an identifier
+					// called searchBar. If setting this code on your EditText
+					// then use v.getWindowToken() as a reference to your
+					// EditText is passed into this callback as a TextView
+
+					in.hideSoftInputFromWindow(
+							chatEditText.getApplicationWindowToken(),
+							InputMethodManager.HIDE_NOT_ALWAYS);
+					
+					runSendMessageTask(chatEditText.getEditableText().toString());
+					chatEditText.setText("");
+					
+					return true;
+				}
+				return false;
+			}
+		});
 	}
-	
+
+	private void runSendMessageTask(final String message) {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				addMessage("owner", message);
+
+				try {
+					connection.sendMessage(new GameMessage(GameMessage.CHAT,
+							message));
+				} catch (IOException e1) {
+					e1.printStackTrace();
+				}
+
+				return null;
+			}
+		};
+
+		task.execute();
+	}
+
 	private void sendMoveToRemote(final String move) {
-		
-		Log.d("ChessBoardActivity", "Send move to remote :"+move);
-		
+
+		Log.d("ChessBoardActivity", "Send move to remote :" + move);
+
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				try {					
-					connection.sendMessage(new GameMessage(GameMessage.MOVE, move));
+				try {
+					connection.sendMessage(new GameMessage(GameMessage.MOVE,
+							move));
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				}
+
 				return null;
 			}
 		};
 
-		task.execute();						
+		task.execute();
 	}
-	
-	class GameMessage implements Message{
-		
+
+	class GameMessage implements Message {
+
 		public static final String GAME_COMMAND = "g_cmd";
-		
+
 		public static final String CHAT = "g_chat";
-		
+
 		public static final String MOVE = "g_mv";
-		
+
 		private Map<String, String> header;
-		
+
 		private String body;
-		
-		GameMessage(String type,String body){
+
+		GameMessage(String type, String body) {
 			header = new HashMap<String, String>();
 			header.put(GAME_COMMAND, type);
 			this.body = body;
 		}
-		
+
 		@Override
 		public String getBody() {
 			return this.body;
@@ -510,9 +603,9 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		@Override
 		public Map<String, String> getHeader() {
 			return this.header;
-		}		
+		}
 	}
-	
+
 	/**
 	 * PngTokenReceiver implementation that renders PGN data for screen display.
 	 */
@@ -762,7 +855,7 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		this.runOnDisconectTask();
 		finish();
 	}
-	
+
 	private void runOnDisconectTask() {
 
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
@@ -770,8 +863,11 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				if( ChessboardActivity.this.connection != null ){
-					RoomsManager.getManager().getConnectionManager().closeConnection(ChessboardActivity.this.connection);
+				if (ChessboardActivity.this.connection != null) {
+					RoomsManager
+							.getManager()
+							.getConnectionManager()
+							.closeConnection(ChessboardActivity.this.connection);
 				}
 
 				return null;
@@ -780,11 +876,41 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 
 		task.execute();
 	}
-	
+
 	private static View createTabView(final Context context, final String text) {
-		View view = LayoutInflater.from(context).inflate(R.layout.tabs_bg, null);
+		View view = LayoutInflater.from(context)
+				.inflate(R.layout.tabs_bg, null);
 		TextView tv = (TextView) view.findViewById(R.id.tabsText);
 		tv.setText(text);
 		return view;
+	}
+
+	private void addMessage(final String source, final String text) {
+		this.runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				chatDisplay.append(source != null ? source : "null");
+				chatDisplay.append(",");
+				chatDisplay.append(new Date().toString());
+				chatDisplay.append("\n");
+				chatDisplay.append(text != null ? text : "null");
+				chatDisplay.append("\n");
+			}
+		});
+	}
+
+	private String deviceLabel(Device device) {
+		StringBuffer sb = new StringBuffer();
+		if (device.getAccount() != null && !device.getAccount().equals("null")) {
+			sb.append(device.getAccount());
+		} else if (device.getDevicePhoneNumber() != null
+				&& !device.getDevicePhoneNumber().equals("null")) {
+			sb.append(device.getDevicePhoneNumber());
+		} else {
+			sb.append(device.getDeviceIdentifier());
+		}
+
+		return sb.toString();
 	}
 }
