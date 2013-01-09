@@ -98,9 +98,12 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 				.getConnection(
 						intent.getStringExtra("remote_gcm_registration_id"));
 
-		this.connection.setConnectionListener(this);	
+		this.connection.setConnectionListener(this);
+		Log.d("muie", this.connection.isConnected()+"");
+		
 		
 		if( intent.getStringExtra("color").equals("white") ){
+			cb.flipped = false;
 			this.chessCtrl.newGame(new GameMode(GameMode.TWO_PLAYERS_BLACK_REMOTE));		
 		}
 		else{
@@ -444,8 +447,10 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 							int sq = cb.eventToSquare(e);
 							Move m = cb.mousePressed(sq);
 							if (m != null){
-								chessCtrl.makeHumanMove(m);
-								sendMoveToRemote(TextIO.moveToUCIString(m));								
+								if( chessCtrl.humansTurn() ){
+									chessCtrl.makeHumanMove(m);
+									sendMoveToRemote(TextIO.moveToUCIString(m));
+								}
 							}
 						}
 					}					
@@ -460,6 +465,8 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 	
 	private void sendMoveToRemote(final String move) {
 		
+		Log.d("ChessBoardActivity", "Send move to remote :"+move);
+		
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
@@ -468,7 +475,6 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 				try {					
 					connection.sendMessage(new GameMessage(GameMessage.MOVE, move));
 				} catch (IOException e1) {
-					// TODO Auto-generated catch block
 					e1.printStackTrace();
 				}
 				return null;

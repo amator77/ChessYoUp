@@ -123,12 +123,14 @@ public class GCMConnectionManager implements ConnectionManager {
 	@Override
 	public void acceptConnection(Device remoteDevice) {
 		try {	
-			this.connections.add(new GCMConnection(device, remoteDevice,
-					null));
+			GCMConnection connection = new GCMConnection(device, remoteDevice,
+					null); 
+			this.connections.add(connection);
 			GCMMessage connectMessage = new GCMMessage();
 			connectMessage.setHeader(GCMMesssageSender.GCM_HEADER_COMMAND, GCMMesssageSender.CONNECT_ACCEPTED);
 			connectMessage.setBody("");
 			GCMMesssageSender.getSender().sendMessage(remoteDevice,connectMessage);
+			connection.setConnected(true);
 		} catch (IOException e) {
 			Log.d("GCMConnectionManager",
 					"Error on sendind connect request to :"

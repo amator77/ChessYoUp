@@ -40,7 +40,9 @@ public class GCMMesssageSender {
 		return GCMMesssageSender.instance;
 	}
 	
-	public void sendMessage( Device remoteDevice , com.chessyoup.connector.Message message) throws IOException{								
+	public void sendMessage( Device remoteDevice , com.chessyoup.connector.Message message) throws IOException{
+		Log.d("GCMMessageSender", "Send :"+message.toString()+" to :"+remoteDevice.toString());
+		
 		if( this.sender == null ){
 			this.lastApiKey = GCMConnectionManager.getCurrentManager().getApiKey();
 			this.sender = new Sender(this.lastApiKey);
