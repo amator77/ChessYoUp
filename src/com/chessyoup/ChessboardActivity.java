@@ -511,16 +511,12 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 			public boolean onEditorAction(TextView v, int actionId,
 					KeyEvent event) {
 				if (event != null
-						&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+						&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)  && (event.getAction() == KeyEvent.ACTION_UP ) ) {
 					InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-
-					// NOTE: In the author's example, he uses an identifier
-					// called searchBar. If setting this code on your EditText
-					// then use v.getWindowToken() as a reference to your
-					// EditText is passed into this callback as a TextView
+					Log.d("key event", event.toString());
 
 					in.hideSoftInputFromWindow(
-							chatEditText.getApplicationWindowToken(),
+							v.getApplicationWindowToken(),
 							InputMethodManager.HIDE_NOT_ALWAYS);
 					
 					runSendMessageTask(chatEditText.getEditableText().toString());
