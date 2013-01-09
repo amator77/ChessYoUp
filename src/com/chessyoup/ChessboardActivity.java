@@ -102,32 +102,31 @@ public class ChessboardActivity extends Activity implements GUIInterface,
 		this.chessCtrl = new ChessController(this, this.gameTextListener,
 				pgnOptions);
 		this.initUI();
-		this.installListeners();
-
-		Intent intent = getIntent();
-		this.installListeners();
-
-		this.connection = RoomsManager
-				.getManager()
-				.getConnectionManager()
-				.getConnection(
-						intent.getStringExtra("remote_gcm_registration_id"));
-
-		this.connection.setConnectionListener(this);
-
-		if (intent.getStringExtra("color").equals("white")) {
-			cb.flipped = false;
-			this.chessCtrl.newGame(new GameMode(
-					GameMode.TWO_PLAYERS_BLACK_REMOTE));
-		} else {
-			cb.flipped = true;
-			this.chessCtrl.newGame(new GameMode(
-					GameMode.TWO_PLAYERS_WHITE_REMOTE));
-		}
-
-		this.chessCtrl.startGame();
-		Toast.makeText(getApplicationContext(), "Game started",
-				Toast.LENGTH_SHORT).show();
+//		this.installListeners();
+//
+//		Intent intent = getIntent();
+//
+//		this.connection = RoomsManager
+//				.getManager()
+//				.getConnectionManager()
+//				.getConnection(
+//						intent.getStringExtra("remote_gcm_registration_id"));
+//
+//		this.connection.setConnectionListener(this);
+//
+//		if (intent.getStringExtra("color").equals("white")) {
+//			cb.flipped = false;
+//			this.chessCtrl.newGame(new GameMode(
+//					GameMode.TWO_PLAYERS_BLACK_REMOTE));
+//		} else {
+//			cb.flipped = true;
+//			this.chessCtrl.newGame(new GameMode(
+//					GameMode.TWO_PLAYERS_WHITE_REMOTE));
+//		}
+//
+//		this.chessCtrl.startGame();
+//		Toast.makeText(getApplicationContext(), "Game started",
+//				Toast.LENGTH_SHORT).show();
 	}
 
 	private void initUI() {
