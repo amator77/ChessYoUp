@@ -265,7 +265,7 @@ public class RoomActivity extends Activity implements RoomListener {
 					@Override
 					public void onConnected(Connection source, boolean status) {
 						pg.dismiss();
-						launchChessboardActivity(selectedUser);
+						launchChessboardActivity(selectedUser,true);
 					}
 					
 					@Override
@@ -286,7 +286,7 @@ public class RoomActivity extends Activity implements RoomListener {
 			@Override
 			protected Void doInBackground(Void... params) {
 				RoomsManager.getManager().getConnectionManager().acceptConnection(user.getDevice());
-				launchChessboardActivity(user,true);
+				launchChessboardActivity(user,false);
 				return null;
 			}
 		};

@@ -200,8 +200,7 @@ public class GCMConnectionManager implements ConnectionManager {
 		GCMDevice remoteDevice = this.extractRemoteDevice(intent);
 		GCMMessage message = this.extractMessage(intent);
 		
-		Log.d("GCMConnectionManager",
-				"Hanlde new mesage :" + message.toString() +" from :"+sourceId);
+		Log.d("GCMConnectionManager","Hanlde new mesage :" + message.toString());
 		
 		GCMConnection connection = null;
 		String gcmCommand = message.getHeader().get(GCMMesssageSender.GCM_HEADER_COMMAND);
@@ -251,35 +250,6 @@ public class GCMConnectionManager implements ConnectionManager {
 			Log.d("GCMConnectionManager",
 					"Message discarded :" + message.toString());
 		}
-		
-//		if (message.getBody().equals(
-//				CONNECT_REQUEST)) {
-//
-//			try {
-//				GCMMesssageSender.getSender().sendMessage(device, remoteDevice,
-//						CONNECT_ACCEPTED);
-//			} catch (IOException e) {
-//				e.printStackTrace();
-//			}
-//
-//			Intent chatIntent = new Intent(applicationContext,
-//					ChessboardActivity.class);
-//			chatIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-//			chatIntent.putExtra("remote_device_id",
-//					remoteDevice.getDeviceIdentifier());
-//			chatIntent.putExtra("remote_phone_number",
-//					remoteDevice.getDevicePhoneNumber());
-//			chatIntent.putExtra("remote_gcm_registration_id",
-//					remoteDevice.getRegistrationId());
-//			chatIntent.putExtra("remote_account", remoteDevice.getAccount());
-//			chatIntent.putExtra("owner_account",
-//					this.device.getAccount() != null ? this.device.getAccount()
-//							: this.device.getDevicePhoneNumber());
-//			this.connections.add(new GCMConnection(device, remoteDevice, null));
-//			chatIntent.putExtra("connected", "true");
-//
-//			applicationContext.startActivity(chatIntent);
-//		}
 	}
 
 	public GCMConnection getConnection(String registrationId) {
@@ -334,9 +304,7 @@ public class GCMConnectionManager implements ConnectionManager {
 	private GCMMessage extractMessage( Intent gcmIntent){
 		Bundle extra = gcmIntent.getExtras();
 		
-		GCMMessage message = new GCMMessage();		
-		message.setSequence(Integer.valueOf(extra
-				.getString(GCMMesssageSender.MESSAGE_ID)).intValue());
+		GCMMessage message = new GCMMessage();				
 		message.setBody(extra.getString(GCMMesssageSender.MESSAGE_PAYLOAD));
 				
 		Iterator<String> it  = extra.keySet().iterator();

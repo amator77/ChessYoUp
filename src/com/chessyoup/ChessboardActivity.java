@@ -486,11 +486,11 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 	
 	class GameMessage implements Message{
 		
-		public static final String GAME_COMMAND = "cmd";
+		public static final String GAME_COMMAND = "g_cmd";
 		
-		public static final String CHAT = "chat";
+		public static final String CHAT = "g_chat";
 		
-		public static final String MOVE = "move";
+		public static final String MOVE = "g_mv";
 		
 		private Map<String, String> header;
 		
@@ -498,7 +498,7 @@ public class ChessboardActivity extends Activity implements GUIInterface ,Connec
 		
 		GameMessage(String type,String body){
 			header = new HashMap<String, String>();
-			header.put("GAME_COMMAND", type);
+			header.put(GAME_COMMAND, type);
 			this.body = body;
 		}
 		
