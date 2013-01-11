@@ -43,9 +43,9 @@
             </intent-filter>
         </activity>        
         <activity
-            android:name="com.chessyoup.ChessboardActivity"
+            android:name="com.chessyoup.XMPPChessBoardActivity"
             android:label="@string/app_name"
-            android:parentActivityName="com.chessyoup.RoomActivity"
+            android:parentActivityName="com.chessyoup.RoasterActivity"
             android:screenOrientation="landscape" >
         </activity>
 		<activity

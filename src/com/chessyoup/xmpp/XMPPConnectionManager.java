@@ -54,7 +54,9 @@ public class XMPPConnectionManager implements ConnectionListener,
 	private XMPPConnection xmppConnection;
 
 	private List<XMPPListener> listeners;
-
+	
+	private List<Chat> chatList;
+	
 	private String user;
 
 	private ConnectionConfiguration configuration;
@@ -68,6 +70,7 @@ public class XMPPConnectionManager implements ConnectionListener,
 		Roster.setDefaultSubscriptionMode(SubscriptionMode.manual);
 		this.configurePM(ProviderManager.getInstance());
 		this.listeners = new ArrayList<XMPPListener>();
+		this.chatList = new ArrayList<Chat>();
 	}
 
 	public boolean login(String username, String password) {
@@ -126,12 +129,27 @@ public class XMPPConnectionManager implements ConnectionListener,
 	public void chatCreated(Chat chat, boolean createdLocally) {
 		Log.d(TAG, "chatCreated :" + chat.getParticipant() + " ,"
 				+ createdLocally);
-
-		if (!createdLocally) {
-			chat.addMessageListener(this);
+		
+		this.chatList.add(chat);
+		
+		if( !createdLocally ){
+			for (XMPPListener listener : this.listeners) {
+				listener.chatStarted(chat.getParticipant());
+			}
 		}
 	}
-
+	
+	public Chat getChat(String participant){
+		
+		for(Chat chat : this.chatList){
+			if( chat.getParticipant().equals(participant)){
+				return chat;
+			}
+		}
+		
+		return null;
+	}
+	
 	@Override
 	public void processMessage(Chat arg0, Message message) {
 		Log.d(TAG, "processMessage from :" + arg0.getParticipant()
@@ -224,6 +242,10 @@ public class XMPPConnectionManager implements ConnectionListener,
 		if (this.listeners.contains(listener)) {
 			this.listeners.remove(listener);
 		}
+	}
+	
+	public XMPPConnection getXmppConnection() {
+		return xmppConnection;
 	}
 
 	private void configurePM(ProviderManager pm) {

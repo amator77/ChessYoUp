@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.jivesoftware.smack.Chat;
+import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
+import org.jivesoftware.smack.packet.Message;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -71,7 +74,22 @@ public class RoasterActivity extends Activity implements XMPPListener{
 		Log.d("RoomActivity", "on destroy");
 		XMPPConnectionManager.getInstance().logout();
 	}
-
+	
+	@Override
+	public void chatStarted(final String participant) {
+		this.runOnUiThread(new Runnable() {
+			
+			@Override
+			public void run() {
+				Intent startXMPPChessboard = new Intent( RoasterActivity.this,XMPPChessBoardActivity.class);				
+				startXMPPChessboard.putExtra("ownerJID", participant);
+				startXMPPChessboard.putExtra("remoteJID", participant);
+				startXMPPChessboard.putExtra("color", "black");
+				startActivity(startXMPPChessboard);				
+			}
+		});
+	}
+	
 	@Override
 	public void newEntriesAdded(Collection<String> jabberIds) {
 		// TODO Auto-generated method stub
@@ -143,10 +161,22 @@ public class RoasterActivity extends Activity implements XMPPListener{
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-//				final User selectedUser = (User) listView.getAdapter().getItem(
-//						position);
-//				
-//				runSendChalangeTask(selectedUser);
+				final XMPPUser user = (XMPPUser) listView.getAdapter().getItem(position);
+								
+				XMPPConnectionManager.getInstance().getXmppConnection().getChatManager().createChat(user.getJabberId(), new MessageListener() {
+					
+					@Override
+					public void processMessage(Chat arg0, Message arg1) {
+						Log.d("aici", arg1.getBody());						
+					}
+				});
+					
+				
+				Intent startXMPPChessboard = new Intent( RoasterActivity.this,XMPPChessBoardActivity.class);
+				startXMPPChessboard.putExtra("ownerJID", XMPPConnectionManager.getInstance().getLoggedUser());
+				startXMPPChessboard.putExtra("remoteJID", user.getJabberId());
+				startXMPPChessboard.putExtra("color", "white");
+				startActivity(startXMPPChessboard);					
 			}			
 		});
 
