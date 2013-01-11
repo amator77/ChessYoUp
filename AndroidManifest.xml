@@ -36,7 +36,7 @@
         <activity
             android:name="com.chessyoup.StartActivity"
             android:label="@string/app_name"
-            android:screenOrientation="landscape" >
+            android:screenOrientation="portrait" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -48,7 +48,12 @@
             android:parentActivityName="com.chessyoup.RoomActivity"
             android:screenOrientation="landscape" >
         </activity>
-
+		<activity
+            android:name="com.chessyoup.RoasterActivity"
+            android:label="@string/app_name"
+            android:parentActivityName="com.chessyoup.StartActivity"
+            android:screenOrientation="portrait" >
+        </activity>
         <receiver
             android:name="com.chessyoup.connector.gcm.GCMEventsReceiver"
             android:permission="com.google.android.c2dm.permission.SEND" >

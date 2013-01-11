@@ -1,7 +1,13 @@
 package com.chessyoup.xmpp;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManager;
+import org.jivesoftware.smack.ChatManagerListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.ConnectionListener;
@@ -9,12 +15,14 @@ import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.Roster.SubscriptionMode;
+import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
+import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smackx.packet.ChatStateExtension;
@@ -28,8 +36,8 @@ import org.jivesoftware.smackx.pubsub.provider.PubSubProvider;
 
 import android.util.Log;
 
-public class XMPPConnectionManager implements PacketListener,
-		ConnectionListener {
+public class XMPPConnectionManager implements ConnectionListener,
+		RosterListener, ChatManagerListener, MessageListener {
 
 	private static XMPPConnectionManager instance = new XMPPConnectionManager();
 
@@ -45,6 +53,8 @@ public class XMPPConnectionManager implements PacketListener,
 
 	private XMPPConnection xmppConnection;
 
+	private List<XMPPListener> listeners;
+
 	private String user;
 
 	private ConnectionConfiguration configuration;
@@ -54,9 +64,10 @@ public class XMPPConnectionManager implements PacketListener,
 				GTALK_SERVICE, ProxyInfo.forNoProxy());
 		configuration.setSecurityMode(SecurityMode.required);
 		configuration.setDebuggerEnabled(true);
-		configuration.setSendPresence(false);
+		configuration.setSendPresence(true);
 		Roster.setDefaultSubscriptionMode(SubscriptionMode.manual);
 		this.configurePM(ProviderManager.getInstance());
+		this.listeners = new ArrayList<XMPPListener>();
 	}
 
 	public boolean login(String username, String password) {
@@ -74,8 +85,10 @@ public class XMPPConnectionManager implements PacketListener,
 			try {
 				xmppConnection.connect();
 				xmppConnection.addConnectionListener(this);
-				xmppConnection.addPacketListener(this, new PacketTypeFilter(
-						PingExtension.class));
+				xmppConnection.addPacketListener(new PingListener(),
+						new PacketTypeFilter(PingExtension.class));
+				xmppConnection.addPacketListener(new PresenceListener(),
+						new PacketTypeFilter(Presence.class));
 			} catch (XMPPException e) {
 				Log.e(TAG, "Error on connection", e);
 				return false;
@@ -86,49 +99,20 @@ public class XMPPConnectionManager implements PacketListener,
 			xmppConnection.login(username, password, GTALK_RESOURCE);
 			this.user = xmppConnection.getUser();
 			Log.d(TAG, "Success on login as :" + this.user);
-
-			xmppConnection.sendPacket(new IQ() {
-
-				@Override
-				public String getChildElementXML() {
-					// TODO Auto-generated method stub
-					return null;
-				}
-			});
-
-			ChatManager chatmanager = xmppConnection.getChatManager();
-			final Chat chat = chatmanager.createChat(
-					"florea.leonard@gmail.com", new MessageListener() {
-
-						@Override
-						public void processMessage(Chat arg0, Message arg1) {
-							Log.d(TAG, "Chat message :" + arg1.getBody());
-							try {
-								Message move = new Message();
-								move.setProperty("move", "d2d4");
-								move.setProperty("time", System.currentTimeMillis()+"");
-								arg0.sendMessage(move);
-							} catch (XMPPException e) {
-								// TODO Auto-generated catch block
-								e.printStackTrace();
-							}
-						}
-					});
-						
-			chat.sendMessage("start chat");
+			xmppConnection.getRoster().addRosterListener(this);
+			xmppConnection.getChatManager().addChatListener(this);
 		} catch (XMPPException e) {
 			Log.e(TAG, "Error on login", e);
 			return false;
 		}
 
-		return false;
+		return true;
 	}
 
 	public void logout() {
 		if (this.xmppConnection != null && this.xmppConnection.isConnected()) {
 			this.xmppConnection.disconnect();
 			this.xmppConnection.removeConnectionListener(this);
-			this.xmppConnection.removePacketListener(this);
 			this.xmppConnection = null;
 			this.user = null;
 		}
@@ -139,9 +123,68 @@ public class XMPPConnectionManager implements PacketListener,
 	}
 
 	@Override
-	public void processPacket(Packet arg0) {
-		Log.d(TAG, "processPacket :" + arg0.toString());
+	public void chatCreated(Chat chat, boolean createdLocally) {
+		Log.d(TAG, "chatCreated :" + chat.getParticipant() + " ,"
+				+ createdLocally);
 
+		if (!createdLocally) {
+			chat.addMessageListener(this);
+		}
+	}
+
+	@Override
+	public void processMessage(Chat arg0, Message message) {
+		Log.d(TAG, "processMessage from :" + arg0.getParticipant()
+				+ " , message :" + message.toString());
+
+		Map<String, String> header = new HashMap<String, String>();
+
+		for (String property : message.getPropertyNames()) {
+			header.put(property, message.getProperty(property).toString());
+		}
+
+		XMPPMessage xmppMessage = new XMPPMessage(message.getBody(), header);
+
+		for (XMPPListener listener : this.listeners) {
+			listener.messageReceived(message.getFrom(), xmppMessage);
+		}
+	}
+
+	public Roster getRoster() {
+		return this.xmppConnection.getRoster();
+	}
+
+	public String getLoggedUser() {
+		return this.user;
+	}
+
+	@Override
+	public void entriesAdded(Collection<String> arg0) {
+		Log.d(TAG, "entriesAdded :" + arg0.toString());
+		for (XMPPListener listener : this.listeners) {
+			listener.newEntriesAdded(arg0);
+		}
+	}
+
+	@Override
+	public void entriesDeleted(Collection<String> arg0) {
+		Log.d(TAG, "entriesDeleted :" + arg0.toString());
+		for (XMPPListener listener : this.listeners) {
+			listener.entriesDeleted(arg0);
+		}
+	}
+
+	@Override
+	public void entriesUpdated(Collection<String> arg0) {
+		Log.d(TAG, "entriesUpdated :" + arg0.toString());
+		for (XMPPListener listener : this.listeners) {
+			listener.entriesUpdated(arg0);
+		}
+	}
+
+	@Override
+	public void presenceChanged(Presence arg0) {
+		Log.d(TAG, "presenceChanged :" + arg0.toString());
 	}
 
 	@Override
@@ -169,6 +212,18 @@ public class XMPPConnectionManager implements PacketListener,
 	@Override
 	public void reconnectionSuccessful() {
 		Log.d(TAG, "reconnectionSuccessful");
+	}
+
+	public void addXMPPListener(XMPPListener listener) {
+		if (!this.listeners.contains(listener)) {
+			this.listeners.add(listener);
+		}
+	}
+
+	public void removeXMPPListener(XMPPListener listener) {
+		if (this.listeners.contains(listener)) {
+			this.listeners.remove(listener);
+		}
 	}
 
 	private void configurePM(ProviderManager pm) {
@@ -211,6 +266,36 @@ public class XMPPConnectionManager implements PacketListener,
 				"http://jabber.org/protocol/pubsub#event", new EventProvider());
 		pm.addIQProvider(PingExtension.ELEMENT, PingExtension.NAMESPACE,
 				PingExtension.class);
+	}
+
+	public class PresenceListener implements PacketListener {
+		public void processPacket(Packet packet) {
+			if (!(packet instanceof Presence))
+				return;
+			Presence presence = (Presence) packet;
+			Log.d(TAG, "new precence pachet :" + presence.getFrom());
+			Log.d(TAG, "new precence pachet :" + presence.getStatus());
+			for (XMPPListener listener : listeners) {
+				listener.presenceChanged(presence.getFrom(), presence.getStatus());
+			}
+		}
+	}
+
+	private class PingListener implements PacketListener {
+
+		@Override
+		public void processPacket(Packet packet) {
+			if (!(packet instanceof PingExtension))
+				return;
+			PingExtension p = (PingExtension) packet;
+			if (p.getType() == IQ.Type.GET) {
+				PingExtension pong = new PingExtension();
+				pong.setType(IQ.Type.RESULT);
+				pong.setTo(p.getFrom());
+				pong.setPacketID(p.getPacketID());
+				xmppConnection.sendPacket(pong);
+			}
+		}
 
 	}
 }
