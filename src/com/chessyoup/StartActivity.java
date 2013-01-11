@@ -1,11 +1,6 @@
 package com.chessyoup;
 
-import java.util.List;
-
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Shader;
@@ -14,10 +9,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 
-import com.chessyoup.server.Room;
-import com.chessyoup.server.RoomListener;
-import com.chessyoup.server.RoomsManager;
-import com.chessyoup.server.User;
+import com.chessyoup.xmpp.XMPPConnectionManager;
 
 public class StartActivity extends Activity {
 
@@ -55,6 +47,16 @@ public class StartActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				XMPPConnectionManager.getInstance().logout();				
+				return null;
+			}
+		};
+
+		task.execute();
 		Log.d("RoomActivity", "on destroy");
 	}
 
@@ -74,99 +76,112 @@ public class StartActivity extends Activity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				List<Room> rooms = RoomsManager.getManager(
-						StartActivity.this.getApplicationContext()).getRooms();
-				Log.d("StartActivity", "Rooms:" + rooms.toString());
-
-				RoomsManager.getManager(
-						StartActivity.this.getApplicationContext())
-						.setRoomListener(new RoomListener() {
-
-							@Override
-							public void usersReceived(List<User> users) { 
-							}
-
-							@Override
-							public void roomLeaved(Room sourceRoom) {
-							}
-
-							@Override
-							public void roomJoined(final Room sourceRoom,
-									boolean status) {
-								if (status) {
-									StartActivity.this
-											.runOnUiThread(new Runnable() {
-
-												@Override
-												public void run() {
-													Intent intent = new Intent(
-															StartActivity.this,
-															RoomActivity.class);
-													intent.putExtra("roomId",
-															sourceRoom.getId());
-													startActivity(intent);
-													StartActivity.this.finish();
-												}
-											});
-								} else {
-									AlertDialog.Builder db = new AlertDialog.Builder(
-											StartActivity.this);
-									db.setTitle("Error");
-									String actions[] = new String[1];
-									actions[0] = "OK";
-									db.setItems(
-											actions,
-											new DialogInterface.OnClickListener() {
-
-												@Override
-												public void onClick(
-														DialogInterface dialog,
-														int which) {
-													StartActivity.this.finish();
-												}
-											});
-
-									AlertDialog ad = db.create();
-									ad.setCancelable(true);
-									ad.setCanceledOnTouchOutside(true);
-									ad.show();
-								}
-
-							}
-
-							@Override
-							public void chalangeReceived(User user) {
-								// TODO Auto-generated method stub
-								
-							}
-
-							@Override
-							public void chalangeAccepted(User user) {
-								// TODO Auto-generated method stub
-								
-							}
-
-							@Override
-							public void chalangeRejected(User user) {
-								// TODO Auto-generated method stub
-								
-							}
-						});
-
-				for (Room room : rooms) {
-					if (room.getJoinedUsers() < room.getSize()) {
-						Log.d("StartActivity", "Join on room :room");
-						RoomsManager.getManager(
-								StartActivity.this.getApplicationContext())
-								.joinRoom(room);
-						break;
-					}
-				}
-
+				XMPPConnectionManager.getInstance().login( "amator77@gmail.com","leo@1977");				
 				return null;
 			}
 		};
 
 		task.execute();
 	}
+
+	// private void runInitTask() {
+	// AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+	//
+	// @Override
+	// protected Void doInBackground(Void... params) {
+	// List<Room> rooms = RoomsManager.getManager(
+	// StartActivity.this.getApplicationContext()).getRooms();
+	// Log.d("StartActivity", "Rooms:" + rooms.toString());
+	//
+	// RoomsManager.getManager(
+	// StartActivity.this.getApplicationContext())
+	// .setRoomListener(new RoomListener() {
+	//
+	// @Override
+	// public void usersReceived(List<User> users) {
+	// }
+	//
+	// @Override
+	// public void roomLeaved(Room sourceRoom) {
+	// }
+	//
+	// @Override
+	// public void roomJoined(final Room sourceRoom,
+	// boolean status) {
+	// if (status) {
+	// StartActivity.this
+	// .runOnUiThread(new Runnable() {
+	//
+	// @Override
+	// public void run() {
+	// Intent intent = new Intent(
+	// StartActivity.this,
+	// RoomActivity.class);
+	// intent.putExtra("roomId",
+	// sourceRoom.getId());
+	// startActivity(intent);
+	// StartActivity.this.finish();
+	// }
+	// });
+	// } else {
+	// AlertDialog.Builder db = new AlertDialog.Builder(
+	// StartActivity.this);
+	// db.setTitle("Error");
+	// String actions[] = new String[1];
+	// actions[0] = "OK";
+	// db.setItems(
+	// actions,
+	// new DialogInterface.OnClickListener() {
+	//
+	// @Override
+	// public void onClick(
+	// DialogInterface dialog,
+	// int which) {
+	// StartActivity.this.finish();
+	// }
+	// });
+	//
+	// AlertDialog ad = db.create();
+	// ad.setCancelable(true);
+	// ad.setCanceledOnTouchOutside(true);
+	// ad.show();
+	// }
+	//
+	// }
+	//
+	// @Override
+	// public void chalangeReceived(User user) {
+	// // TODO Auto-generated method stub
+	//
+	// }
+	//
+	// @Override
+	// public void chalangeAccepted(User user) {
+	// // TODO Auto-generated method stub
+	//
+	// }
+	//
+	// @Override
+	// public void chalangeRejected(User user) {
+	// // TODO Auto-generated method stub
+	//
+	// }
+	// });
+	//
+	// for (Room room : rooms) {
+	// if (room.getJoinedUsers() < room.getSize()) {
+	// Log.d("StartActivity", "Join on room :room");
+	// RoomsManager.getManager(
+	// StartActivity.this.getApplicationContext())
+	// .joinRoom(room);
+	// break;
+	// }
+	// }
+	//
+	// return null;
+	// }
+	// };
+	//
+	// task.execute();
+	// }
 }

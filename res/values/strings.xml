@@ -23,7 +23,17 @@
         <item>Send Game Challenge</item>
         <item>Open Chat</item>
     </string-array>
+	
+    <!-- MemorizingTrustManager library -->
+	<string name="mtm_accept_cert">Accept Unknown Certificate?</string>
+	<string name="mtm_decision_always">Always</string>
+	<string name="mtm_decision_once">Once</string>
+	<string name="mtm_decision_abort">Abort</string>
 
+	<string name="mtm_notification">Certificate Verification</string>
+
+	<!-- Error messages -->
+    
     <string name="engine_threads_default">1</string>
     <string name="engine_hash_default">16</string>
     <string name="moves_per_session_default">60</string>
