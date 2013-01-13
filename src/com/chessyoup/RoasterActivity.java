@@ -4,8 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Message;
@@ -13,6 +11,7 @@ import org.jivesoftware.smack.packet.Message;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -21,27 +20,33 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
 import android.widget.ListView;
+import android.widget.Spinner;
 
-import com.chessyoup.server.RoomsManager;
-import com.chessyoup.server.User;
+import com.chessyoup.view.adapters.AccountStatusAdapter;
+import com.chessyoup.view.adapters.AccountStatusModel;
+import com.chessyoup.view.adapters.RosterAdapter;
+import com.chessyoup.view.adapters.RosterModel;
+import com.chessyoup.xmpp.UIListener;
 import com.chessyoup.xmpp.XMPPConnectionManager;
+import com.chessyoup.xmpp.XMPPGameController;
 import com.chessyoup.xmpp.XMPPListener;
-import com.chessyoup.xmpp.XMPPMessage;
+import com.chessyoup.xmpp.XMPPStatus;
+import com.chessyoup.xmpp.XMPPStatus.MODE;
 import com.chessyoup.xmpp.XMPPUser;
 
-public class RoasterActivity extends Activity implements XMPPListener{
+public class RoasterActivity extends Activity implements XMPPListener,UIListener {
 	ProgressDialog pg;
-	
+
 	AlertDialog chalangeDialog;
-	
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("RoomActivity", "on create");
 		this.initUI();
-		this.installListeners();		
+		this.installListeners();
+		XMPPGameController.getController().setUiListener(this);
 	}
 
 	@Override
@@ -74,110 +79,144 @@ public class RoasterActivity extends Activity implements XMPPListener{
 		Log.d("RoomActivity", "on destroy");
 		XMPPConnectionManager.getInstance().logout();
 	}
-	
-	@Override
-	public void chatStarted(final String participant) {
-		this.runOnUiThread(new Runnable() {
-			
-			@Override
-			public void run() {
-				Intent startXMPPChessboard = new Intent( RoasterActivity.this,XMPPChessBoardActivity.class);				
-				startXMPPChessboard.putExtra("ownerJID", participant);
-				startXMPPChessboard.putExtra("remoteJID", participant);
-				startXMPPChessboard.putExtra("color", "black");
-				startActivity(startXMPPChessboard);				
-			}
-		});
-	}
-	
+
 	@Override
 	public void newEntriesAdded(Collection<String> jabberIds) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void entriesDeleted(Collection<String> jabberIds) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void entriesUpdated(Collection<String> jabberIds) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
-	public void presenceChanged(final String jabberId,final String status) {
+	public void presenceChanged(final String jabberId, final XMPPStatus status) {
 		this.runOnUiThread(new Runnable() {
-			
+
 			@Override
 			public void run() {
 				ListView listView = (ListView) findViewById(R.id.roasterUsers);
-				for(int i = 0 ; i < listView.getCount(); i++){
-					final XMPPUser user = (XMPPUser) listView.getAdapter().getItem(i);
+				for (int i = 0; i < listView.getCount(); i++) {
+					final XMPPUser user = (XMPPUser) listView.getAdapter()
+							.getItem(i);
 					String parts[] = jabberId.split("@");
-					
-					if( user.getUsername().equals(parts[0]) ){					
+
+					if (user.getUsername().equals(parts[0])) {
 						user.setJabberId(jabberId);
 						user.setStatus(status);
-						((ArrayAdapter<XMPPUser>)listView.getAdapter()).notifyDataSetChanged();
+						Log.d("RoasterActivity",
+								"Status changed for :" + user.toString());
+						((RosterAdapter) listView.getAdapter())
+								.notifyDataSetChanged();
 						break;
 					}
-				}				
+				}
 			}
-		});								
+		});
 	}
 
-	@Override
-	public void messageReceived(String jabberId, XMPPMessage message) {
-		// TODO Auto-generated method stub
-		
-	}
-		
 	private void initUI() {
 		setContentView(R.layout.roaster);
-
 		this.setTitle(XMPPConnectionManager.getInstance().getLoggedUser());
-		
+
 		ListView listView = (ListView) findViewById(R.id.roasterUsers);
 		List<XMPPUser> users = new ArrayList<XMPPUser>();
 		Roster roster = XMPPConnectionManager.getInstance().getRoster();
-		
-		for( RosterEntry entry : roster.getEntries() ){			
-			users.add(new XMPPUser(entry.getUser(), entry.getStatus() != null ? entry.getStatus().toString() : "offline"));
+
+		for (RosterEntry entry : roster.getEntries()) {
+			users.add(new XMPPUser(entry.getUser(), new XMPPStatus()));
 		}
-		
-		ArrayAdapter<XMPPUser> adapter = new ArrayAdapter<XMPPUser>( RoasterActivity.this, android.R.layout.simple_list_item_1, users);
-		listView.setAdapter(adapter);
+
+		RosterModel rosterModel = new RosterModel();
+		rosterModel.setContactsList(users);
+		RosterAdapter rosterAdapter = new RosterAdapter(this, rosterModel);
+		listView.setAdapter(rosterAdapter);
+
+		Spinner spinner = (Spinner) findViewById(R.id.accountStatus);
+		AccountStatusAdapter adapter = new AccountStatusAdapter(this,
+				new AccountStatusModel(XMPPConnectionManager.getInstance()
+						.getLoggedUser(), "online"));
+		spinner.setAdapter(adapter);
 	}
-	
-	private void installListeners() {		
+
+	private void installListeners() {
 		final ListView listView = (ListView) findViewById(R.id.roasterUsers);
-	
+
 		listView.setOnItemClickListener(new OnItemClickListener() {
 
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				final XMPPUser user = (XMPPUser) listView.getAdapter().getItem(position);
-								
-				XMPPConnectionManager.getInstance().getXmppConnection().getChatManager().createChat(user.getJabberId(), new MessageListener() {
-					
-					@Override
-					public void processMessage(Chat arg0, Message arg1) {
-						Log.d("aici", arg1.getBody());						
-					}
-				});
-					
-				
-				Intent startXMPPChessboard = new Intent( RoasterActivity.this,XMPPChessBoardActivity.class);
-				startXMPPChessboard.putExtra("ownerJID", XMPPConnectionManager.getInstance().getLoggedUser());
-				startXMPPChessboard.putExtra("remoteJID", user.getJabberId());
-				startXMPPChessboard.putExtra("color", "white");
-				startActivity(startXMPPChessboard);					
-			}			
+				final XMPPUser user = (XMPPUser) listView.getAdapter().getItem(
+						position);
+
+				if (user.isChessYoUpUser()) {
+
+					Intent startXMPPChessboard = new Intent(
+							RoasterActivity.this, XMPPChessBoardActivity.class);
+					startXMPPChessboard
+							.putExtra("ownerJID", XMPPConnectionManager
+									.getInstance().getLoggedUser());
+					startXMPPChessboard.putExtra("remoteJID",
+							user.getJabberId());
+					startXMPPChessboard.putExtra("color", "white");
+					startActivity(startXMPPChessboard);
+
+				} else {
+					AlertDialog.Builder db = new AlertDialog.Builder(
+							RoasterActivity.this);
+					db.setTitle("Not an ChessYoUp client!");
+					String actions[] = new String[2];
+					actions[0] = "Send invite?";
+					actions[1] = "Cancel";
+					db.setItems(actions, new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							switch (which) {
+							case 0:
+								runSendInviteask(user);
+								break;
+							case 1:
+								break;
+							default:
+
+								break;
+							}
+						}
+					});
+
+					AlertDialog ad = db.create();
+					ad.setCancelable(true);
+					ad.setCanceledOnTouchOutside(false);
+					ad.show();
+				}
+			}
+		});
+
+		final Spinner spinner = (Spinner) findViewById(R.id.accountStatus);
+		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+			@Override
+			public void onItemSelected(AdapterView<?> parentView,
+					View selectedItemView, int position, long id) {
+				MODE status = (MODE) spinner.getItemAtPosition(position);
+				XMPPConnectionManager.getInstance().setPresence(status);
+			}
+
+			@Override
+			public void onNothingSelected(AdapterView<?> arg0) {
+
+			}
 		});
 
 		ImageButton reloadButton = (ImageButton) findViewById(R.id.logoutButton);
@@ -189,70 +228,51 @@ public class RoasterActivity extends Activity implements XMPPListener{
 				RoasterActivity.this.finish();
 			}
 		});
-		
+
 		XMPPConnectionManager.getInstance().addXMPPListener(this);
 	}
 
+	private void runSendInviteask(final XMPPUser user) {
 
-	private void launchChessboardActivity(User selectedUser,boolean isLocalWhite) {
-		Intent intent = new Intent(this, ChessboardActivity.class);
-		intent.putExtra("remote_device_id", selectedUser.getDevice()
-				.getDeviceIdentifier());
-		intent.putExtra("remote_phone_number", selectedUser.getDevice()
-				.getDevicePhoneNumber());
-		intent.putExtra("remote_gcm_registration_id", selectedUser.getDevice()
-				.getRegistrationId());
-		intent.putExtra("remote_account", selectedUser.getDevice().getAccount());
-
-		intent.putExtra("owner_account", RoomsManager.getManager(this)
-				.getConnectionManager().getLocalDevice().getAccount());
-		
-		intent.putExtra("color", isLocalWhite ? "white" : "black");
-		
-		startActivity(intent);
-	}
-	
-	
-	private void runRejectChalangeTask(final User user) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-									
+				StringBuilder is = new StringBuilder(
+						"Hello!\n Please join ChessYoUp by downloading android apk from  http://chessyoup.com/chessyoup.apk \n Thanks. ");
+				Message m = new Message();
+				m.setTo(user.getJabberId());
+				m.setBody(is.toString());
+				XMPPConnectionManager.getInstance().getXmppConnection()
+						.sendPacket(m);
+
 				return null;
 			}
 		};
 
-		task.execute();				
+		task.execute();
+
 	}
-	
-	private void runSendChalangeTask(final User selectedUser) {
-		pg = ProgressDialog.show(this, "Action", "Chalange :"+selectedUser.getUsername(), true);
-		pg.setCancelable(true);	
+
+	@Override
+	public void gameStartRequest(final String from,final  String whitePlayer,
+			final String blackPlayer) {
 		
-		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-
+		this.runOnUiThread(new Runnable() {
+			
 			@Override
-			protected Void doInBackground(Void... params) {
-				
-				return null;
+			public void run() {
+				Log.d("RoasterActivity", "Start chessboard activity.");
+				Intent startXMPPChessboard = new Intent(RoasterActivity.this,
+						XMPPChessBoardActivity.class);
+				startXMPPChessboard
+						.putExtra("ownerJID", XMPPConnectionManager
+								.getInstance().getLoggedUser());
+				startXMPPChessboard.putExtra("remoteJID", from);
+				startXMPPChessboard.putExtra("color", from.equals(whitePlayer.toString()) ? "white" : "black");
+				startXMPPChessboard.putExtra("autostart", "true");
+				startActivity(startXMPPChessboard);
 			}
-		};
-
-		task.execute();		
-	}
-	
-	private void runAcceptChalangeTask(final User user) {
-		
-		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {				
-				launchChessboardActivity(user,false);
-				return null;
-			}
-		};
-
-		task.execute();						
+		});		
 	}
 }

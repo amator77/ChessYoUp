@@ -23,6 +23,8 @@ import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.packet.Presence.Mode;
+import org.jivesoftware.smack.packet.Presence.Type;
 import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.proxy.ProxyInfo;
 import org.jivesoftware.smackx.packet.ChatStateExtension;
@@ -34,10 +36,11 @@ import org.jivesoftware.smackx.pubsub.provider.ItemProvider;
 import org.jivesoftware.smackx.pubsub.provider.ItemsProvider;
 import org.jivesoftware.smackx.pubsub.provider.PubSubProvider;
 
+import com.chessyoup.xmpp.XMPPStatus.MODE;
+
 import android.util.Log;
 
-public class XMPPConnectionManager implements ConnectionListener,
-		RosterListener, ChatManagerListener, MessageListener {
+public class XMPPConnectionManager implements ConnectionListener, RosterListener {
 
 	private static XMPPConnectionManager instance = new XMPPConnectionManager();
 
@@ -54,9 +57,9 @@ public class XMPPConnectionManager implements ConnectionListener,
 	private XMPPConnection xmppConnection;
 
 	private List<XMPPListener> listeners;
-	
+
 	private List<Chat> chatList;
-	
+
 	private String user;
 
 	private ConnectionConfiguration configuration;
@@ -92,6 +95,7 @@ public class XMPPConnectionManager implements ConnectionListener,
 						new PacketTypeFilter(PingExtension.class));
 				xmppConnection.addPacketListener(new PresenceListener(),
 						new PacketTypeFilter(Presence.class));
+				XMPPGameController.getController(true);
 			} catch (XMPPException e) {
 				Log.e(TAG, "Error on connection", e);
 				return false;
@@ -102,8 +106,7 @@ public class XMPPConnectionManager implements ConnectionListener,
 			xmppConnection.login(username, password, GTALK_RESOURCE);
 			this.user = xmppConnection.getUser();
 			Log.d(TAG, "Success on login as :" + this.user);
-			xmppConnection.getRoster().addRosterListener(this);
-			xmppConnection.getChatManager().addChatListener(this);
+			xmppConnection.getRoster().addRosterListener(this);			
 		} catch (XMPPException e) {
 			Log.e(TAG, "Error on login", e);
 			return false;
@@ -125,47 +128,16 @@ public class XMPPConnectionManager implements ConnectionListener,
 		return XMPPConnectionManager.instance;
 	}
 
-	@Override
-	public void chatCreated(Chat chat, boolean createdLocally) {
-		Log.d(TAG, "chatCreated :" + chat.getParticipant() + " ,"
-				+ createdLocally);
-		
-		this.chatList.add(chat);
-		
-		if( !createdLocally ){
-			for (XMPPListener listener : this.listeners) {
-				listener.chatStarted(chat.getParticipant());
-			}
-		}
-	}
-	
-	public Chat getChat(String participant){
-		
-		for(Chat chat : this.chatList){
-			if( chat.getParticipant().equals(participant)){
+
+	public Chat getChat(String participant) {
+
+		for (Chat chat : this.chatList) {
+			if (chat.getParticipant().equals(participant)) {
 				return chat;
 			}
 		}
-		
+
 		return null;
-	}
-	
-	@Override
-	public void processMessage(Chat arg0, Message message) {
-		Log.d(TAG, "processMessage from :" + arg0.getParticipant()
-				+ " , message :" + message.toString());
-
-		Map<String, String> header = new HashMap<String, String>();
-
-		for (String property : message.getPropertyNames()) {
-			header.put(property, message.getProperty(property).toString());
-		}
-
-		XMPPMessage xmppMessage = new XMPPMessage(message.getBody(), header);
-
-		for (XMPPListener listener : this.listeners) {
-			listener.messageReceived(message.getFrom(), xmppMessage);
-		}
 	}
 
 	public Roster getRoster() {
@@ -243,7 +215,7 @@ public class XMPPConnectionManager implements ConnectionListener,
 			this.listeners.remove(listener);
 		}
 	}
-	
+
 	public XMPPConnection getXmppConnection() {
 		return xmppConnection;
 	}
@@ -295,10 +267,49 @@ public class XMPPConnectionManager implements ConnectionListener,
 			if (!(packet instanceof Presence))
 				return;
 			Presence presence = (Presence) packet;
-			Log.d(TAG, "new precence pachet :" + presence.getFrom());
-			Log.d(TAG, "new precence pachet :" + presence.getStatus());
+			Log.d(TAG, "New precence pachet. From : [" + presence.getFrom()
+					+ "],Startus : [" + presence.getStatus() + "] , Type :["
+					+ presence.getType() + "]" + "Mode :[" + presence.getMode()
+					+ "]");
+
 			for (XMPPListener listener : listeners) {
-				listener.presenceChanged(presence.getFrom(), presence.getStatus());
+				listener.presenceChanged(
+						presence.getFrom(),
+						new XMPPStatus(presence.getStatus(),
+								presence.getType(), convertMode(
+										presence.getType(), presence.getMode())));
+			}
+		}
+
+		private MODE convertMode(Type type, Mode mode) {
+			if (mode != null) {
+
+				switch (mode) {
+				case available:
+					return MODE.ONLINE;
+				case away:
+					return MODE.AWAY;
+				case dnd:
+					return MODE.BUSY;
+				case chat:
+					return MODE.ONLINE;
+				case xa:
+					return MODE.AWAY;
+
+				default:
+					return MODE.OFFLINE;
+				}
+			} else {
+				if (type != null) {
+					switch (type) {
+					case available:
+						return MODE.ONLINE;
+					default:
+						return MODE.OFFLINE;
+					}
+				} else {
+					return MODE.OFFLINE;
+				}
 			}
 		}
 	}
@@ -319,5 +330,32 @@ public class XMPPConnectionManager implements ConnectionListener,
 			}
 		}
 
+	}
+
+	public void setPresence(MODE status) {
+		Presence p = null;
+		switch (status) {
+		case ONLINE:
+			p = new Presence(Type.available);
+			p.setMode( Mode.available);
+			break;
+		case OFFLINE:
+			p = new Presence(Type.unavailable);			
+			break;
+		case AWAY:
+			p = new Presence(Type.available);
+			p.setMode( Mode.away);			
+			break;
+		case BUSY:
+			p = new Presence(Type.available);
+			p.setMode( Mode.dnd);			
+			break;
+			
+		default:
+			p = new Presence(Type.available);
+			break;
+		}
+		
+		this.xmppConnection.sendPacket(p);
 	}
 }

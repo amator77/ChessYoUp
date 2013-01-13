@@ -83,7 +83,8 @@ public class StartActivity extends Activity {
 
 		EditText accountEditText = (EditText) findViewById(R.id.loginEditTextAccount);
 		String googleAccount = getGoogleAccount();
-		accountEditText.setText(googleAccount != null ? googleAccount : "");
+		accountEditText.setText(googleAccount != null ? googleAccount : "amator77@gmail.com");
+		EditText passwordEditText = (EditText) findViewById(R.id.loginEditTextAccountPassword);
 	}
 
 	private void installListeners() {

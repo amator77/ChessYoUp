@@ -10,9 +10,5 @@ public interface XMPPListener {
 
 	public void entriesUpdated(Collection<String> jabberIds);
 
-	public void presenceChanged(String jabberId, String status);
-
-	public void messageReceived(String jabberId, XMPPMessage message);
-
-	public void chatStarted(String participant);
+	public void presenceChanged(String jabberId, XMPPStatus status);
 }

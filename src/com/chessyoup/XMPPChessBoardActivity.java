@@ -7,9 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
-import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.MessageListener;
-import org.jivesoftware.smack.packet.Message;
 import org.petero.droidfish.ChessBoardPlay;
 import org.petero.droidfish.ChessController;
 import org.petero.droidfish.ColorTheme;
@@ -17,6 +14,7 @@ import org.petero.droidfish.GUIInterface;
 import org.petero.droidfish.GameMode;
 import org.petero.droidfish.PGNOptions;
 import org.petero.droidfish.Util.MaterialDiff;
+import org.petero.droidfish.gamelogic.Game.GameState;
 import org.petero.droidfish.gamelogic.GameTree.Node;
 import org.petero.droidfish.gamelogic.Move;
 import org.petero.droidfish.gamelogic.PgnToken;
@@ -24,7 +22,9 @@ import org.petero.droidfish.gamelogic.Position;
 import org.petero.droidfish.gamelogic.TextIO;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -64,10 +64,12 @@ import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
-import com.chessyoup.xmpp.XMPPConnectionManager;
+
+import com.chessyoup.xmpp.XMPPGameController;
+import com.chessyoup.xmpp.XMPPGameListener;
 
 public class XMPPChessBoardActivity extends Activity implements GUIInterface,
-		MessageListener {
+		XMPPGameListener {
 
 	private boolean boardGestures = true;
 
@@ -108,26 +110,32 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 		Intent intent = getIntent();
 		this.ownerJID = intent.getExtras().getString("ownerJID");
 		this.remoteJID = intent.getExtras().getString("remoteJID");
-	
+
 		this.initUI();
 		this.installListeners();
-		
-		Log.d("XMPPChessBoardActivity", "ownerId :"+this.ownerJID);
-		Log.d("XMPPChessBoardActivity", "remoteId :"+this.remoteJID);
-		
-		if (intent.getStringExtra("color").equals("white")) {
-			cb.flipped = false;
-			this.chessCtrl.newGame(new GameMode(
-					GameMode.TWO_PLAYERS_BLACK_REMOTE));
-		} else {
-			cb.flipped = true;
-			this.chessCtrl.newGame(new GameMode(
-					GameMode.TWO_PLAYERS_WHITE_REMOTE));
-		}
 
-		this.chessCtrl.startGame();
-		Toast.makeText(getApplicationContext(), "Game started",
-				Toast.LENGTH_SHORT).show();
+		Log.d("XMPPChessBoardActivity", "ownerId :" + this.ownerJID);
+		Log.d("XMPPChessBoardActivity", "remoteId :" + this.remoteJID);
+
+		XMPPGameController.getController().setGameListener(this);
+
+		if (intent.getExtras().getString("autostart") != null
+				&& intent.getExtras().getString("autostart").equals("true")) {
+			String whitePlayer = intent.getExtras().getString("color")
+					.equals("white") ? this.ownerJID : remoteJID;
+			String blackPlayer = intent.getExtras().getString("color")
+					.equals("black") ? this.remoteJID : ownerJID;
+
+			XMPPGameController.getController().sendGameStartAcceptedCommand(
+					remoteJID, whitePlayer, blackPlayer);
+			this.startGame(whitePlayer, blackPlayer);
+		} else {
+
+			XMPPGameController.getController().sendGameStartRequestCommand(
+					this.remoteJID, this.ownerJID, this.remoteJID);
+			Toast.makeText(getApplicationContext(), "Send game request! ",
+					Toast.LENGTH_LONG).show();
+		}
 	}
 
 	private void initUI() {
@@ -183,14 +191,6 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 				Shader.TileMode.REPEAT);
 		this.findViewById(R.id.chessboardLayout).setBackgroundDrawable(
 				bitmapDrawable);
-		
-		
-		if( this.ownerJID.equals(XMPPConnectionManager.getInstance().getLoggedUser())){
-			XMPPConnectionManager.getInstance().getChat(this.remoteJID).addMessageListener(this);
-		}
-		else{
-			XMPPConnectionManager.getInstance().getChat(this.ownerJID).addMessageListener(this);
-		}
 	}
 
 	@Override
@@ -221,6 +221,7 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d("ChessboardActivity", "on destroy");
+		XMPPGameController.getController().setGameListener(null);
 	}
 
 	@Override
@@ -233,26 +234,6 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 	public void setSelection(int sq) {
 		cb.setSelection(sq);
 		cb.userSelectedSquare = false;
-	}
-
-	@Override
-	public void processMessage(Chat arg0,
-			final org.jivesoftware.smack.packet.Message arg1) {
-
-		runOnUiThread(new Runnable() {
-
-			@Override
-			public void run() {
-				if (arg1.getProperty(GameMessage.GAME_COMMAND).equals(
-						GameMessage.MOVE)) {
-					XMPPChessBoardActivity.this.chessCtrl.makeRemoteMove(arg1
-							.getBody());
-				} else if (arg1.getProperty(GameMessage.GAME_COMMAND).equals(
-						GameMessage.CHAT)) {
-					addMessage(arg1.getFrom(), arg1.getBody());
-				}
-			}
-		});
 	}
 
 	@Override
@@ -491,15 +472,77 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 				return false;
 			}
 		});
+
 	}
 
+	@Override
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		if (keyCode == KeyEvent.KEYCODE_BACK ) {
+			
+			if( this.chessCtrl.getGame().getGameState() == GameState.ALIVE ){
+				AlertDialog.Builder db = new AlertDialog.Builder(this);
+				db.setTitle("Warning");
+				String actions[] = new String[2];
+				actions[0] = "Resign!";
+				actions[1] = "Cancel";
+				db.setItems(actions, new DialogInterface.OnClickListener() {
+		
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						switch (which) {
+						case 0:
+							runResignTask();
+							finish();
+							break;
+						case 1:
+							break;
+						default:
+		
+							break;
+						}
+					}
+				});
+		
+				AlertDialog ad = db.create();
+				ad.setCancelable(true);
+				ad.setCanceledOnTouchOutside(false);
+				ad.show();
+
+				return true;
+			}
+			else{
+				finish();
+				return false;
+			}
+		} else {
+			finish();
+			return false;
+		}
+	}
+	
+	private void runResignTask() {
+		this.chessCtrl.resignGame();
+		
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				XMPPGameController.getController().sendGameResignCommand(remoteJID);
+				return null;
+			}
+		};
+
+		task.execute();		
+	}
+	
 	private void runSendMessageTask(final String message) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				addMessage(ownerJID, message);				
-				XMPPConnectionManager.getInstance().getXmppConnection().sendPacket(new GameMessage(GameMessage.CHAT,message));									
+				XMPPGameController.getController().sendGameChatCommand(
+						remoteJID, message);
+				addMessage(ownerJID, message);
 				return null;
 			}
 		};
@@ -515,27 +558,13 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				XMPPConnectionManager.getInstance().getXmppConnection().sendPacket(new GameMessage(GameMessage.MOVE,move));	
+				XMPPGameController.getController().sendGameMoveCommand(
+						remoteJID, move);
 				return null;
 			}
 		};
 
 		task.execute();
-	}
-
-	class GameMessage extends Message {
-
-		public static final String GAME_COMMAND = "g_cmd";
-
-		public static final String CHAT = "g_chat";
-
-		public static final String MOVE = "g_mv";
-
-		GameMessage(String type, String body) {
-			this.setTo(remoteJID);
-			this.setBody(body);
-			this.setProperty(GAME_COMMAND, type);
-		}
 	}
 
 	/**
@@ -805,5 +834,96 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 				chatDisplay.append(styledText);
 			}
 		});
+	}
+
+	@Override
+	public void startGameRequestReceived(String jabberID, String whitePlayer,
+			String blackPlayer) {
+		XMPPGameController.getController().sendGameStartRequestCommand(
+				this.remoteJID, whitePlayer, blackPlayer);
+
+		this.startGame(whitePlayer, blackPlayer);
+	}
+
+	@Override
+	public void gameStarted(final String whitePlayerJID,
+			final String blackPlayerJID) {
+		this.startGame(whitePlayerJID, whitePlayerJID);
+	}
+
+	private void startGame(final String whitePlayer, String blackPlayer) {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				if (!whitePlayer.equals(ownerJID)) {
+					cb.flipped = false;
+					chessCtrl.newGame(new GameMode(
+							GameMode.TWO_PLAYERS_BLACK_REMOTE));
+				} else {
+					cb.flipped = true;
+					chessCtrl.newGame(new GameMode(
+							GameMode.TWO_PLAYERS_WHITE_REMOTE));
+				}
+
+				chessCtrl.startGame();
+				Toast.makeText(getApplicationContext(), "Game started",
+						Toast.LENGTH_SHORT).show();
+
+			}
+		});
+	}
+
+	@Override
+	public void moveReceived(String jabberID, final String move) {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				XMPPChessBoardActivity.this.chessCtrl.makeRemoteMove(move);
+			}
+		});
+	}
+
+	@Override
+	public void chatReceived(final String jabberID, final String text) {
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				addMessage(jabberID, text);
+			}
+		});
+	}
+
+	@Override
+	public void drawRequestReceived(String jabberID) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void drawAccepted(String jabberID) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void resignReceived(String jabberID) {
+		this.chessCtrl.makeRemoteMove("resign");
+		Toast.makeText(getApplicationContext(), jabberID+" resigned!",
+				Toast.LENGTH_LONG).show();
+	}
+
+	@Override
+	public void abortRequestReceived(String jabberID) {
+		// TODO Auto-generated method stub
+
+	}
+
+	@Override
+	public void abortRequestAccepted(String jabberID) {
+		// TODO Auto-generated method stub
+
 	}
 }

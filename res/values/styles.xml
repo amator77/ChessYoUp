@@ -1,20 +1,41 @@
-<resources>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!--
-        Base application theme, dependent on API level. This theme is replaced
-        by AppBaseTheme from res/values-vXX/styles.xml on newer devices.
-    -->
-    <style name="AppBaseTheme" parent="android:Theme.Light">
-        <!--
-            Theme customizations available in newer API levels can go in
-            res/values-vXX/styles.xml, while customizations related to
-            backward-compatibility can go here.
-        -->
+    <!-- default -->
+
+    <style name="AppTheme" parent="@android:style/Theme.Light.NoTitleBar"></style>
+
+    <!-- set default appearances -->
+
+    <style name="microTextStyle">
+        <item name="android:textSize">12sp</item>
     </style>
 
-    <!-- Application theme. -->
-    <style name="AppTheme" parent="AppBaseTheme">
-        <!-- All customizations that are NOT specific to a particular API-level can go here. -->
+    <style name="smallTextStyle" parent="@android:style/TextAppearance.Small"></style>
+
+    <style name="mediumTextStyle" parent="@android:style/TextAppearance.Medium"></style>
+
+    <style name="rosterListItemName" parent="@style/mediumTextStyle">
+        <item name="android:textColor">@color/roster_list_item_black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:drawableLeft">@drawable/general_status_offline</item>
+        <item name="android:drawablePadding">10dp</item>
+        <item name="android:drawableRight">@drawable/general_icon_color_chat2</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">5dp</item>
+        <item name="android:paddingRight">5dp</item>
     </style>
 
+    <style name="rosterListItemStatus" parent="@style/smallTextStyle">
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">31dp</item>
+        <item name="android:textColor">@color/roster_list_item_grey</item>
+    </style>
+
+    <style name="rosterListItemAvatarImage">
+        <item name="android:layout_width">50dp</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:padding">5dp</item>
+        <item name="android:src">@drawable/general_avatar_adressbook</item>
+    </style>
+        
 </resources>
