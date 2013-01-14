@@ -53,7 +53,13 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Login" />
-
+        
+		<com.facebook.widget.LoginButton
+		    android:id="@+id/facebookLoginButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"                        
+		    >		    
+		</com.facebook.widget.LoginButton>
     </LinearLayout>
 
 </LinearLayout>

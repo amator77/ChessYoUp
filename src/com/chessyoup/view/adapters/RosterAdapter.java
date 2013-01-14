@@ -114,7 +114,7 @@ public class RosterAdapter extends BaseAdapter {
 		XMPPUser searchedChild = rosterModel.getItem(position);
 
 		// holder.contactAvatar.setImageBitmap(searchedChild.getAvatarBitmap(context));
-		holder.contactName.setText(searchedChild.getUsername());
+		holder.contactName.setText( searchedChild.getName() != null ?  searchedChild.getName() : searchedChild.getUsername());
 
 		if (searchedChild.getStatus().getStatus() != null
 				&& searchedChild.getStatus().getStatus().trim().length() > 0) {

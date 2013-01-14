@@ -82,8 +82,7 @@ public class MemorizingTrustManager implements X509TrustManager {
 	NotificationManager notificationManager;
 	private static int decisionId = 0;
 	private static HashMap<Integer,MTMDecision> openDecisions = new HashMap();
-
-	Handler masterHandler;
+	
 	private File keyStoreFile;
 	private KeyStore appKeyStore;
 	private X509TrustManager defaultTrustManager;
@@ -95,7 +94,6 @@ public class MemorizingTrustManager implements X509TrustManager {
 	 */
 	private MemorizingTrustManager(Context m) {
 		master = m;
-		masterHandler = new Handler();
 		notificationManager = (NotificationManager)master.getSystemService(Context.NOTIFICATION_SERVICE);
 
 		Application app;
@@ -333,8 +331,12 @@ public class MemorizingTrustManager implements X509TrustManager {
 			public void onReceive(Context ctx, Intent i) { interactResult(i); }
 		};
 		master.registerReceiver(decisionReceiver, new IntentFilter(DECISION_INTENT + "/" + master.getPackageName()));
-		masterHandler.post(new Runnable() {
+		
+		((Activity)master).runOnUiThread(new Runnable() {
+			
+			@Override
 			public void run() {
+				// TODO Auto-generated method stub
 				Intent ni = new Intent(master, MemorizingActivity.class);
 				ni.setData(Uri.parse(MemorizingTrustManager.class.getName() + "/" + myId));
 				ni.putExtra(DECISION_INTENT_APP, master.getPackageName());
@@ -349,6 +351,7 @@ public class MemorizingTrustManager implements X509TrustManager {
 				}
 			}
 		});
+		
 
 		Log.d(TAG, "openDecisions: " + openDecisions);
 		Log.d(TAG, "waiting on " + myId);

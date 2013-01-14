@@ -2,25 +2,21 @@ package com.chessyoup.xmpp;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.jivesoftware.smack.Chat;
-import org.jivesoftware.smack.ChatManagerListener;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.Roster.SubscriptionMode;
 import org.jivesoftware.smack.RosterListener;
+import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
 import org.jivesoftware.smack.packet.IQ;
-import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Packet;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Mode;
@@ -36,11 +32,12 @@ import org.jivesoftware.smackx.pubsub.provider.ItemProvider;
 import org.jivesoftware.smackx.pubsub.provider.ItemsProvider;
 import org.jivesoftware.smackx.pubsub.provider.PubSubProvider;
 
-import com.chessyoup.xmpp.XMPPStatus.MODE;
-
 import android.util.Log;
 
-public class XMPPConnectionManager implements ConnectionListener, RosterListener {
+import com.chessyoup.xmpp.XMPPStatus.MODE;
+
+public class XMPPConnectionManager implements ConnectionListener,
+		RosterListener {
 
 	private static XMPPConnectionManager instance = new XMPPConnectionManager();
 
@@ -48,9 +45,13 @@ public class XMPPConnectionManager implements ConnectionListener, RosterListener
 
 	private static final String GTALK_HOST = "talk.google.com";
 
+	// private static final String GTALK_HOST = "chat.facebook.com";
+
 	private static final int GTALK_PORT = 5222;
 
 	private static final String GTALK_SERVICE = "gtalk";
+
+	// private static final String GTALK_SERVICE = "chat.facebook";
 
 	private static final String GTALK_RESOURCE = "chessyoup";
 
@@ -68,7 +69,10 @@ public class XMPPConnectionManager implements ConnectionListener, RosterListener
 		configuration = new ConnectionConfiguration(GTALK_HOST, GTALK_PORT,
 				GTALK_SERVICE, ProxyInfo.forNoProxy());
 		configuration.setSecurityMode(SecurityMode.required);
+		configuration.setSASLAuthenticationEnabled(true);
 		configuration.setDebuggerEnabled(true);
+		configuration.setReconnectionAllowed(true);
+		configuration.setRosterLoadedAtLogin(true);
 		configuration.setSendPresence(true);
 		Roster.setDefaultSubscriptionMode(SubscriptionMode.manual);
 		this.configurePM(ProviderManager.getInstance());
@@ -106,7 +110,7 @@ public class XMPPConnectionManager implements ConnectionListener, RosterListener
 			xmppConnection.login(username, password, GTALK_RESOURCE);
 			this.user = xmppConnection.getUser();
 			Log.d(TAG, "Success on login as :" + this.user);
-			xmppConnection.getRoster().addRosterListener(this);			
+			xmppConnection.getRoster().addRosterListener(this);
 		} catch (XMPPException e) {
 			Log.e(TAG, "Error on login", e);
 			return false;
@@ -114,7 +118,52 @@ public class XMPPConnectionManager implements ConnectionListener, RosterListener
 
 		return true;
 	}
+	
+	public boolean facebookLogin(String appId , String accessToken){
+		
+		if (this.xmppConnection == null) {									
+			ConnectionConfiguration config = new ConnectionConfiguration("chat.facebook.com",5222);
+			config.setSASLAuthenticationEnabled(true);
+	        config.setDebuggerEnabled(true);
+//	        config.setRosterLoadedAtLogin(true);			
+	        SASLAuthentication.registerSASLMechanism(SASLXFacebookPlatformMechanism.NAME, SASLXFacebookPlatformMechanism.class);
+	        SASLAuthentication.supportSASLMechanism(SASLXFacebookPlatformMechanism.NAME, 0);
+		    this.xmppConnection = new XMPPConnection(config);
+		}
 
+		if (xmppConnection.isAuthenticated()) {
+			return true;
+		}
+
+		if (!xmppConnection.isConnected()) {
+
+			try {
+				xmppConnection.connect();
+				xmppConnection.addConnectionListener(this);
+				xmppConnection.addPacketListener(new PingListener(),
+						new PacketTypeFilter(PingExtension.class));
+				xmppConnection.addPacketListener(new PresenceListener(),
+						new PacketTypeFilter(Presence.class));
+				XMPPGameController.getController(true);
+			} catch (XMPPException e) {
+				Log.e(TAG, "Error on connection", e);
+				return false;
+			}
+		}
+
+		try {
+			xmppConnection.login(appId, accessToken , "Application");									
+			this.user = xmppConnection.getUser();
+			Log.d(TAG, "Success on login as :" + this.user);
+			xmppConnection.getRoster().addRosterListener(this);
+		} catch (XMPPException e) {
+			Log.e(TAG, "Error on login", e);
+			return false;
+		}
+
+		return true;						
+	}
+	
 	public void logout() {
 		if (this.xmppConnection != null && this.xmppConnection.isConnected()) {
 			this.xmppConnection.disconnect();
@@ -127,7 +176,6 @@ public class XMPPConnectionManager implements ConnectionListener, RosterListener
 	public static XMPPConnectionManager getInstance() {
 		return XMPPConnectionManager.instance;
 	}
-
 
 	public Chat getChat(String participant) {
 
@@ -337,25 +385,25 @@ public class XMPPConnectionManager implements ConnectionListener, RosterListener
 		switch (status) {
 		case ONLINE:
 			p = new Presence(Type.available);
-			p.setMode( Mode.available);
+			p.setMode(Mode.available);
 			break;
 		case OFFLINE:
-			p = new Presence(Type.unavailable);			
+			p = new Presence(Type.unavailable);
 			break;
 		case AWAY:
 			p = new Presence(Type.available);
-			p.setMode( Mode.away);			
+			p.setMode(Mode.away);
 			break;
 		case BUSY:
 			p = new Presence(Type.available);
-			p.setMode( Mode.dnd);			
+			p.setMode(Mode.dnd);
 			break;
-			
+
 		default:
 			p = new Presence(Type.available);
 			break;
 		}
-		
+
 		this.xmppConnection.sendPacket(p);
-	}
+	}	
 }

@@ -133,7 +133,7 @@ public class RoasterActivity extends Activity implements XMPPListener,UIListener
 		Roster roster = XMPPConnectionManager.getInstance().getRoster();
 
 		for (RosterEntry entry : roster.getEntries()) {
-			users.add(new XMPPUser(entry.getUser(), new XMPPStatus()));
+			users.add(new XMPPUser(entry.getUser() , entry.getName(), new XMPPStatus()));
 		}
 
 		RosterModel rosterModel = new RosterModel();

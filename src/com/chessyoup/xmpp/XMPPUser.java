@@ -3,18 +3,25 @@ package com.chessyoup.xmpp;
 public class XMPPUser {
 
 	private String username;
-
+	
+	private String name;
+	
 	private String domain;
 
 	private String resource;
 
 	private XMPPStatus status;
 
-	public XMPPUser(String jabberId, XMPPStatus status) {
+	public XMPPUser(String jabberId , String name, XMPPStatus status) {
 		this.setJabberId(jabberId);
+		this.name = name;
 		this.status = status;
 	}
-
+	
+	public XMPPUser(String jabberId, XMPPStatus status) {
+		this(jabberId,null,status);
+	}
+	
 	public XMPPStatus getStatus() {
 		return status;
 	}
@@ -25,6 +32,12 @@ public class XMPPUser {
 
 	public String getUsername() {
 		return username;
+	}
+	
+	
+	
+	public String getName() {
+		return name;
 	}
 
 	public void setJabberId(String jabberId) {
@@ -60,8 +73,8 @@ public class XMPPUser {
 
 	@Override
 	public String toString() {
-		return new StringBuffer(this.username).append("@").append(domain)
-				.append("/").append(resource).append("(").append(status)
-				.append(")").toString();
-	}
+		return "XMPPUser [username=" + username + ", name=" + name
+				+ ", domain=" + domain + ", resource=" + resource + ", status="
+				+ status + "]";
+	}	
 }

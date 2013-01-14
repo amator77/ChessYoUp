@@ -17,16 +17,56 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.chessyoup.server.RoomsManager;
 import com.chessyoup.xmpp.XMPPConnectionManager;
+import com.facebook.LoggingBehavior;
+import com.facebook.Session;
+import com.facebook.SessionState;
+import com.facebook.Settings;
 
 public class StartActivity extends Activity {
-
+	SessionStatusCallback statusCallback = new SessionStatusCallback();
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("RoomActivity", "on create");
 		this.initUI();
 		this.installListeners();
+		
+		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+
+		
+		
+        Session session = Session.getActiveSession();
+        if (session == null) {
+            if (savedInstanceState != null) {
+                session = Session.restoreSession(this, null, statusCallback, savedInstanceState);
+            }
+            if (session == null) {
+                session = new Session(this);
+            }
+            Session.setActiveSession(session);
+            if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
+                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+            }
+        }        
+
+        updateView();
+	}
+
+	private void updateView() {
+		
+		Session ssession = Session.getActiveSession();
+    	
+    	if (ssession.isOpened()) {
+    		this.runFacebookLoginTask(ssession.getApplicationId(),ssession.getAccessToken());
+    		
+    		Log.d("Facebook acces token :", ssession.getAccessToken());        		
+    		Log.d("Facebook app id :", ssession.getApplicationId());
+    		Log.d("Facebook exp date :", ssession.getExpirationDate().toString());
+    		Log.d("Facebook state :", ssession.getState().toString());    	
+    	}
+    	else{
+    		Log.d("nasol", "nu am sesiune");
+    	}
 	}
 
 	@Override
@@ -54,7 +94,7 @@ public class StartActivity extends Activity {
 		super.onStop();
 		Log.d("RoomActivity", "on stop");
 	}
-
+	
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
@@ -70,7 +110,13 @@ public class StartActivity extends Activity {
 		task.execute();
 		Log.d("RoomActivity", "on destroy");
 	}
-
+	
+	@Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+    }
+	
 	private void initUI() {
 		setContentView(R.layout.start);
 		Bitmap bmp = BitmapFactory.decodeResource(getResources(),
@@ -83,7 +129,8 @@ public class StartActivity extends Activity {
 
 		EditText accountEditText = (EditText) findViewById(R.id.loginEditTextAccount);
 		String googleAccount = getGoogleAccount();
-		accountEditText.setText(googleAccount != null ? googleAccount : "amator77@gmail.com");
+		accountEditText.setText(googleAccount != null ? googleAccount
+				: "amator77@gmail.com");
 		EditText passwordEditText = (EditText) findViewById(R.id.loginEditTextAccountPassword);
 	}
 
@@ -108,8 +155,50 @@ public class StartActivity extends Activity {
 				}
 			}
 		});
-	}
+		
+		Button facebookLoginButton = (Button) findViewById(R.id.facebookLoginButton);
+		facebookLoginButton.setOnClickListener(new View.OnClickListener() {
 
+			@Override
+			public void onClick(View v) {				
+				Session session = Session.getActiveSession();
+		        if (!session.isOpened() && !session.isClosed()) {
+		            session.openForRead(new Session.OpenRequest(StartActivity.this).setCallback(statusCallback));
+		        } else {
+		            Session.openActiveSession(StartActivity.this, true, statusCallback);
+		        }				
+			}			
+		});
+	}
+	
+	private void runFacebookLoginTask(final String apiId ,final String token) {
+		final ProgressDialog pg = ProgressDialog.show(this, "Login","Processing...");
+		
+		AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
+
+			@Override
+			protected Boolean doInBackground(Void... params) {
+				return XMPPConnectionManager.getInstance().facebookLogin(apiId, token);
+			}
+
+			protected void onPostExecute(Boolean result) {
+				Log.d("a", result + "");
+				pg.dismiss();
+
+				if (result) {
+					Intent intent = new Intent(StartActivity.this,
+							RoasterActivity.class);
+					StartActivity.this.startActivity(intent);
+				} else {
+					Toast.makeText(StartActivity.this,
+							"Invalid username or password!", Toast.LENGTH_SHORT);
+				}
+			}
+		};
+
+		task.execute();
+	}
+	
 	private void runLoginTask(final String username, final String password) {
 		final ProgressDialog pg = ProgressDialog.show(this, "Login",
 				"Signin as :" + username);
@@ -123,12 +212,13 @@ public class StartActivity extends Activity {
 			}
 
 			protected void onPostExecute(Boolean result) {
-				Log.d("a", result+"");
+				Log.d("a", result + "");
 				pg.dismiss();
 
 				if (result) {
-					Intent intent = new Intent(StartActivity.this, RoasterActivity.class);										
-					StartActivity.this.startActivity(intent);										
+					Intent intent = new Intent(StartActivity.this,
+							RoasterActivity.class);
+					StartActivity.this.startActivity(intent);
 				} else {
 					Toast.makeText(StartActivity.this,
 							"Invalid username or password!", Toast.LENGTH_SHORT);
@@ -138,7 +228,16 @@ public class StartActivity extends Activity {
 
 		task.execute();
 	}
-
+	
+	private class SessionStatusCallback implements Session.StatusCallback {
+		
+        @Override
+        public void call(Session session, SessionState state, Exception exception) {
+        	
+        	updateView();        	        	
+        }
+    }
+	
 	private String getGoogleAccount() {
 		String googleAccount = null;
 
