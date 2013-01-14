@@ -13,6 +13,7 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.Roster.SubscriptionMode;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SASLAuthentication;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
@@ -125,9 +126,12 @@ public class XMPPConnectionManager implements ConnectionListener,
 			ConnectionConfiguration config = new ConnectionConfiguration("chat.facebook.com",5222);
 			config.setSASLAuthenticationEnabled(true);
 	        config.setDebuggerEnabled(true);
+	        SmackConfiguration.setPacketReplyTimeout(15000);
+	        XMPPConnection.DEBUG_ENABLED = true;
 //	        config.setRosterLoadedAtLogin(true);			
 	        SASLAuthentication.registerSASLMechanism(SASLXFacebookPlatformMechanism.NAME, SASLXFacebookPlatformMechanism.class);
 	        SASLAuthentication.supportSASLMechanism(SASLXFacebookPlatformMechanism.NAME, 0);
+	        configuration.setSecurityMode(ConnectionConfiguration.SecurityMode.enabled);
 		    this.xmppConnection = new XMPPConnection(config);
 		}
 
@@ -152,12 +156,13 @@ public class XMPPConnectionManager implements ConnectionListener,
 		}
 
 		try {
-			xmppConnection.login(appId, accessToken , "Application");									
+			xmppConnection.login(appId, accessToken, "ChessYoUp");									
 			this.user = xmppConnection.getUser();
 			Log.d(TAG, "Success on login as :" + this.user);
 			xmppConnection.getRoster().addRosterListener(this);
 		} catch (XMPPException e) {
 			Log.e(TAG, "Error on login", e);
+			xmppConnection.disconnect();
 			return false;
 		}
 

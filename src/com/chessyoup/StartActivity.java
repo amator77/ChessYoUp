@@ -62,7 +62,10 @@ public class StartActivity extends Activity {
     		Log.d("Facebook acces token :", ssession.getAccessToken());        		
     		Log.d("Facebook app id :", ssession.getApplicationId());
     		Log.d("Facebook exp date :", ssession.getExpirationDate().toString());
-    		Log.d("Facebook state :", ssession.getState().toString());    	
+    		Log.d("Facebook state :", ssession.getState().toString()); 
+    		Log.d("Facebook permisions:", ssession.getPermissions() != null ? ssession.getPermissions().toString() : "no permision");
+    		
+    		
     	}
     	else{
     		Log.d("nasol", "nu am sesiune");

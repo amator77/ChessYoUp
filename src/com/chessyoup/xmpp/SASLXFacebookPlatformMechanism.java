@@ -21,9 +21,8 @@ import android.util.Log;
 public class SASLXFacebookPlatformMechanism extends SASLMechanism {
 
 	public static final String NAME = "X-FACEBOOK-PLATFORM";
-
 	private String apiKey = "";
-	private String token = "";
+	private String accessToken = "";
 
 	/**
 	 * Constructor.
@@ -34,39 +33,21 @@ public class SASLXFacebookPlatformMechanism extends SASLMechanism {
 
 	@Override
 	protected void authenticate() throws IOException, XMPPException {
-
-		getSASLAuthentication().send(new AuthMechanism(NAME, ""));
+		// Send the authentication to the server
+		getSASLAuthentication().send(new AuthMechanism(getName(), ""));
 	}
 
 	@Override
-	public void authenticate(String apiKey, String host,
-			String applicationSecret) throws IOException, XMPPException {
-		if (apiKey == null || applicationSecret == null) {
-			throw new IllegalArgumentException("Invalid parameters");
-		}
-
+	public void authenticate(String apiKey, String host, String accessToken)
+			throws IOException, XMPPException {
 		this.apiKey = apiKey;
-		this.token = applicationSecret;		
-		this.authenticationId = apiKey;
-		this.password = applicationSecret;
+		this.accessToken = accessToken;
 		this.hostname = host;
-		
-		Log.d("SASLXFacebookPlatformMechanism","api:"+this.apiKey+"token:"+token);
-		
+
 		String[] mechanisms = { "DIGEST-MD5" };
 		Map<String, String> props = new HashMap<String, String>();
 		this.sc = Sasl.createSaslClient(mechanisms, null, "xmpp", host, props,
 				this);
-		authenticate();
-	}
-
-	@Override
-	public void authenticate(String username, String host, CallbackHandler cbh)
-			throws IOException, XMPPException {
-		String[] mechanisms = { "DIGEST-MD5" };
-		Map<String, String> props = new HashMap<String, String>();
-		this.sc = Sasl.createSaslClient(mechanisms, null, "xmpp", host, props,
-				cbh);
 		authenticate();
 	}
 
@@ -82,32 +63,35 @@ public class SASLXFacebookPlatformMechanism extends SASLMechanism {
 		if (challenge != null) {
 			String decodedChallenge = new String(Base64.decode(challenge));
 			Map<String, String> parameters = getQueryMap(decodedChallenge);
-			
+			Log.d("sax", "parameters :["+parameters+"]");
 			String version = "1.0";
 			String nonce = parameters.get("nonce");
 			String method = parameters.get("method");
-			
-			long callId = new GregorianCalendar().getTimeInMillis() / 1000L;
-	
-			
-			String composedResponse = "api_key=" + apiKey
-										+ "&call_id=" + callId
-										+ "&method=" + method
-										+ "&nonce=" + nonce
-										+ "&access_token=" +token
-										+ "&v="+version;										
-			
-			response = composedResponse.getBytes("utf-8");
-			Log.d("aaaaaaaaa", composedResponse);
-		}
 
+			long callId = new GregorianCalendar().getTimeInMillis() / 1000L;
+			
+			Log.d("sax", "token :["+accessToken+"]");
+			Log.d("sax", "apiKey :["+apiKey+"]");
+			
+			
+			String composedResponse = "method=" + URLEncoder.encode(method, "utf-8")
+					+ "&nonce=" + URLEncoder.encode(nonce, "utf-8")
+					+ "&access_token=" + URLEncoder.encode(accessToken, "utf-8")
+					+ "&api_key="+ URLEncoder.encode(apiKey, "utf-8")
+					+ "&call_id=0"
+					+ "&v=" + URLEncoder.encode(version, "utf-8");
+			
+			Log.d("sax", composedResponse);
+			response = composedResponse.getBytes("utf-8");
+		}
+		
 		String authenticationText = "";
 
 		if (response != null) {
 			authenticationText = Base64.encodeBytes(response,
 					Base64.DONT_BREAK_LINES);
 		}
-
+		Log.d("sax", authenticationText);
 		// Send the authentication to the server
 		getSASLAuthentication().send(new Response(authenticationText));
 	}
@@ -120,35 +104,6 @@ public class SASLXFacebookPlatformMechanism extends SASLMechanism {
 			String[] fields = param.split("=", 2);
 			map.put(fields[0], (fields.length > 1 ? fields[1] : null));
 		}
-
 		return map;
-	}
-
-	private String md5(String text) throws NoSuchAlgorithmException,
-			UnsupportedEncodingException {
-		MessageDigest md = MessageDigest.getInstance("MD5");
-		md.update(text.getBytes("utf-8"), 0, text.length());
-		return convertToHex(md.digest());
-	}
-
-	private String convertToHex(byte[] data) {
-		StringBuilder buf = new StringBuilder();
-		int len = data.length;
-
-		for (int i = 0; i < len; i++) {
-			int halfByte = (data[i] >>> 4) & 0xF;
-			int twoHalfs = 0;
-
-			do {
-				if (0 <= halfByte && halfByte <= 9) {
-					buf.append((char) ('0' + halfByte));
-				} else {
-					buf.append((char) ('a' + halfByte - 10));
-				}
-				halfByte = data[i] & 0xF;
-			} while (twoHalfs++ < 1);
-		}
-
-		return buf.toString();
 	}
 }
