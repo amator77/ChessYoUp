@@ -1,16 +1,30 @@
 package com.chessyoup;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.accounts.Account;
 import android.accounts.AccountManager;
+import android.accounts.AccountManagerCallback;
+import android.accounts.AccountManagerFuture;
+import android.accounts.AuthenticatorException;
+import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -18,10 +32,9 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.chessyoup.xmpp.XMPPConnectionManager;
-import com.facebook.LoggingBehavior;
 import com.facebook.Session;
 import com.facebook.SessionState;
-import com.facebook.Settings;
+import com.facebook.widget.LoginButton;
 
 public class StartActivity extends Activity {
 	SessionStatusCallback statusCallback = new SessionStatusCallback();
@@ -30,26 +43,26 @@ public class StartActivity extends Activity {
 		Log.d("RoomActivity", "on create");
 		this.initUI();
 		this.installListeners();
-		
-		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
-
-		
-		
-        Session session = Session.getActiveSession();
-        if (session == null) {
-            if (savedInstanceState != null) {
-                session = Session.restoreSession(this, null, statusCallback, savedInstanceState);
-            }
-            if (session == null) {
-                session = new Session(this);
-            }
-            Session.setActiveSession(session);
-            if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
-                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
-            }
-        }        
-
-        updateView();
+//		
+//		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+//
+//		
+//		
+//        Session session = Session.getActiveSession();
+//        if (session == null) {
+//            if (savedInstanceState != null) {
+//                session = Session.restoreSession(this, null, statusCallback, savedInstanceState);
+//            }
+//            if (session == null) {
+//                session = new Session(this);                
+//            }
+//            Session.setActiveSession(session);
+//            if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
+//                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+//            }
+//        }        
+//
+//        updateView();
 	}
 
 	private void updateView() {
@@ -57,7 +70,12 @@ public class StartActivity extends Activity {
 		Session ssession = Session.getActiveSession();
     	
     	if (ssession.isOpened()) {
-    		this.runFacebookLoginTask(ssession.getApplicationId(),ssession.getAccessToken());
+    		try {
+				this.runFacebookLoginTask(ssession.getApplicationId(),ssession.getAccessToken());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
     		
     		Log.d("Facebook acces token :", ssession.getAccessToken());        		
     		Log.d("Facebook app id :", ssession.getApplicationId());
@@ -135,6 +153,13 @@ public class StartActivity extends Activity {
 		accountEditText.setText(googleAccount != null ? googleAccount
 				: "amator77@gmail.com");
 		EditText passwordEditText = (EditText) findViewById(R.id.loginEditTextAccountPassword);
+		
+		LoginButton authButton = (LoginButton)findViewById(R.id.facebookLoginButton);
+		List<String> permisions = new ArrayList<String>();
+		permisions.add("xmpp_login");
+		permisions.add("publish_strea");			
+		authButton.setReadPermissions(permisions);
+		
 	}
 
 	private void installListeners() {
@@ -172,16 +197,89 @@ public class StartActivity extends Activity {
 		        }				
 			}			
 		});
+		
+		Button gtalkLoginButton = (Button) findViewById(R.id.gtalkLoginButton);
+		
+		gtalkLoginButton.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {				
+				AccountManager am = AccountManager.get( StartActivity.this);
+				Account[] accounts =  am.getAccounts();
+				Account googleAccount = null;
+				for(Account ac:accounts ){
+					if(ac.type.equals("com.google")){
+						googleAccount = ac;
+						Log.d("acc", ac.name +" , "+ac.type+" , ");
+						break;
+					}					
+				}
+				
+				if( googleAccount != null ){
+					
+					am.getAuthToken (googleAccount, "https://www.googleapis.com/auth/googletalk", new Bundle(),StartActivity.this, new OnTokenAcquired(),new Handler(new Handler.Callback() {
+						
+						@Override
+						public boolean handleMessage(Message msg) {
+							Log.d("eerro on auth",msg.toString());
+							return false;
+						}
+					}));															
+				}
+			}			
+		});
 	}
 	
-	private void runFacebookLoginTask(final String apiId ,final String token) {
-		final ProgressDialog pg = ProgressDialog.show(this, "Login","Processing...");
+	private class OnTokenAcquired implements AccountManagerCallback<Bundle> {
+	    @Override
+	    public void run(AccountManagerFuture<Bundle> result) {
+	        // Get the result of the operation from the AccountManagerFuture.
+	    	
+	        Bundle bundle;
+			try {
+				bundle = result.getResult(); 
+		        Log.d("google token ", bundle.getString(AccountManager.KEY_AUTHTOKEN));
+			} catch (OperationCanceledException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (AuthenticatorException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+	    }
+	}
+	
+	private void runFacebookLoginTask(final String apiId ,final String token) throws IOException {
+		final ProgressDialog pg = ProgressDialog.show(this, "Login","Processing...");		
 		
 		AsyncTask<Void, Void, Boolean> task = new AsyncTask<Void, Void, Boolean>() {
 
 			@Override
 			protected Boolean doInBackground(Void... params) {
-				return XMPPConnectionManager.getInstance().facebookLogin(apiId, token);
+				AssetManager manager = StartActivity.this.getAssets();				
+				String path = "";
+				try {
+					InputStream fis =  manager.open("cacerts.bks");
+					File f = File.createTempFile("cacerts", "bks");
+					byte[] buffer = new byte[1024];
+					FileOutputStream fos = new FileOutputStream(f);
+					int read = 0;
+					
+					while( (read = fis.read(buffer)) != -1 ){
+						fos.write(buffer, 0, read);
+					}
+					
+					fis.close();
+					fos.close();
+					path = f.getPath();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}					
+				
+				return XMPPConnectionManager.getInstance().facebookLogin(apiId, "AAAGOpd0PegYBAMw4C6Am0XUYkx6RJ3jf5cPqXYLwNiEnjgpa2d3xurZAasbmSVd5mkZBTWBaMSJFuhKbnrNYf3zRvJdYKZCP00MIkynacxRfVpaiPbD",path);
 			}
 
 			protected void onPostExecute(Boolean result) {

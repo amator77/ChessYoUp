@@ -60,6 +60,13 @@
             android:layout_height="wrap_content"                        
 		    >		    
 		</com.facebook.widget.LoginButton>
+
+		<Button
+		    android:id="@+id/gtalkLoginButton"
+		    android:layout_width="wrap_content"
+		    android:layout_height="wrap_content"
+		    android:text="Add Google account" />
+
     </LinearLayout>
 
 </LinearLayout>

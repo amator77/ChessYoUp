@@ -13,7 +13,6 @@ import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.Roster.SubscriptionMode;
 import org.jivesoftware.smack.RosterListener;
 import org.jivesoftware.smack.SASLAuthentication;
-import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
@@ -120,18 +119,20 @@ public class XMPPConnectionManager implements ConnectionListener,
 		return true;
 	}
 	
-	public boolean facebookLogin(String appId , String accessToken){
+	public boolean facebookLogin(String appId , String accessToken , String path){
 		
-		if (this.xmppConnection == null) {									
+		if (this.xmppConnection == null) {						
 			ConnectionConfiguration config = new ConnectionConfiguration("chat.facebook.com",5222);
 			config.setSASLAuthenticationEnabled(true);
-	        config.setDebuggerEnabled(true);
-	        SmackConfiguration.setPacketReplyTimeout(15000);
-	        XMPPConnection.DEBUG_ENABLED = true;
-//	        config.setRosterLoadedAtLogin(true);			
+	        config.setDebuggerEnabled(true);	        	        		
 	        SASLAuthentication.registerSASLMechanism(SASLXFacebookPlatformMechanism.NAME, SASLXFacebookPlatformMechanism.class);
 	        SASLAuthentication.supportSASLMechanism(SASLXFacebookPlatformMechanism.NAME, 0);
-	        configuration.setSecurityMode(ConnectionConfiguration.SecurityMode.enabled);
+	        config.setSecurityMode(SecurityMode.enabled);
+	        config.setTruststoreType("BKS");
+	        config.setSendPresence(false);
+	        Log.d("aaaaaa", path);
+	        config.setTruststorePath(path);
+	        Log.d("aaaaaa", config.getKeystoreType()+","+config.getKeystorePath());
 		    this.xmppConnection = new XMPPConnection(config);
 		}
 
@@ -156,7 +157,7 @@ public class XMPPConnectionManager implements ConnectionListener,
 		}
 
 		try {
-			xmppConnection.login(appId, accessToken, "ChessYoUp");									
+			xmppConnection.login(appId, accessToken);									
 			this.user = xmppConnection.getUser();
 			Log.d(TAG, "Success on login as :" + this.user);
 			xmppConnection.getRoster().addRosterListener(this);
