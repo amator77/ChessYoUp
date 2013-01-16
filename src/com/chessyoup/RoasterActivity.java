@@ -24,17 +24,17 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.Spinner;
 
+import com.chessyoup.transport.xmpp.UIListener;
+import com.chessyoup.transport.xmpp.XMPPConnectionManager;
+import com.chessyoup.transport.xmpp.XMPPGameController;
+import com.chessyoup.transport.xmpp.XMPPListener;
+import com.chessyoup.transport.xmpp.XMPPStatus;
+import com.chessyoup.transport.xmpp.XMPPUser;
+import com.chessyoup.transport.xmpp.XMPPStatus.MODE;
 import com.chessyoup.view.adapters.AccountStatusAdapter;
 import com.chessyoup.view.adapters.AccountStatusModel;
 import com.chessyoup.view.adapters.RosterAdapter;
 import com.chessyoup.view.adapters.RosterModel;
-import com.chessyoup.xmpp.UIListener;
-import com.chessyoup.xmpp.XMPPConnectionManager;
-import com.chessyoup.xmpp.XMPPGameController;
-import com.chessyoup.xmpp.XMPPListener;
-import com.chessyoup.xmpp.XMPPStatus;
-import com.chessyoup.xmpp.XMPPStatus.MODE;
-import com.chessyoup.xmpp.XMPPUser;
 
 public class RoasterActivity extends Activity implements XMPPListener,UIListener {
 	ProgressDialog pg;

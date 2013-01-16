@@ -65,8 +65,8 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
-import com.chessyoup.xmpp.XMPPGameController;
-import com.chessyoup.xmpp.XMPPGameListener;
+import com.chessyoup.transport.xmpp.XMPPGameController;
+import com.chessyoup.transport.xmpp.XMPPGameListener;
 
 public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 		XMPPGameListener {

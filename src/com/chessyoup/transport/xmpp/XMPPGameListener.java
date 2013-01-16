@@ -1,4 +1,4 @@
-package com.chessyoup.xmpp;
+package com.chessyoup.transport.xmpp;
 
 public interface XMPPGameListener {
 	

@@ -1,4 +1,4 @@
-package com.chessyoup.xmpp;
+package com.chessyoup.transport.xmpp;
 
 import org.jivesoftware.smack.packet.Presence;
 

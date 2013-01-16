@@ -12,8 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.chessyoup.R;
-import com.chessyoup.xmpp.XMPPUser;
-import com.chessyoup.xmpp.XMPPStatus.MODE;
+import com.chessyoup.transport.xmpp.XMPPUser;
+import com.chessyoup.transport.xmpp.XMPPStatus.MODE;
 
 public class AccountStatusAdapter extends BaseAdapter {
 

@@ -1,4 +1,4 @@
-package com.chessyoup.xmpp;
+package com.chessyoup.transport.xmpp;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,7 +34,7 @@ import org.jivesoftware.smackx.pubsub.provider.PubSubProvider;
 
 import android.util.Log;
 
-import com.chessyoup.xmpp.XMPPStatus.MODE;
+import com.chessyoup.transport.xmpp.XMPPStatus.MODE;
 
 public class XMPPConnectionManager implements ConnectionListener,
 		RosterListener {

@@ -1,4 +1,4 @@
-package com.chessyoup.xmpp;
+package com.chessyoup.transport.xmpp;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;

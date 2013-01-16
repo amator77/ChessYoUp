@@ -9,10 +9,6 @@ import java.util.List;
 
 import android.accounts.Account;
 import android.accounts.AccountManager;
-import android.accounts.AccountManagerCallback;
-import android.accounts.AccountManagerFuture;
-import android.accounts.AuthenticatorException;
-import android.accounts.OperationCanceledException;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -23,46 +19,48 @@ import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.chessyoup.xmpp.XMPPConnectionManager;
+import com.chessyoup.transport.xmpp.XMPPConnectionManager;
+import com.facebook.LoggingBehavior;
 import com.facebook.Session;
 import com.facebook.SessionState;
+import com.facebook.Settings;
 import com.facebook.widget.LoginButton;
 
 public class StartActivity extends Activity {
-	SessionStatusCallback statusCallback = new SessionStatusCallback();
+	
+	private SessionStatusCallback statusCallback = new SessionStatusCallback();
+	
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("RoomActivity", "on create");
 		this.initUI();
 		this.installListeners();
-//		
-//		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
-//
-//		
-//		
-//        Session session = Session.getActiveSession();
-//        if (session == null) {
-//            if (savedInstanceState != null) {
-//                session = Session.restoreSession(this, null, statusCallback, savedInstanceState);
-//            }
-//            if (session == null) {
-//                session = new Session(this);                
-//            }
-//            Session.setActiveSession(session);
-//            if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
-//                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
-//            }
-//        }        
-//
-//        updateView();
+		
+		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_ACCESS_TOKENS);
+		Settings.addLoggingBehavior(LoggingBehavior.INCLUDE_RAW_RESPONSES);
+		Settings.addLoggingBehavior(LoggingBehavior.REQUESTS);
+		
+        Session session = Session.getActiveSession();
+        if (session == null) {
+            if (savedInstanceState != null) {
+                session = Session.restoreSession(this, null, statusCallback, savedInstanceState);
+            }
+            if (session == null) {
+                session = new Session(this);                
+            }
+            Session.setActiveSession(session);
+            if (session.getState().equals(SessionState.CREATED_TOKEN_LOADED)) {
+                session.openForRead(new Session.OpenRequest(this).setCallback(statusCallback));
+            }
+        }        
+
+        updateView();
 	}
 
 	private void updateView() {
@@ -197,59 +195,6 @@ public class StartActivity extends Activity {
 		        }				
 			}			
 		});
-		
-		Button gtalkLoginButton = (Button) findViewById(R.id.gtalkLoginButton);
-		
-		gtalkLoginButton.setOnClickListener(new View.OnClickListener() {
-
-			@Override
-			public void onClick(View v) {				
-				AccountManager am = AccountManager.get( StartActivity.this);
-				Account[] accounts =  am.getAccounts();
-				Account googleAccount = null;
-				for(Account ac:accounts ){
-					if(ac.type.equals("com.google")){
-						googleAccount = ac;
-						Log.d("acc", ac.name +" , "+ac.type+" , ");
-						break;
-					}					
-				}
-				
-				if( googleAccount != null ){
-					
-					am.getAuthToken (googleAccount, "https://www.googleapis.com/auth/googletalk", new Bundle(),StartActivity.this, new OnTokenAcquired(),new Handler(new Handler.Callback() {
-						
-						@Override
-						public boolean handleMessage(Message msg) {
-							Log.d("eerro on auth",msg.toString());
-							return false;
-						}
-					}));															
-				}
-			}			
-		});
-	}
-	
-	private class OnTokenAcquired implements AccountManagerCallback<Bundle> {
-	    @Override
-	    public void run(AccountManagerFuture<Bundle> result) {
-	        // Get the result of the operation from the AccountManagerFuture.
-	    	
-	        Bundle bundle;
-			try {
-				bundle = result.getResult(); 
-		        Log.d("google token ", bundle.getString(AccountManager.KEY_AUTHTOKEN));
-			} catch (OperationCanceledException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (AuthenticatorException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	    }
 	}
 	
 	private void runFacebookLoginTask(final String apiId ,final String token) throws IOException {

@@ -3,7 +3,7 @@ package com.chessyoup.view.adapters;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.chessyoup.xmpp.XMPPUser;
+import com.chessyoup.transport.xmpp.XMPPUser;
 
 /**
  * The Class RosterModel.
