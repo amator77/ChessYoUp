@@ -3,7 +3,7 @@ package com.chessyoup.view.adapters;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.chessyoup.transport.xmpp.XMPPUser;
+import com.chessyoup.transport.Contact;
 
 /**
  * The Class RosterModel.
@@ -11,7 +11,7 @@ import com.chessyoup.transport.xmpp.XMPPUser;
 public class RosterModel {
 
 	/** The contacts list. */
-	private List<XMPPUser> contactsList;
+	private List<Contact> contactsList;
 	
 	/** The show online contacts. */
 	private boolean showOnlineContacts;
@@ -30,7 +30,7 @@ public class RosterModel {
 	public RosterModel()
 	{
 		this.groupNames = new ArrayList<String>();
-		this.contactsList = new ArrayList<XMPPUser>();
+		this.contactsList = new ArrayList<Contact>();
 	}
 	
 	/**
@@ -38,7 +38,7 @@ public class RosterModel {
 	 *
 	 * @return the contacts list
 	 */
-	public List<XMPPUser> getContactsList()
+	public List<Contact> getContactsList()
 	{
 		return contactsList;
 	}
@@ -48,7 +48,7 @@ public class RosterModel {
 	 *
 	 * @param contactsList the new contacts list
 	 */
-	public void setContactsList(List<XMPPUser> contactsList)
+	public void setContactsList(List<Contact> contactsList)
 	{
 		this.contactsList = contactsList;
 	}
@@ -148,7 +148,7 @@ public class RosterModel {
 		return contactsList.size();
 	}
 
-	public XMPPUser getItem(int position)
+	public Contact getItem(int position)
 	{
 		return contactsList.get(position);
 	}

@@ -29,7 +29,7 @@ import com.chessyoup.transport.xmpp.XMPPConnectionManager;
 import com.chessyoup.transport.xmpp.XMPPGameController;
 import com.chessyoup.transport.xmpp.XMPPListener;
 import com.chessyoup.transport.xmpp.XMPPStatus;
-import com.chessyoup.transport.xmpp.XMPPUser;
+import com.chessyoup.transport.xmpp.XMPPContact;
 import com.chessyoup.transport.xmpp.XMPPStatus.MODE;
 import com.chessyoup.view.adapters.AccountStatusAdapter;
 import com.chessyoup.view.adapters.AccountStatusModel;
@@ -106,7 +106,7 @@ public class RoasterActivity extends Activity implements XMPPListener,UIListener
 			public void run() {
 				ListView listView = (ListView) findViewById(R.id.roasterUsers);
 				for (int i = 0; i < listView.getCount(); i++) {
-					final XMPPUser user = (XMPPUser) listView.getAdapter()
+					final XMPPContact user = (XMPPContact) listView.getAdapter()
 							.getItem(i);
 					String parts[] = jabberId.split("@");
 
@@ -129,11 +129,11 @@ public class RoasterActivity extends Activity implements XMPPListener,UIListener
 		this.setTitle(XMPPConnectionManager.getInstance().getLoggedUser());
 
 		ListView listView = (ListView) findViewById(R.id.roasterUsers);
-		List<XMPPUser> users = new ArrayList<XMPPUser>();
+		List<XMPPContact> users = new ArrayList<XMPPContact>();
 		Roster roster = XMPPConnectionManager.getInstance().getRoster();
 
 		for (RosterEntry entry : roster.getEntries()) {
-			users.add(new XMPPUser(entry.getUser() , entry.getName(), new XMPPStatus()));
+			users.add(new XMPPContact(entry.getUser() , entry.getName(), new XMPPStatus()));
 		}
 
 		RosterModel rosterModel = new RosterModel();
@@ -156,7 +156,7 @@ public class RoasterActivity extends Activity implements XMPPListener,UIListener
 			@Override
 			public void onItemClick(AdapterView<?> parent, View view,
 					int position, long id) {
-				final XMPPUser user = (XMPPUser) listView.getAdapter().getItem(
+				final XMPPContact user = (XMPPContact) listView.getAdapter().getItem(
 						position);
 
 				if (user.isChessYoUpUser()) {
@@ -232,7 +232,7 @@ public class RoasterActivity extends Activity implements XMPPListener,UIListener
 		XMPPConnectionManager.getInstance().addXMPPListener(this);
 	}
 
-	private void runSendInviteask(final XMPPUser user) {
+	private void runSendInviteask(final XMPPContact user) {
 
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 

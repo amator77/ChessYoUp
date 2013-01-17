@@ -12,8 +12,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.chessyoup.R;
-import com.chessyoup.transport.xmpp.XMPPUser;
-import com.chessyoup.transport.xmpp.XMPPStatus.MODE;
+import com.chessyoup.transport.Contact;
+import com.chessyoup.transport.xmpp.XMPPContact;
 
 /**
  * The Class SearchRosterAdapter.
@@ -111,36 +111,22 @@ public class RosterAdapter extends BaseAdapter {
 			holder = (ViewHolder) convertView.getTag();
 		}
 
-		XMPPUser searchedChild = rosterModel.getItem(position);
+		Contact contact = rosterModel.getItem(position);
 
-		// holder.contactAvatar.setImageBitmap(searchedChild.getAvatarBitmap(context));
-		holder.contactName.setText( searchedChild.getName() != null ?  searchedChild.getName() : searchedChild.getUsername());
+		holder.contactName.setText(contact.getName() != null ? contact
+				.getName() : contact.getId());
 
-		if (searchedChild.getStatus().getStatus() != null
-				&& searchedChild.getStatus().getStatus().trim().length() > 0) {
-			holder.contactStatus.setText(searchedChild.getStatus().getStatus());
-		} else {
-			if (searchedChild.getStatus().getType() != null) {
-				if (searchedChild.getStatus().getType() != Presence.Type.unavailable) {
-					holder.contactStatus.setText(searchedChild.getStatus()
-							.getType().toString());
-				} else {
-					holder.contactStatus.setText("offline");
-				}
-			}
-		}
+		
+		holder.contactStatus.setText(contact.getPresence().getStatus());		
 
 		Drawable statusIcon = context.getResources().getDrawable(
-				getIdForStatusType(searchedChild.getStatus().getMode()));
+				getIdForStatusType(contact.getPresence().getMode()));
 		Drawable hasEventIcon = null;
 
 		holder.contactName.setCompoundDrawablesWithIntrinsicBounds(statusIcon,
 				null, hasEventIcon, null);
 
-		holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds(
-				searchedChild.isChessYoUpUser() ? context.getResources()
-						.getDrawable(R.drawable.chessyoup) : null, null,
-				hasEventIcon, null);
+//		holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds( searchedChild.isChessYoUpUser() ? context.getResources() .getDrawable(R.drawable.chessyoup) : null, null, hasEventIcon, null);
 
 		return convertView;
 	}
@@ -164,7 +150,7 @@ public class RosterAdapter extends BaseAdapter {
 		this.rosterModel = rosterModel;
 	}
 
-	public static int getIdForStatusType(MODE mode) {
+	public static int getIdForStatusType(com.chessyoup.transport.Presence.MODE mode) {
 		if (mode != null) {
 
 			switch (mode) {

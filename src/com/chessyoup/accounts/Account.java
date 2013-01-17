@@ -1,5 +1,7 @@
 package com.chessyoup.accounts;
 
+import com.chessyoup.transport.Roster;
+
 public interface Account {
 	
 	public enum TYPE { XMPP_GOOGLE , XMPP_FACEBOOK }

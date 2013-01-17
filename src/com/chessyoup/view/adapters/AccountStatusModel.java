@@ -3,8 +3,7 @@ package com.chessyoup.view.adapters;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.chessyoup.transport.xmpp.XMPPStatus;
-import com.chessyoup.transport.xmpp.XMPPStatus.MODE;
+import com.chessyoup.transport.Presence.MODE;
 
 public class AccountStatusModel {
 	

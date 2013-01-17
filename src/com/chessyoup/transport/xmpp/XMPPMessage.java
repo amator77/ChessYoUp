@@ -1,36 +1,39 @@
 package com.chessyoup.transport.xmpp;
 
-import java.util.Map;
+import java.util.Collection;
 
-public class XMPPMessage {
-	
-	private String body; 
-	
-	private Map<String, String> header;
-	
-	public XMPPMessage(String body,Map<String, String> header){
-		this.body = body;
-		this.header = header;
+import com.chessyoup.transport.Message;
+
+public class XMPPMessage implements Message {
+
+	private org.jivesoftware.smack.packet.Message xmppPachet;
+
+	public XMPPMessage(org.jivesoftware.smack.packet.Message xmppPachet) {
+		this.xmppPachet = xmppPachet;
 	}
-	
-	/**
-	 * Return the message data
-	 * @return
-	 */
-	public String getBody(){
-		return this.body;
-	}
-	
-	/**
-	 * Message header
-	 * @return
-	 */
-	public Map<String, String> getHeader(){
-		return this.header;
+
+	public String getHeader(String key) {
+		return this.xmppPachet.getProperty(key) != null ? this.xmppPachet
+				.getProperty(key).toString() : null;
 	}
 
 	@Override
-	public String toString() {
-		return "XMPPMessage [body=" + body + ", header=" + header + "]";
-	}		
+	public String getBody() {
+		return this.xmppPachet.getBody();
+	}
+
+	@Override
+	public String getFrom() {
+		return this.xmppPachet.getFrom();
+	}
+
+	@Override
+	public String getTo() {
+		return this.xmppPachet.getTo();
+	}
+
+	@Override
+	public Collection<String> getHeadersKeys() {
+		return this.xmppPachet.getPropertyNames();
+	}
 }

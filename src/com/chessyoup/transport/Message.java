@@ -1,10 +1,17 @@
 package com.chessyoup.transport;
 
-import java.util.Map;
+import java.util.Collection;
+
 
 public interface Message {
+			
+	public String getFrom();
 	
+	public String getTo();
+			
 	public String getBody();
 	
-	public Map<String, String> getHeader();
+	public String getHeader(String key);
+	
+	public Collection<String> getHeadersKeys();
 }

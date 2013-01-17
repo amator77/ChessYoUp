@@ -9,6 +9,4 @@ public interface XMPPListener {
 	public void entriesDeleted(Collection<String> jabberIds);
 
 	public void entriesUpdated(Collection<String> jabberIds);
-
-	public void presenceChanged(String jabberId, XMPPStatus status);
 }
