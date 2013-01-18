@@ -3,6 +3,7 @@ package com.chessyoup.view.adapters;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.chessyoup.transport.Presence;
 import com.chessyoup.transport.Presence.MODE;
 
 public class AccountStatusModel {
@@ -11,19 +12,19 @@ public class AccountStatusModel {
 	
 	private String accountStatusString;
 	
-	private List<XMPPStatus.MODE> modes;
+	private List<Presence.MODE> modes;
 	
 	public AccountStatusModel(String account,String accountStatusString){
 		this.account = account;
 		this.accountStatusString = accountStatusString;
-		this.modes = new ArrayList<XMPPStatus.MODE>();
+		this.modes = new ArrayList<Presence.MODE>();
 		this.modes.add(MODE.ONLINE);
 		this.modes.add(MODE.OFFLINE);
 		this.modes.add(MODE.BUSY);
 		this.modes.add(MODE.AWAY);
 	}
 	
-	public XMPPStatus.MODE getStatus(int position){
+	public Presence.MODE getStatus(int position){
 		return this.modes.get(position);
 	}
 	
@@ -44,11 +45,11 @@ public class AccountStatusModel {
 		this.accountStatusString = accountStatusString;
 	}
 
-	public List<XMPPStatus.MODE> getModes() {
+	public List<Presence.MODE> getModes() {
 		return modes;
 	}
 
-	public void setModes(List<XMPPStatus.MODE> modes) {
+	public void setModes(List<Presence.MODE> modes) {
 		this.modes = modes;
 	}
 

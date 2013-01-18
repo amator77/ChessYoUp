@@ -1,7 +1,9 @@
 <resources>
 
-    <string name="app_name">ChessYoUp</string>
-    <string name="applicationId">438318006237702</string>
+    <string name="app_name">ChessYoUp</string>    
+    <string name="app_id">438318006237702</string>
+    <string name="app_code">cyp</string>
+    <string name="app_version">cyp</string>
     <string name="error_config">Please set the %1$s constant and recompile the app.</string>
     <string name="already_registered">Device is already registered on server.</string>
     <string name="gcm_registered">From GCM: device successfully registered!</string>

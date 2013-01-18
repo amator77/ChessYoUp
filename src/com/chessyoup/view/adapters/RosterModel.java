@@ -11,7 +11,7 @@ import com.chessyoup.transport.Contact;
 public class RosterModel {
 
 	/** The contacts list. */
-	private List<Contact> contactsList;
+	private List<? extends Contact> contactsList;
 	
 	/** The show online contacts. */
 	private boolean showOnlineContacts;
@@ -38,7 +38,7 @@ public class RosterModel {
 	 *
 	 * @return the contacts list
 	 */
-	public List<Contact> getContactsList()
+	public List<? extends Contact> getContactsList()
 	{
 		return contactsList;
 	}
@@ -48,7 +48,7 @@ public class RosterModel {
 	 *
 	 * @param contactsList the new contacts list
 	 */
-	public void setContactsList(List<Contact> contactsList)
+	public void setContactsList(List<? extends Contact> contactsList)
 	{
 		this.contactsList = contactsList;
 	}

@@ -3,76 +3,56 @@
     android:versionCode="1"
     android:versionName="1.0" >
 
-    <uses-sdk
-        android:minSdkVersion="8"
-        android:targetSdkVersion="17" />
-
-    <permission
-        android:name="com.chessyoup.permission.C2D_MESSAGE"
-        android:protectionLevel="signature" />
-
-    <uses-permission android:name="com.chessyoup.permission.C2D_MESSAGE" />
-
-    <!-- App receives GCM messages. -->
-    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
-    <!-- GCM connects to Google Services. -->
+    <uses-sdk android:minSdkVersion="8" android:targetSdkVersion="17" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <!-- GCM requires a Google account. -->
     <uses-permission android:name="android.permission.GET_ACCOUNTS" />
     <uses-permission android:name="android.permission.AUTHENTICATE_ACCOUNTS" />
-    <uses-permission android:name="android.permission.USE_CREDENTIALS" />
-    <!-- Keeps the processor from sleeping when a message is received. -->
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.USE_CREDENTIALS" />    
+    <uses-permission android:name="android.permission.WAKE_LOCK" />    
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
-        <activity
-            android:name="com.chessyoup.RoomActivity"
-            android:label="@string/app_name"
-            android:screenOrientation="landscape" >
+        android:theme="@style/AppTheme" >        
+        
+        <activity android:label="@string/app_name" android:name="com.chessyoup.ui.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+               <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            
         </activity>
+        
+        <activity
+            android:name="com.chessyoup.ui.MenuActivity"
+            android:label="@string/app_name">            
+        </activity> 
+        
         <activity
             android:name="com.chessyoup.StartActivity"
             android:label="@string/app_name"
-            android:screenOrientation="portrait" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+            android:screenOrientation="portrait" >            
         </activity>        
         <activity
             android:name="com.chessyoup.XMPPChessBoardActivity"
-            android:label="@string/app_name"
-            android:parentActivityName="com.chessyoup.RoasterActivity"
+            android:label="@string/app_name"           
             android:screenOrientation="landscape" >
         </activity>
+        
 		<activity
             android:name="com.chessyoup.RoasterActivity"
-            android:label="@string/app_name"
-            android:parentActivityName="com.chessyoup.StartActivity"
+            android:label="@string/app_name"         
             android:screenOrientation="portrait" >
-        </activity>
-        <receiver
-            android:name="com.chessyoup.connector.gcm.GCMEventsReceiver"
-            android:permission="com.google.android.c2dm.permission.SEND" >
-            <intent-filter>
-                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
-                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
-
-                <category android:name="com.chessyoup" />
-            </intent-filter>
-        </receiver>
-
+        </activity>        
+        
         <service android:name="com.chessyoup.connector.gcm.GCMIntentService" />
          <activity android:name="com.facebook.LoginActivity"
                   android:theme="@android:style/Theme.Translucent.NoTitleBar"
                   android:label="@string/app_name" />
         <activity android:name=".LoginUsingLoginFragmentActivity"/>
-        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/applicationId" />
+        <meta-data android:name="com.facebook.sdk.ApplicationId" android:value="@string/app_id" />
+        
     </application>
 
 </manifest>
