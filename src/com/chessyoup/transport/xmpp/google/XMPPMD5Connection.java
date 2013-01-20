@@ -1,5 +1,9 @@
 package com.chessyoup.transport.xmpp.google;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -8,6 +12,7 @@ import org.jivesoftware.smack.ConnectionConfiguration.SecurityMode;
 import org.jivesoftware.smack.PacketListener;
 import org.jivesoftware.smack.Roster;
 import org.jivesoftware.smack.Roster.SubscriptionMode;
+import org.jivesoftware.smack.SASLAuthentication;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.PacketTypeFilter;
@@ -27,6 +32,8 @@ import org.jivesoftware.smackx.pubsub.provider.ItemProvider;
 import org.jivesoftware.smackx.pubsub.provider.ItemsProvider;
 import org.jivesoftware.smackx.pubsub.provider.PubSubProvider;
 
+import android.content.Context;
+import android.content.res.AssetManager;
 import android.util.Log;
 
 import com.chessyoup.transport.Connection;
@@ -72,20 +79,49 @@ public class XMPPMD5Connection implements Connection,
 
 	private ConnectionConfiguration configuration;
 
-	private XMPPMD5Connection() {
+	public XMPPMD5Connection(Context context) {
 		this.listeners = new ArrayList<ConnectionListener>();
 		configuration = new ConnectionConfiguration(GTALK_HOST, GTALK_PORT,
 				GTALK_SERVICE, ProxyInfo.forNoProxy());
-		configuration.setSecurityMode(SecurityMode.required);
-		configuration.setSASLAuthenticationEnabled(true);
-		configuration.setDebuggerEnabled(true);
-		configuration.setReconnectionAllowed(true);
+		configuration.setSecurityMode(SecurityMode.enabled);				
+		configuration.setDebuggerEnabled(true);		
 		configuration.setRosterLoadedAtLogin(true);
 		configuration.setSendPresence(true);
+		configuration.setTruststoreType("BKS");
+		configuration.setTruststorePath(getCacertsPath(context));
 		Roster.setDefaultSubscriptionMode(SubscriptionMode.manual);
 		this.configurePM(ProviderManager.getInstance());
 	}
-
+	
+	private static String getCacertsPath(Context appContext){						
+		AssetManager manager = appContext.getAssets();				
+		
+		try {
+			InputStream fis =  manager.open("cacerts.bks");
+			File f = File.createTempFile("cacerts", "bks");
+			byte[] buffer = new byte[1024];
+			FileOutputStream fos = new FileOutputStream(f);
+			int read = 0;
+			
+			while( (read = fis.read(buffer)) != -1 ){
+				fos.write(buffer, 0, read);
+			}
+			
+			fis.close();
+			fos.close();
+			return f.getPath();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;		
+	}
+	
+	@Override
+	public boolean isConnected() {
+		return this.xmppConnection != null && this.xmppConnection.isConnected() && this.xmppConnection.isAuthenticated();
+	}
+	
 	@Override
 	public void login(String id, String credentials)
 			throws ConnectionException, LoginException {

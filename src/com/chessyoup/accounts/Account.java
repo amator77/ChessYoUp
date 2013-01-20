@@ -20,10 +20,12 @@ public interface Account {
 	
 	public void logout();
 	
+	public int getImageIconId();
+	
 	public interface LoginCallback{
 		
 		public void onLogginSuccess();
 		
-		public void onLogginError();
+		public void onLogginError(String errorMessage);
 	}
 }

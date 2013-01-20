@@ -1,7 +1,5 @@
 package com.chessyoup.transport;
 
-import com.chessyoup.transport.Presence.MODE;
-
 public interface Contact {
 
 	public enum PLATFORM {
@@ -28,8 +26,7 @@ public interface Contact {
 	 * @return
 	 */
 	public Presence getPresence();
-	
-	
+
 	/**
 	 * Get the contact client running platform.
 	 * 
@@ -43,7 +40,7 @@ public interface Contact {
 	 * @return
 	 */
 	public String getClientVersion();
-	
+
 	/**
 	 * The contact client type.
 	 * 

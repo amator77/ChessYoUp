@@ -1,4 +1,4 @@
-package com.chessyoup.ui;
+package com.chessyoup.ui.fragments;
 
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
@@ -6,7 +6,7 @@ import android.view.KeyEvent;
 
 import com.korovyansk.android.slideout.SlideoutHelper;
 
-public class MenuActivity extends FragmentActivity{
+public class FragmentMainMenu extends FragmentActivity{
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -14,7 +14,7 @@ public class MenuActivity extends FragmentActivity{
 	    mSlideoutHelper = new SlideoutHelper(this);
 	    mSlideoutHelper.activate();
 	    getSupportFragmentManager().beginTransaction().add(com.korovyansk.android.slideout.R.id.slideout_placeholder, new MenuFragment(), "menu").commit();
-	    mSlideoutHelper.open();
+	    mSlideoutHelper.open();	   
 	}
 
 	
@@ -33,5 +33,4 @@ public class MenuActivity extends FragmentActivity{
 	}
 	
 	private SlideoutHelper mSlideoutHelper;
-
-}
+}	

@@ -22,24 +22,48 @@
             android:contentDescription="menu"
             android:layout_marginRight="10dip"
             android:src="@drawable/menu" />
-
-        <Spinner
+	
+		
+        <ImageButton
+            android:id="@+id/contactsButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/menuButton"
+            android:background="@null"
+            android:contentDescription="Contacts"
+            android:src="@drawable/contacts" />
+        
+        <ImageButton
+            android:id="@+id/chalangesButton"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_alignParentBottom="true"
+            android:layout_toRightOf="@+id/contactsButton"
+            android:background="@null"
+            android:contentDescription="Contacts"
+            android:src="@drawable/challenges" />
+        
+         <Spinner
             android:id="@+id/accountStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_toRightOf="@id/menuButton"
-            android:layout_toLeftOf="@id/logoutButton"
-            />
+            android:layout_alignParentTop="true"
+            android:layout_toLeftOf="@+id/logoutButton"                      
+             />
         
         <ImageButton
             android:id="@+id/logoutButton"
             android:layout_width="44dp"
             android:layout_height="44dp"
+            android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
-            android:layout_alignParentTop="true"
             android:background="@null"
             android:contentDescription="Exit"
             android:src="@drawable/exit" />
+
+       
+        
     </RelativeLayout>
 
     <android.support.v4.view.ViewPager
@@ -47,6 +71,7 @@
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_alignParentLeft="true"
+        
         android:layout_below="@+id/relativeLayout1"
     />
 

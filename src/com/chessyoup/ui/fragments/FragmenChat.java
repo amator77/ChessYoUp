@@ -1,4 +1,4 @@
-package com.chessyoup.ui;
+package com.chessyoup.ui.fragments;
 
 import com.chessyoup.R;
 

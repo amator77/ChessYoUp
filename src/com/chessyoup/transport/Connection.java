@@ -18,4 +18,6 @@ public interface Connection {
 	public void addConnectionListener(ConnectionListener listener);
 	
 	public Roster getRoster();
+	
+	public boolean isConnected();
 }

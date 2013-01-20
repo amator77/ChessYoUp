@@ -1,17 +1,12 @@
 package com.chessyoup;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
-import org.jivesoftware.smack.Roster;
-import org.jivesoftware.smack.RosterEntry;
 import org.jivesoftware.smack.packet.Message;
 
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -19,9 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.AdapterView;
-import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ImageButton;
-import android.widget.ListView;
 import android.widget.Spinner;
 
 import com.chessyoup.transport.Presence.MODE;
@@ -30,10 +23,6 @@ import com.chessyoup.transport.xmpp.XMPPConnectionManager;
 import com.chessyoup.transport.xmpp.XMPPContact;
 import com.chessyoup.transport.xmpp.XMPPGameController;
 import com.chessyoup.transport.xmpp.XMPPListener;
-import com.chessyoup.view.adapters.AccountStatusAdapter;
-import com.chessyoup.view.adapters.AccountStatusModel;
-import com.chessyoup.view.adapters.RosterAdapter;
-import com.chessyoup.view.adapters.RosterModel;
 
 public class RoasterActivity extends Activity implements XMPPListener,
 		UIListener {
@@ -99,82 +88,82 @@ public class RoasterActivity extends Activity implements XMPPListener,
 	}
 
 	private void initUI() {
-		setContentView(R.layout.roaster);
-		this.setTitle(XMPPConnectionManager.getInstance().getLoggedUser());
-
-		ListView listView = (ListView) findViewById(R.id.roasterUsers);
-		List<XMPPContact> users = new ArrayList<XMPPContact>();
-		Roster roster = XMPPConnectionManager.getInstance().getRoster();
-
-		for (RosterEntry entry : roster.getEntries()) {
-			users.add(new XMPPContact(entry.getUser(), entry.getName()));
-		}
-
-		RosterModel rosterModel = new RosterModel();
-		rosterModel.setContactsList(users);
-		RosterAdapter rosterAdapter = new RosterAdapter(this, rosterModel);
-		listView.setAdapter(rosterAdapter);
-
-		Spinner spinner = (Spinner) findViewById(R.id.accountStatus);
-		AccountStatusAdapter adapter = new AccountStatusAdapter(this,
-				new AccountStatusModel(XMPPConnectionManager.getInstance()
-						.getLoggedUser(), "online"));
-		spinner.setAdapter(adapter);
+//		setContentView(R.layout.roaster);
+//		this.setTitle(XMPPConnectionManager.getInstance().getLoggedUser());
+//
+//		ListView listView = (ListView) findViewById(R.id.roasterUsers);
+//		List<XMPPContact> users = new ArrayList<XMPPContact>();
+//		Roster roster = XMPPConnectionManager.getInstance().getRoster();
+//
+//		for (RosterEntry entry : roster.getEntries()) {
+//			users.add(new XMPPContact(entry.getUser(), entry.getName()));
+//		}
+//
+//		RosterModel rosterModel = new RosterModel();
+//		rosterModel.setContactsList(users);
+//		RosterAdapter rosterAdapter = new RosterAdapter(this, rosterModel);
+//		listView.setAdapter(rosterAdapter);
+//
+//		Spinner spinner = (Spinner) findViewById(R.id.accountStatus);
+//		AccountStatusAdapter adapter = new AccountStatusAdapter(this,
+//				new AccountStatusModel(XMPPConnectionManager.getInstance()
+//						.getLoggedUser(), "online"));
+//		spinner.setAdapter(adapter);
 	}
 
 	private void installListeners() {
-		final ListView listView = (ListView) findViewById(R.id.roasterUsers);
-
-		listView.setOnItemClickListener(new OnItemClickListener() {
-
-			@Override
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				final XMPPContact user = (XMPPContact) listView.getAdapter()
-						.getItem(position);
-
-				if (true) {
-
-					Intent startXMPPChessboard = new Intent(
-							RoasterActivity.this, XMPPChessBoardActivity.class);
-					startXMPPChessboard
-							.putExtra("ownerJID", XMPPConnectionManager
-									.getInstance().getLoggedUser());
-					startXMPPChessboard.putExtra("remoteJID", user.getId());
-					startXMPPChessboard.putExtra("color", "white");
-					startActivity(startXMPPChessboard);
-
-				} else {
-					AlertDialog.Builder db = new AlertDialog.Builder(
-							RoasterActivity.this);
-					db.setTitle("Not an ChessYoUp client!");
-					String actions[] = new String[2];
-					actions[0] = "Send invite?";
-					actions[1] = "Cancel";
-					db.setItems(actions, new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							switch (which) {
-							case 0:
-								runSendInviteask(user);
-								break;
-							case 1:
-								break;
-							default:
-
-								break;
-							}
-						}
-					});
-
-					AlertDialog ad = db.create();
-					ad.setCancelable(true);
-					ad.setCanceledOnTouchOutside(false);
-					ad.show();
-				}
-			}
-		});
+//		final ListView listView = (ListView) findViewById(R.id.roasterUsers);
+//
+//		listView.setOnItemClickListener(new OnItemClickListener() {
+//
+//			@Override
+//			public void onItemClick(AdapterView<?> parent, View view,
+//					int position, long id) {
+//				final XMPPContact user = (XMPPContact) listView.getAdapter()
+//						.getItem(position);
+//
+//				if (true) {
+//
+//					Intent startXMPPChessboard = new Intent(
+//							RoasterActivity.this, XMPPChessBoardActivity.class);
+//					startXMPPChessboard
+//							.putExtra("ownerJID", XMPPConnectionManager
+//									.getInstance().getLoggedUser());
+//					startXMPPChessboard.putExtra("remoteJID", user.getId());
+//					startXMPPChessboard.putExtra("color", "white");
+//					startActivity(startXMPPChessboard);
+//
+//				} else {
+//					AlertDialog.Builder db = new AlertDialog.Builder(
+//							RoasterActivity.this);
+//					db.setTitle("Not an ChessYoUp client!");
+//					String actions[] = new String[2];
+//					actions[0] = "Send invite?";
+//					actions[1] = "Cancel";
+//					db.setItems(actions, new DialogInterface.OnClickListener() {
+//
+//						@Override
+//						public void onClick(DialogInterface dialog, int which) {
+//							switch (which) {
+//							case 0:
+//								runSendInviteask(user);
+//								break;
+//							case 1:
+//								break;
+//							default:
+//
+//								break;
+//							}
+//						}
+//					});
+//
+//					AlertDialog ad = db.create();
+//					ad.setCancelable(true);
+//					ad.setCanceledOnTouchOutside(false);
+//					ad.show();
+//				}
+//			}
+//		});
 
 		final Spinner spinner = (Spinner) findViewById(R.id.accountStatus);
 		spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
