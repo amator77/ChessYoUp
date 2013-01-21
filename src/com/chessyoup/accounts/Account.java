@@ -1,5 +1,7 @@
 package com.chessyoup.accounts;
 
+import com.chessyoup.game.IGameController;
+import com.chessyoup.transport.Connection;
 import com.chessyoup.transport.Roster;
 
 public interface Account {
@@ -21,6 +23,10 @@ public interface Account {
 	public void logout();
 	
 	public int getImageIconId();
+	
+	public IGameController getGameController();
+	
+	public Connection getConnection();
 	
 	public interface LoginCallback{
 		

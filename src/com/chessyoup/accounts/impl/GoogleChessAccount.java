@@ -5,12 +5,14 @@ import android.os.AsyncTask;
 
 import com.chessyoup.R;
 import com.chessyoup.accounts.Account;
+import com.chessyoup.game.IGameController;
+import com.chessyoup.transport.Connection;
 import com.chessyoup.transport.Roster;
 import com.chessyoup.transport.exceptions.ConnectionException;
 import com.chessyoup.transport.exceptions.LoginException;
 import com.chessyoup.transport.xmpp.google.XMPPMD5Connection;
 
-public class GoogleAccount implements Account {
+public class GoogleChessAccount implements Account {
 	
 	private String id;
 	
@@ -22,7 +24,7 @@ public class GoogleAccount implements Account {
 	
 	private LoginCallback loginCallback;
 	
-	public GoogleAccount(String id,String credentials,Context appContext){
+	public GoogleChessAccount(String id,String credentials,Context appContext){
 		this.id = id;
 		this.credentials = credentials;
 		this.connection = new XMPPMD5Connection(appContext);
@@ -33,7 +35,12 @@ public class GoogleAccount implements Account {
 	public String getId() {
 		return this.id;
 	}
-
+	
+	@Override
+	public Connection getConnection() {		
+		return this.connection;
+	}
+	
 	@Override
 	public Roster getRoster() {
 		if( this.connection.isConnected() ){
@@ -116,6 +123,10 @@ public class GoogleAccount implements Account {
 				+ ", connection=" + connection + ", status=" + status
 				+ ", loginCallback=" + loginCallback + "]";
 	}
-	
-	
+
+	@Override
+	public IGameController getGameController() {
+		// TODO Auto-generated method stub
+		return null;
+	}	
 }
