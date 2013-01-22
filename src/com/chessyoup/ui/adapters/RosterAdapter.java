@@ -14,8 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.chessyoup.R;
-import com.chessyoup.accounts.Account;
-import com.chessyoup.transport.Contact;
+import com.gamelib.accounts.Account;
+import com.gamelib.transport.Contact;
 
 public class RosterAdapter extends BaseExpandableListAdapter {
 
@@ -143,7 +143,7 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		} else {
 			Account account = (Account) getGroup(groupPosition);
 			holder.groupName.setText(account.getId());
-			holder.groupImage.setImageResource(account.getImageIconId());
+			holder.groupImage.setImageResource( Integer.parseInt(account.getIconTypeResource()));
 		}
 
 		return convertView;

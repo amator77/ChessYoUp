@@ -1,9 +1,8 @@
 package com.chessyoup.ui;
 
-import java.util.List;
-
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
@@ -12,54 +11,70 @@ import android.util.Log;
 import android.view.View;
 
 import com.chessyoup.R;
-import com.chessyoup.accounts.Account;
-import com.chessyoup.accounts.AccountManager;
 import com.chessyoup.ui.adapters.MainViewPagerAdapter;
 import com.chessyoup.ui.adapters.RosterAdapter;
 import com.chessyoup.ui.fragments.FragmenChat;
 import com.chessyoup.ui.fragments.FragmentMainMenu;
 import com.chessyoup.ui.fragments.FragmentRoster;
+import com.gamelib.accounts.Account;
+import com.gamelib.accounts.impl.GoogleChessAccount;
+import com.gamelib.application.Application;
 import com.korovyansk.android.slideout.SlideoutActivity;
 
 public class MainActivity extends FragmentActivity {
-	
+
 	private RosterAdapter rosterAdapter;
-	
+
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("MainActivity", "on create");
 		this.initUI();
 		this.installListeners();
-		
-		AccountManager.initialize(getApplicationContext());
-		final List<Account> accounts = AccountManager.getManager().listAccounts();
-		
-		if( accounts.size() > 0 ){
-			accounts.get(0).login(new Account.LoginCallback() {
-				
-				@Override
-				public void onLogginSuccess() {
-					rosterAdapter.addAccount(accounts.get(0));					
-				}
-				
-				@Override
-				public void onLogginError(String errorMessage) {
-					// TODO Auto-generated method stub
-					
-				}
-			});
+		try {
+			Application.configure("com.chessyoup.context.AndroidContext",
+					this.getApplicationContext());
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
+
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				GoogleChessAccount account = new GoogleChessAccount(
+						"florea.leonard@gmail.com", "mirela76");
+				account.login(new Account.LoginCallback() {
+
+					@Override
+					public void onLogginSuccess() {
+						// TODO Auto-generated method stub
+
+					}
+
+					@Override
+					public void onLogginError(String errorMessage) {
+						// TODO Auto-generated method stub
+
+					}
+				});
+				return null;
+			}
+		};
+
+		task.execute();
+
 	}
-	
+
 	private void initUI() {
 		this.setContentView(R.layout.main);
 		this.rosterAdapter = new RosterAdapter(getApplicationContext());
-		ViewPager viewPager = (ViewPager) this
-				.findViewById(R.id.mainViewPager);
+		ViewPager viewPager = (ViewPager) this.findViewById(R.id.mainViewPager);
 		viewPager.setAdapter(new MainViewPagerAdapter(
-				getSupportFragmentManager(),new FragmentRoster(this.rosterAdapter),new FragmenChat()));
+				getSupportFragmentManager(), new FragmentRoster(
+						this.rosterAdapter), new FragmenChat()));
 	}
-	
+
 	private void installListeners() {
 
 		findViewById(R.id.menuButton).setOnClickListener(
