@@ -7,7 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
