@@ -16,16 +16,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package org.petero.droidfish;
+package com.chessyoup.game.view;
 
 import java.util.ArrayList;
-
-import org.petero.droidfish.gamelogic.Move;
-import org.petero.droidfish.gamelogic.MoveGen;
-import org.petero.droidfish.gamelogic.Pair;
-import org.petero.droidfish.gamelogic.Piece;
-import org.petero.droidfish.gamelogic.Position;
-import org.petero.droidfish.gamelogic.TextIO;
 
 import android.content.Context;
 import android.content.res.Configuration;
@@ -33,6 +26,13 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
+import com.chess.PGNOptions;
+import com.chess.gamelogic.Move;
+import com.chess.gamelogic.MoveGen;
+import com.chess.gamelogic.Pair;
+import com.chess.gamelogic.Piece;
+import com.chess.gamelogic.Position;
+import com.chess.gamelogic.TextIO;
 import com.chessyoup.R;
 
 /** Chess board widget suitable for play mode. */

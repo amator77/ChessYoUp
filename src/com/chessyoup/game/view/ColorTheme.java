@@ -16,7 +16,7 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.petero.droidfish;
+package com.chessyoup.game.view;
 
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;

@@ -36,7 +36,7 @@
             android:label="@string/app_name"
             android:screenOrientation="landscape" >
         </activity>
-        <activity android:name=".LoginUsingLoginFragmentActivity" />
+        <activity android:name="com.chessyoup.LoginUsingLoginFragmentActivity" />
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"

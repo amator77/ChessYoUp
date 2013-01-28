@@ -1,4 +1,4 @@
-package org.petero.droidfish;
+package com.chessyoup.game;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -6,9 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-
-import org.petero.droidfish.gamelogic.Piece;
-import org.petero.droidfish.gamelogic.Position;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -21,6 +18,10 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
+
+import com.chess.gamelogic.Piece;
+import com.chess.gamelogic.Position;
+import com.chessyoup.game.view.ColorTheme;
 
 public final class Util {
     public final static String boldStart;

@@ -7,19 +7,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
-import org.petero.droidfish.ChessBoardPlay;
-import org.petero.droidfish.ChessController;
-import org.petero.droidfish.ColorTheme;
-import org.petero.droidfish.GUIInterface;
-import org.petero.droidfish.GameMode;
-import org.petero.droidfish.PGNOptions;
-import org.petero.droidfish.Util.MaterialDiff;
-import org.petero.droidfish.gamelogic.Game.GameState;
-import org.petero.droidfish.gamelogic.GameTree.Node;
-import org.petero.droidfish.gamelogic.Move;
-import org.petero.droidfish.gamelogic.PgnToken;
-import org.petero.droidfish.gamelogic.Position;
-import org.petero.droidfish.gamelogic.TextIO;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -65,6 +52,18 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
+import com.chess.ChessController;
+import com.chess.GUIInterface;
+import com.chess.GameMode;
+import com.chess.PGNOptions;
+import com.chess.gamelogic.Game.GameState;
+import com.chess.gamelogic.GameTree.Node;
+import com.chess.gamelogic.Move;
+import com.chess.gamelogic.PgnToken;
+import com.chess.gamelogic.Position;
+import com.chess.gamelogic.TextIO;
+import com.chessyoup.game.view.ChessBoardPlay;
+import com.chessyoup.game.view.ColorTheme;
 import com.gamelib.transport.xmpp.XMPPGameController;
 import com.gamelib.transport.xmpp.XMPPGameListener;
 
@@ -320,17 +319,6 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 	}
 
 	@Override
-	public void updateMaterialDifferenceTitle(MaterialDiff diff) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public Context getContext() {
-		return this.getApplicationContext();
-	}
-
-	@Override
 	public String whitePlayerName() {
 		// TODO Auto-generated method stub
 		return "white player";
@@ -477,16 +465,16 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
-		if (keyCode == KeyEvent.KEYCODE_BACK ) {
-			
-			if( this.chessCtrl.getGame().getGameState() == GameState.ALIVE ){
+		if (keyCode == KeyEvent.KEYCODE_BACK) {
+
+			if (this.chessCtrl.getGame().getGameState() == GameState.ALIVE) {
 				AlertDialog.Builder db = new AlertDialog.Builder(this);
 				db.setTitle("Warning");
 				String actions[] = new String[2];
 				actions[0] = "Resign!";
 				actions[1] = "Cancel";
 				db.setItems(actions, new DialogInterface.OnClickListener() {
-		
+
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						switch (which) {
@@ -497,20 +485,19 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 						case 1:
 							break;
 						default:
-		
+
 							break;
 						}
 					}
 				});
-		
+
 				AlertDialog ad = db.create();
 				ad.setCancelable(true);
 				ad.setCanceledOnTouchOutside(false);
 				ad.show();
 
 				return true;
-			}
-			else{
+			} else {
 				finish();
 				return false;
 			}
@@ -519,22 +506,23 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 			return false;
 		}
 	}
-	
+
 	private void runResignTask() {
 		this.chessCtrl.resignGame();
-		
+
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				XMPPGameController.getController().sendGameResignCommand(remoteJID);
+				XMPPGameController.getController().sendGameResignCommand(
+						remoteJID);
 				return null;
 			}
 		};
 
-		task.execute();		
+		task.execute();
 	}
-	
+
 	private void runSendMessageTask(final String message) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
@@ -911,7 +899,7 @@ public class XMPPChessBoardActivity extends Activity implements GUIInterface,
 	@Override
 	public void resignReceived(String jabberID) {
 		this.chessCtrl.makeRemoteMove("resign");
-		Toast.makeText(getApplicationContext(), jabberID+" resigned!",
+		Toast.makeText(getApplicationContext(), jabberID + " resigned!",
 				Toast.LENGTH_LONG).show();
 	}
 

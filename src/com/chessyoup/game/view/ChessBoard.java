@@ -16,18 +16,11 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-package org.petero.droidfish;
+package com.chessyoup.game.view;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import org.petero.droidfish.gamelogic.Move;
-import org.petero.droidfish.gamelogic.Piece;
-import org.petero.droidfish.gamelogic.Position;
-import org.petero.droidfish.gamelogic.UndoInfo;
-
-import com.chessyoup.R;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -42,9 +35,14 @@ import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.os.Handler;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
+
+import com.chess.gamelogic.Move;
+import com.chess.gamelogic.Piece;
+import com.chess.gamelogic.Position;
+import com.chess.gamelogic.UndoInfo;
+import com.chessyoup.R;
 
 public abstract class ChessBoard extends View {
     public Position pos;
