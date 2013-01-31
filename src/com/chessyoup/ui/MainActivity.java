@@ -16,9 +16,9 @@ import com.chessyoup.ui.adapters.RosterAdapter;
 import com.chessyoup.ui.fragments.FragmenChat;
 import com.chessyoup.ui.fragments.FragmentMainMenu;
 import com.chessyoup.ui.fragments.FragmentRoster;
-import com.gamelib.accounts.Account;
-import com.gamelib.accounts.impl.GoogleChessAccount;
-import com.gamelib.application.Application;
+import com.cyp.accounts.Account;
+import com.cyp.application.Application;
+import com.cyp.chess.account.BasicGTalkAccount;
 import com.korovyansk.android.slideout.SlideoutActivity;
 
 public class MainActivity extends FragmentActivity {
@@ -42,7 +42,7 @@ public class MainActivity extends FragmentActivity {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				GoogleChessAccount account = new GoogleChessAccount(
+				BasicGTalkAccount account = new BasicGTalkAccount(
 						"florea.leonard@gmail.com", "mirela76");
 				account.login(new Account.LoginCallback() {
 

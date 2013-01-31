@@ -38,11 +38,11 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
-import com.chess.gamelogic.Move;
-import com.chess.gamelogic.Piece;
-import com.chess.gamelogic.Position;
-import com.chess.gamelogic.UndoInfo;
 import com.chessyoup.R;
+import com.cyp.chess.model.Move;
+import com.cyp.chess.model.Piece;
+import com.cyp.chess.model.Position;
+import com.cyp.chess.model.UndoInfo;
 
 public abstract class ChessBoard extends View {
     public Position pos;

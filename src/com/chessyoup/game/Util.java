@@ -19,9 +19,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.chess.gamelogic.Piece;
-import com.chess.gamelogic.Position;
 import com.chessyoup.game.view.ColorTheme;
+import com.cyp.chess.model.Piece;
+import com.cyp.chess.model.Position;
 
 public final class Util {
     public final static String boldStart;

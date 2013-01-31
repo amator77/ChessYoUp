@@ -26,14 +26,14 @@ import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.widget.Toast;
 
-import com.chess.PGNOptions;
-import com.chess.gamelogic.Move;
-import com.chess.gamelogic.MoveGen;
-import com.chess.gamelogic.Pair;
-import com.chess.gamelogic.Piece;
-import com.chess.gamelogic.Position;
-import com.chess.gamelogic.TextIO;
 import com.chessyoup.R;
+import com.cyp.chess.model.Move;
+import com.cyp.chess.model.MoveGen;
+import com.cyp.chess.model.Pair;
+import com.cyp.chess.model.Piece;
+import com.cyp.chess.model.Position;
+import com.cyp.chess.model.TextIO;
+import com.cyp.chess.model.pgn.PGNOptions;
 
 /** Chess board widget suitable for play mode. */
 public class ChessBoardPlay extends ChessBoard {

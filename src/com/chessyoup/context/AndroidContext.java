@@ -5,9 +5,10 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.gamelib.accounts.Account;
-import com.gamelib.application.Context;
-import com.gamelib.application.Logger;
+import com.cyp.accounts.Account;
+import com.cyp.application.Context;
+import com.cyp.application.Context.PLATFORM;
+import com.cyp.application.Logger;
 
 public class AndroidContext implements Context {
 	

@@ -14,8 +14,8 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.chessyoup.R;
-import com.gamelib.accounts.Account;
-import com.gamelib.transport.Contact;
+import com.cyp.accounts.Account;
+import com.cyp.transport.Contact;
 
 public class RosterAdapter extends BaseExpandableListAdapter {
 

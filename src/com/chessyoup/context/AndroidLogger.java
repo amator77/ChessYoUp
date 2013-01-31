@@ -2,7 +2,7 @@ package com.chessyoup.context;
 
 import android.util.Log;
 
-import com.gamelib.application.Logger;
+import com.cyp.application.Logger;
 
 public class AndroidLogger implements Logger {
 
