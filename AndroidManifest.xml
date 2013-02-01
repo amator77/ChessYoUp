@@ -32,11 +32,10 @@
             android:label="@string/app_name" >
         </activity>
         <activity
-            android:name="com.chessyoup.XMPPChessBoardActivity"
+            android:name="com.chessyoup.ui.ChessGameActivity"
             android:label="@string/app_name"
             android:screenOrientation="landscape" >
-        </activity>
-        <activity android:name="com.chessyoup.LoginUsingLoginFragmentActivity" />
+        </activity>        
 
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"

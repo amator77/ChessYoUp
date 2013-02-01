@@ -1,4 +1,4 @@
-package com.chessyoup;
+package com.chessyoup.ui;
 
 import java.io.IOException;
 import java.text.DateFormat;
@@ -43,6 +43,7 @@ import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ScrollView;
 import android.widget.TabHost;
 import android.widget.TabHost.TabContentFactory;
@@ -51,10 +52,12 @@ import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
 
+import com.chessyoup.R;
 import com.chessyoup.game.GameManager;
 import com.chessyoup.game.view.ChessBoardPlay;
 import com.chessyoup.game.view.ColorTheme;
 import com.cyp.chess.chessboard.ChessboardController;
+import com.cyp.chess.chessboard.ChessboardMode;
 import com.cyp.chess.chessboard.ChessboardStatus;
 import com.cyp.chess.chessboard.ChessboardUIInterface;
 import com.cyp.chess.game.ChessGame;
@@ -70,14 +73,14 @@ import com.cyp.chess.model.pgn.PgnTokenReceiver;
 import com.cyp.game.IGameCommand;
 import com.cyp.transport.xmpp.XMPPGameController;
 
-public class XMPPChessBoardActivity extends Activity implements
+public class ChessGameActivity extends Activity implements
 		ChessboardUIInterface, ChessGameListener {
 
 	private boolean boardGestures = true;
 
 	private ChessBoardPlay cb;
 
-	private ChessboardController chessCtrl;
+	private ChessboardController ctrl;
 
 	private PgnScreenText gameTextListener;
 
@@ -89,13 +92,25 @@ public class XMPPChessBoardActivity extends Activity implements
 
 	private Button chatSendMessageButton;
 
+	private ImageButton abortButton;
+
+	private ImageButton resignButton;
+
+	private ImageButton drawButton;
+
+	private ImageButton exitButton;
+
+	private ImageButton rematchButton;
+
 	private EditText chatEditText;
 
 	private DateFormat dateFormat;
 
-	private ChessGame chessGame;
+	private ChessGame game;
 
 	private boolean drawRequested;
+
+	private boolean abortRequested;
 
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("ChessboardActivity", "on create");
@@ -107,15 +122,20 @@ public class XMPPChessBoardActivity extends Activity implements
 				PreferenceManager.getDefaultSharedPreferences(this));
 		PGNOptions pgnOptions = new PGNOptions();
 		this.gameTextListener = new PgnScreenText(pgnOptions);
-		this.chessCtrl = new ChessboardController(this, this.gameTextListener,
+		this.ctrl = new ChessboardController(this, this.gameTextListener,
 				pgnOptions);
-		chessGame = GameManager.getManager().findGame(
-				getIntent().getExtras().getString("gameId"));
-		this.initUI();
-		this.installListeners();
+		game = GameManager.getManager().findGame(
+				getIntent().getExtras().getString("remoteId"),
+				getIntent().getExtras().getLong("gameId"));
 
-		Toast.makeText(getApplicationContext(), "Send game request! ",
-				Toast.LENGTH_LONG).show();
+		if (game != null) {
+			this.initUI();
+			this.installListeners();
+			this.runSendReadyTask();
+		} else {
+			Log.d("ChessboardActivity", "No game found!");
+			finish();
+		}
 	}
 
 	private void initUI() {
@@ -123,6 +143,16 @@ public class XMPPChessBoardActivity extends Activity implements
 				null);
 		final View gameView = LayoutInflater.from(this).inflate(
 				R.layout.chessboard_game, null);
+		this.abortButton = (ImageButton) gameView
+				.findViewById(R.id.abortGameButton);
+		this.resignButton = (ImageButton) gameView
+				.findViewById(R.id.resignGameButton);
+		this.drawButton = (ImageButton) gameView
+				.findViewById(R.id.drawGameButton);
+		this.exitButton = (ImageButton) gameView
+				.findViewById(R.id.exitGameButton);
+		this.rematchButton = (ImageButton) gameView
+				.findViewById(R.id.rematchGameButton);
 		this.moveListView = (TextView) gameView.findViewById(R.id.moveList);
 		this.moveListScroll = (ScrollView) gameView
 				.findViewById(R.id.moveListScroll);
@@ -135,7 +165,7 @@ public class XMPPChessBoardActivity extends Activity implements
 		cb.setFocusable(true);
 		cb.requestFocus();
 		cb.setClickable(true);
-		cb.setPgnOptions(this.chessCtrl.getPgnOptions());
+		cb.setPgnOptions(this.ctrl.getPgnOptions());
 
 		TabHost th = (TabHost) findViewById(android.R.id.tabhost);
 		th.setup();
@@ -341,6 +371,7 @@ public class XMPPChessBoardActivity extends Activity implements
 	}
 
 	private void installListeners() {
+		this.game.addGameListener(this);
 
 		final GestureDetector gd = new GestureDetector(this,
 				new GestureDetector.SimpleOnGestureListener() {
@@ -388,8 +419,8 @@ public class XMPPChessBoardActivity extends Activity implements
 							int sq = cb.eventToSquare(e);
 							Move m = cb.mousePressed(sq);
 							if (m != null) {
-								if (chessCtrl.localTurn()) {
-									chessCtrl.makeLocalMove(m);
+								if (ctrl.localTurn()) {
+									ctrl.makeLocalMove(m);
 									sendMoveToRemote(TextIO.moveToUCIString(m));
 								}
 							}
@@ -436,13 +467,148 @@ public class XMPPChessBoardActivity extends Activity implements
 			}
 		});
 
+		this.abortButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+					if (abortRequested) {
+						ctrl.abortGame();
+						moveListView.append(" aborted");
+						abortRequested = false;
+						try {
+							game.acceptAbortRequest();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					} else {
+						try {
+							game.sendAbortRequest();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		});
+
+		this.resignButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+					ctrl.resignGame();
+
+					try {
+						game.resign();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
+		this.drawButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+					if (drawRequested) {
+						ctrl.drawGame();
+						drawRequested = false;
+						try {
+							game.acceptDrawRequest();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					} else {
+						try {
+							ctrl.offerDraw();
+							game.sendDrawRequest();
+						} catch (IOException e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			}
+		});
+
+		this.rematchButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (ctrl.getGame().getGameState() != GameState.ALIVE) {
+					try {
+						game.sendRematchRequest();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
+
+		this.exitButton.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+
+					AlertDialog.Builder db = new AlertDialog.Builder(
+							ChessGameActivity.this);
+					db.setTitle("Resign?");
+					String actions[] = new String[2];
+					actions[0] = "Ok";
+					actions[1] = "Cancel";
+					db.setItems(actions, new DialogInterface.OnClickListener() {
+
+						@Override
+						public void onClick(DialogInterface dialog, int which) {
+							switch (which) {
+							case 0:
+								try {
+									game.resign();
+									game.sendGameClosed();
+								} catch (IOException e) {
+									e.printStackTrace();
+								}
+
+								ctrl.resignGame();
+								game.getAccount().getGameController()
+										.closeGame(game);
+								finish();
+								break;
+							case 1:
+								break;
+							default:
+
+								break;
+							}
+						}
+					});
+
+					AlertDialog ad = db.create();
+					ad.setCancelable(true);
+					ad.setCanceledOnTouchOutside(false);
+					ad.show();
+				} else {
+					try {
+						game.sendGameClosed();
+						ctrl.abortGame();
+						game.getAccount().getGameController().closeGame(game);
+						finish();
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}
+		});
 	}
 
 	@Override
 	public boolean onKeyDown(int keyCode, KeyEvent event) {
 		if (keyCode == KeyEvent.KEYCODE_BACK) {
 
-			if (this.chessCtrl.getGame().getGameState() == GameState.ALIVE) {
+			if (this.ctrl.getGame().getGameState() == GameState.ALIVE) {
 				AlertDialog.Builder db = new AlertDialog.Builder(this);
 				db.setTitle("Warning");
 				String actions[] = new String[2];
@@ -483,19 +649,19 @@ public class XMPPChessBoardActivity extends Activity implements
 	}
 
 	private void runResignTask() {
-		this.chessCtrl.resignGame();
+		this.ctrl.resignGame();
 
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				
+
 				try {
-					chessCtrl.resignGame();
-					chessGame.resign();
-				} catch (IOException e) {					
+					ctrl.resignGame();
+					game.resign();
+				} catch (IOException e) {
 					e.printStackTrace();
-				}				
+				}
 				return null;
 			}
 		};
@@ -507,15 +673,33 @@ public class XMPPChessBoardActivity extends Activity implements
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
-			protected Void doInBackground(Void... params) {				
+			protected Void doInBackground(Void... params) {
 				addMessage("", message);
-				
+
 				try {
-					chessGame.sendChat(message);
-				} catch (IOException e) {				
+					game.sendChat(message);
+				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+
+				return null;
+			}
+		};
+
+		task.execute();
+	}
+
+	private void runSendReadyTask() {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+				try {
+					game.sendReady();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
 				return null;
 			}
 		};
@@ -531,13 +715,13 @@ public class XMPPChessBoardActivity extends Activity implements
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				
+
 				try {
-					chessGame.sendMove(move);
-				} catch (IOException e) {				
+					game.sendMove(move);
+				} catch (IOException e) {
 					e.printStackTrace();
-				}				
-				
+				}
+
 				return null;
 			}
 		};
@@ -815,78 +999,148 @@ public class XMPPChessBoardActivity extends Activity implements
 	}
 
 	@Override
-	public void localMoveMade(Move arg0) {
-		// TODO Auto-generated method stub
+	public void localMoveMade(final Move move) {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
+			@Override
+			protected Void doInBackground(Void... params) {
+
+				try {
+					game.sendMove(move);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+
+				return null;
+			}
+		};
+
+		task.execute();
 	}
 
 	@Override
 	public void commandReceived(IGameCommand arg0) {
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
 	public void abortAcceptedReceived() {
-		// TODO Auto-generated method stub
-
+		ctrl.abortGame();
+		moveListView.append(" abort accepted");
 	}
 
 	@Override
 	public void abortRequestReceived() {
-		// TODO Auto-generated method stub
-
+		this.abortRequested = true;
+		moveListView.append(" abort requested!");
 	}
 
 	@Override
 	public void chatReceived(final String text) {
 		this.runOnUIThread(new Runnable() {
-			
+
 			@Override
 			public void run() {
-				addMessage(chessGame.getChallenge().getRemoteId(), text);				
+				addMessage(game.getChallenge().getRemoteId(), text);
 			}
-		});		
+		});
 	}
 
 	@Override
 	public void drawAcceptedReceived() {
-		chessCtrl.drawGame();
+		ctrl.drawGame();
 	}
 
 	@Override
 	public void drawRequestReceived() {
 		this.drawRequested = true;
-		chessCtrl.offerDraw();
+		ctrl.offerDraw();
 	}
 
 	@Override
 	public void gameClosedReceived() {
-		// TODO Auto-generated method stub
-
+		moveListView.append("Game closed!");
 	}
 
 	@Override
-	public void moveReceived(String arg0) {
-		// TODO Auto-generated method stub
+	public void moveReceived(final String move) {
+		runOnUIThread(new Runnable() {
 
+			@Override
+			public void run() {
+				ctrl.makeRemoteMove(move);
+			}
+		});
 	}
 
 	@Override
 	public void readyReceived() {
-		// TODO Auto-generated method stub
+		Log.d("ChessboardActivity", "readyReceived");
 
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				ctrl.newGame(new ChessboardMode(game.getChallenge()
+						.isReceived() ? ChessboardMode.TWO_PLAYERS_WHITE_REMOTE
+						: ChessboardMode.TWO_PLAYERS_BLACK_REMOTE));
+				cb.setFlipped(game.getChallenge().isReceived());
+				ctrl.startGame();
+			}
+		});
 	}
 
 	@Override
 	public void rematchRequestReceived() {
-		// TODO Auto-generated method stub
 
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				AlertDialog.Builder db = new AlertDialog.Builder(
+						ChessGameActivity.this);
+				db.setTitle("Remtach?");
+				String actions[] = new String[2];
+				actions[0] = "Ok";
+				actions[1] = "Cancel";
+				db.setItems(actions, new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						switch (which) {
+						case 0:
+							try {
+								readyReceived();
+								game.sendReady();
+							} catch (IOException e) {
+								e.printStackTrace();
+							}
+							break;
+						case 1:
+							break;
+						default:
+
+							break;
+						}
+					}
+				});
+
+				AlertDialog ad = db.create();
+				ad.setCancelable(true);
+				ad.setCanceledOnTouchOutside(false);
+				ad.show();
+
+			}
+		});
 	}
 
 	@Override
 	public void resignReceived() {
-		// TODO Auto-generated method stub
+		runOnUIThread(new Runnable() {
 
+			@Override
+			public void run() {
+				ctrl.makeRemoteMove("resign");
+			}
+		});
 	}
 }

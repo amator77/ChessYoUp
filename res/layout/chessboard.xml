@@ -10,7 +10,7 @@
         android:id="@+id/chessboard"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
-        class="org.petero.droidfish.ChessBoardPlay" />
+        class="com.chessyoup.game.view.ChessBoardPlay" />
 
     <LinearLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
