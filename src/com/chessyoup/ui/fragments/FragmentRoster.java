@@ -17,6 +17,8 @@ public class FragmentRoster extends Fragment {
 	
 	private RosterAdapter rosterAdapter;
 	
+	private ExpandableListView rosterView;
+	
 	public FragmentRoster(RosterAdapter adapter){
 		this.rosterAdapter = adapter;
 	}
@@ -26,10 +28,10 @@ public class FragmentRoster extends Fragment {
 			Bundle savedInstanceState) {
 
 		View view = inflater.inflate(R.layout.roaster, container, false);
-		ExpandableListView rosterView = (ExpandableListView) view
+		rosterView = (ExpandableListView) view
 				.findViewById(R.id.roasterGroupView);
 		rosterView.setAdapter(this.rosterAdapter);
-
+		
 		metrics = new DisplayMetrics();
 		getActivity().getWindowManager().getDefaultDisplay().getMetrics(metrics);
 		int width = metrics.widthPixels;
@@ -38,7 +40,11 @@ public class FragmentRoster extends Fragment {
 	
 		return view;
 	}
-
+	
+	public ExpandableListView getRosterView(){
+		return rosterView;
+	}
+	
 	private int GetDipsFromPixel(float pixels) {
 		final float scale = getResources().getDisplayMetrics().density;		
 		return (int) (pixels * scale + 0.5f);

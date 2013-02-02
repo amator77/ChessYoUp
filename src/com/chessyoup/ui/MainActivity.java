@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.View;
 
 import com.chessyoup.R;
+import com.chessyoup.account.ABasicGTalkAccount;
 import com.chessyoup.game.GameManager;
 import com.chessyoup.ui.adapters.ChallengesAdapter;
 import com.chessyoup.ui.adapters.MainViewPagerAdapter;
@@ -24,13 +25,14 @@ import com.chessyoup.ui.fragments.FragmentMainMenu;
 import com.chessyoup.ui.fragments.FragmentRoster;
 import com.cyp.accounts.Account;
 import com.cyp.application.Application;
-import com.cyp.chess.account.BasicGTalkAccount;
 import com.cyp.game.IChallenge;
 import com.cyp.game.IGameControllerListener;
+import com.cyp.transport.Presence;
+import com.cyp.transport.RosterListener;
 import com.korovyansk.android.slideout.SlideoutActivity;
 
 public class MainActivity extends FragmentActivity implements
-		IGameControllerListener {
+		IGameControllerListener, RosterListener {
 
 	private RosterAdapter rosterAdapter;
 
@@ -38,7 +40,9 @@ public class MainActivity extends FragmentActivity implements
 
 	private FragmentChallenges fragmentChallenges;
 
-	private BasicGTalkAccount account;
+	private FragmentRoster fragmentRoster;
+
+	private ABasicGTalkAccount account;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -84,6 +88,7 @@ public class MainActivity extends FragmentActivity implements
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d("MainActivity", "on destroy");
+		account.logout();
 	}
 
 	@Override
@@ -139,10 +144,11 @@ public class MainActivity extends FragmentActivity implements
 		this.rosterAdapter = new RosterAdapter(getApplicationContext());
 		this.chalangesAdapter = new ChallengesAdapter(getApplicationContext());
 		this.fragmentChallenges = new FragmentChallenges(this.chalangesAdapter);
+		this.fragmentRoster = new FragmentRoster(this.rosterAdapter);
 		ViewPager viewPager = (ViewPager) this.findViewById(R.id.mainViewPager);
 		viewPager.setAdapter(new MainViewPagerAdapter(
-				getSupportFragmentManager(), new FragmentRoster(
-						this.rosterAdapter), this.fragmentChallenges));
+				getSupportFragmentManager(), this.fragmentRoster,
+				this.fragmentChallenges));
 	}
 
 	private void installListeners() {
@@ -201,7 +207,8 @@ public class MainActivity extends FragmentActivity implements
 
 							switch (which) {
 							case 0:
-								account.getGameController().startGame(challenge);
+								account.getGameController()
+										.startGame(challenge);
 								Intent startChessActivityIntent = new Intent(
 										MainActivity.this,
 										ChessGameActivity.class);
@@ -239,7 +246,7 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				MainActivity.this.account = new BasicGTalkAccount(
+				MainActivity.this.account = new ABasicGTalkAccount(
 						"florea.leonard@gmail.com", "mirela76");
 				account.login(new Account.LoginCallback() {
 
@@ -249,6 +256,16 @@ public class MainActivity extends FragmentActivity implements
 								MainActivity.this);
 						GameManager.getManager().addGameController(
 								account.getGameController());
+
+						account.getRoster().addListener(MainActivity.this);
+
+						MainActivity.this.runOnUiThread(new Runnable() {
+
+							@Override
+							public void run() {
+								rosterAdapter.addAccount(account);
+							}
+						});
 					}
 
 					@Override
@@ -309,5 +326,22 @@ public class MainActivity extends FragmentActivity implements
 		} else {
 			return (int) (width * 0.75);
 		}
+	}
+
+	@Override
+	public void presenceChanged(Presence arg0) {
+		Log.d("MainActivity", arg0.getContactId());
+
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				rosterAdapter.notifyDataSetChanged();
+				
+				for (int i = 0; i < rosterAdapter.getGroupCount(); i++) {
+					fragmentRoster.getRosterView().expandGroup(i);
+				}
+			}
+		});
 	}
 }

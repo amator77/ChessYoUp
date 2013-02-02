@@ -16,6 +16,7 @@ import android.widget.TextView;
 import com.chessyoup.R;
 import com.cyp.accounts.Account;
 import com.cyp.transport.Contact;
+import com.cyp.transport.Presence;
 
 public class RosterAdapter extends BaseExpandableListAdapter {
 
@@ -50,15 +51,10 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		this.accounts = new ArrayList<Account>();
 		this.gameContacts = new ArrayList<Contact>();
 	}
-	
-	public void addAccount(Account account) {
-		this.accounts.add(account);
-		Log.d("addAccount",account.toString()+"");
-		this.notifyDataSetChanged();
-	}
-	
-	public void updateContact(Account account, Contact contact) {
 
+	public void addAccount(Account account) {
+		this.accounts.add(account);		
+		this.notifyDataSetChanged();
 	}
 
 	@Override
@@ -66,8 +62,8 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		if (groupPosition == 0) {
 			return this.gameContacts.get(childPosition);
 		} else {
-			return this.accounts.get(groupPosition-1).getRoster().getContacts()
-					.get(childPosition);
+			return this.accounts.get(groupPosition - 1).getRoster()
+					.getContacts().get(childPosition);
 		}
 	}
 
@@ -101,17 +97,16 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 
 		Contact contact = (Contact) getChild(groupPosition, childPosition);
 
-		holder.contactName.setText(contact.getName() != null ? contact
-				.getName() : contact.getId());
+		// holder.contactName.setText(contact.getName() != null ? contact
+		// .getName() : contact.getId());
 
-		holder.contactStatus.setText("online");
+		holder.contactName.setText(contact.getId());
 
-		Drawable statusIcon = context.getResources().getDrawable(
-				R.drawable.general_status_online);
-		Drawable hasEventIcon = null;
+		holder.contactStatus.setText(contact.getPresence() != null ? contact.getPresence().getStatus() : "unavailable");
 
-		holder.contactName.setCompoundDrawablesWithIntrinsicBounds(statusIcon,
-				null, hasEventIcon, null);
+		holder.contactName.setCompoundDrawablesWithIntrinsicBounds( contact.getPresence() != null  ? getStatusIcon(contact.getPresence()) : context.getResources().getDrawable(
+				R.drawable.general_status_offline) ,
+				null, null, null);
 
 		return convertView;
 	}
@@ -143,7 +138,8 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		} else {
 			Account account = (Account) getGroup(groupPosition);
 			holder.groupName.setText(account.getId());
-			holder.groupImage.setImageResource( Integer.parseInt(account.getIconTypeResource()));
+			holder.groupImage.setImageResource(Integer.parseInt(account
+					.getIconTypeResource()));
 		}
 
 		return convertView;
@@ -154,26 +150,23 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		if (groupPosition == 0) {
 			return this.gameContacts.size();
 		} else {
-			return this.accounts.get(groupPosition-1).getRoster().getContacts()
-					.size();
+			return this.accounts.get(groupPosition - 1).getRoster()
+					.getContacts().size();
 		}
 	}
 
 	@Override
 	public Object getGroup(int groupPosition) {
-		
-		
+
 		if (groupPosition == 0) {
 			return "Chessyoup";
 		} else {
-			Log.d("getGroup", groupPosition +" , accouns :"+this.accounts);
-			return this.accounts.get(groupPosition-1);
+			return this.accounts.get(groupPosition - 1);
 		}
 	}
 
 	@Override
 	public int getGroupCount() {
-		Log.d("getGroupCount", 1 + this.accounts.size() +"");
 		return 1 + this.accounts.size();
 	}
 
@@ -190,5 +183,29 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 	@Override
 	public boolean isChildSelectable(int groupPosition, int childPosition) {
 		return true;
+	}
+
+	private Drawable getStatusIcon(Presence presence) {
+		switch (presence.getMode()) {
+		case ONLINE:
+			return context.getResources().getDrawable(
+					R.drawable.general_status_online);
+
+		case AWAY:
+			return context.getResources().getDrawable(
+					R.drawable.general_status_away);
+
+		case BUSY:
+			return context.getResources().getDrawable(
+					R.drawable.general_status_busy);
+
+		case OFFLINE:
+			return context.getResources().getDrawable(
+					R.drawable.general_status_offline);
+
+		default:
+			return context.getResources().getDrawable(
+					R.drawable.general_status_offline);
+		}
 	}
 }
