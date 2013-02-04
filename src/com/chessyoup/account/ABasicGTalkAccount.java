@@ -6,7 +6,7 @@ import com.cyp.chess.account.GTalkAccount;
 public class ABasicGTalkAccount extends GTalkAccount {
 
 	public ABasicGTalkAccount(String id, String credentials) {
-		super(id, credentials);
+		super(id, credentials,true);
 	}
 	
 	public String getIconTypeResource(){

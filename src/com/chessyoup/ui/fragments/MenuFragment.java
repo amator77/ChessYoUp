@@ -1,6 +1,8 @@
 package com.chessyoup.ui.fragments;
 
 
+import com.chessyoup.ui.UIActionRegister;
+
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.View;
@@ -19,6 +21,7 @@ public class MenuFragment extends ListFragment {
 
 	@Override
 	public void onListItemClick(ListView l, View v, int position, long id) {
+		UIActionRegister.action = l.getAdapter().getItem(position).toString();		
 		super.onListItemClick(l, v, position, id);
 		((FragmentMainMenu)getActivity()).getSlideoutHelper().close();
 	}

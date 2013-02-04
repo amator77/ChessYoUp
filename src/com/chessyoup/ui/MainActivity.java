@@ -2,6 +2,8 @@ package com.chessyoup.ui;
 
 import java.io.IOException;
 
+import org.jivesoftware.smackx.packet.VCard;
+
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -13,7 +15,10 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.webkit.WebView;
+import android.widget.PopupWindow;
 
 import com.chessyoup.R;
 import com.chessyoup.account.ABasicGTalkAccount;
@@ -29,6 +34,7 @@ import com.cyp.accounts.Account;
 import com.cyp.application.Application;
 import com.cyp.game.IChallenge;
 import com.cyp.game.IGameControllerListener;
+import com.cyp.transport.Contact;
 import com.cyp.transport.Presence;
 import com.cyp.transport.RosterListener;
 import com.google.api.client.auth.oauth2.draft10.AccessTokenResponse;
@@ -65,7 +71,7 @@ public class MainActivity extends FragmentActivity implements
 			e.printStackTrace();
 		}
 		
-		this.runLogintask();
+//		this.runLogintask();
 	}
 
 	@Override
@@ -86,6 +92,14 @@ public class MainActivity extends FragmentActivity implements
 		Log.d("MainActivity", "on resume");
 		if( this.account == null ){
 			this.runLogintask();
+		}
+		
+		if(UIActionRegister.action.contains("Accounts")){
+			WebView webview = new WebView(this);
+			PopupWindow popup = new PopupWindow(webview,300,400);
+			popup.showAtLocation(findViewById(R.id.contactsButton), Gravity.CENTER, 0, 0);
+			webview.loadUrl("http://chessbase.com");			
+			UIActionRegister.action = "";
 		}
 	}
 
@@ -360,7 +374,25 @@ public class MainActivity extends FragmentActivity implements
 
 		task.execute();
 	}
+	
+	private void runLoadAvatarsTask() {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
+			@Override
+			protected Void doInBackground(Void... params) {				
+				VCard vCard = new VCard();
+				
+				for(Contact contact : account.getRoster().getContacts() ){
+//					vCard.load(account.Connection(), "");
+				}				
+				
+				return null;
+			}
+		};
+
+		task.execute();
+	}
+	
 	private int getMenuWidth() {
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
