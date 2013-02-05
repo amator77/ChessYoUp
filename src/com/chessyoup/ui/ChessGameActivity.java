@@ -71,7 +71,6 @@ import com.cyp.chess.model.pgn.PGNOptions;
 import com.cyp.chess.model.pgn.PgnToken;
 import com.cyp.chess.model.pgn.PgnTokenReceiver;
 import com.cyp.game.IGameCommand;
-import com.cyp.transport.xmpp.XMPPGameController;
 
 public class ChessGameActivity extends Activity implements
 		ChessboardUIInterface, ChessGameListener {
@@ -230,8 +229,7 @@ public class ChessGameActivity extends Activity implements
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.d("ChessboardActivity", "on destroy");
-		XMPPGameController.getController().setGameListener(null);
+		Log.d("ChessboardActivity", "on destroy");		
 	}
 
 	@Override

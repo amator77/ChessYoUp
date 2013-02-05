@@ -106,7 +106,9 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		holder.contactName.setCompoundDrawablesWithIntrinsicBounds( contact.getPresence() != null  ? getStatusIcon(contact.getPresence()) : context.getResources().getDrawable(
 				R.drawable.general_status_offline) ,
 				null, null, null);
-
+				
+		holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds( contact.isCompatible() ? context.getResources().getDrawable(R.drawable.chessyoup)  :  null , null, null, null);
+				
 		return convertView;
 	}
 
