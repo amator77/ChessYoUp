@@ -16,6 +16,7 @@ import com.chessyoup.R;
 import com.cyp.accounts.Account;
 import com.cyp.transport.Contact;
 import com.cyp.transport.Presence;
+import com.cyp.transport.Presence.MODE;
 
 public class RosterAdapter extends BaseExpandableListAdapter {
 
@@ -107,7 +108,12 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 				R.drawable.general_status_offline) ,
 				null, null, null);
 				
-		holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds( contact.isCompatible() ? context.getResources().getDrawable(R.drawable.chessyoup)  :  null , null, null, null);
+		if( contact.getPresence().getMode() != MODE.OFFLINE ){
+			holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds( contact.isCompatible() ? context.getResources().getDrawable(R.drawable.chessyoup)  :  null , null, null, null);
+		}
+		else{
+			holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds(  null , null, null, null);
+		}
 				
 		return convertView;
 	}

@@ -61,4 +61,11 @@ public class AndroidContext implements Context {
 	public PLATFORM getPlatform() {
 		return PLATFORM.MOBILE_ANDROID;
 	}
+	
+	@Override
+	public List<String> getApplicationFutures() {
+		List<String> futures = new ArrayList<String>();
+		futures.add("http://jabber.org/protocol/games/chess/v1");		
+		return futures;
+	}
 }

@@ -422,4 +422,22 @@ public class MainActivity extends FragmentActivity implements
 			}
 		});
 	}
+
+	@Override
+	public void contactUpdated(Contact arg0) {
+		Log.d("MainActivity", "contactUpdated :"+arg0.toString());
+		
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				rosterAdapter.notifyDataSetChanged();								
+			}
+		});
+	}
+
+	@Override
+	public void contactDisconected(Contact arg0) {
+		Log.d("MainActivity", "contactDisconected :"+arg0.toString());		
+	}
 }
