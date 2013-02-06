@@ -7,7 +7,6 @@ import java.util.List;
 
 import com.cyp.accounts.Account;
 import com.cyp.application.Context;
-import com.cyp.application.Context.PLATFORM;
 import com.cyp.application.Logger;
 
 public class AndroidContext implements Context {
@@ -40,6 +39,10 @@ public class AndroidContext implements Context {
 		
 	public void registerAccount(Account account) {		
 		this.accounts.add(account);
+	}
+	
+	public void removeAccount(Account account) {		
+		this.accounts.remove(account);
 	}
 	
 	@Override

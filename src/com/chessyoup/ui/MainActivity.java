@@ -10,7 +10,6 @@ import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
 import android.util.DisplayMetrics;
@@ -21,9 +20,7 @@ import android.webkit.WebView;
 import android.widget.PopupWindow;
 
 import com.chessyoup.R;
-import com.chessyoup.account.ABasicGTalkAccount;
 import com.chessyoup.game.GameManager;
-import com.chessyoup.store.SharedPreferencesCredentialStore;
 import com.chessyoup.ui.adapters.ChallengesAdapter;
 import com.chessyoup.ui.adapters.MainViewPagerAdapter;
 import com.chessyoup.ui.adapters.RosterAdapter;
@@ -32,17 +29,12 @@ import com.chessyoup.ui.fragments.FragmentMainMenu;
 import com.chessyoup.ui.fragments.FragmentRoster;
 import com.cyp.accounts.Account;
 import com.cyp.application.Application;
+import com.cyp.chess.game.ChessGameController;
 import com.cyp.game.IChallenge;
 import com.cyp.game.IGameControllerListener;
 import com.cyp.transport.Contact;
 import com.cyp.transport.Presence;
 import com.cyp.transport.RosterListener;
-import com.google.api.client.auth.oauth2.draft10.AccessTokenResponse;
-import com.google.api.client.googleapis.auth.oauth2.draft10.GoogleAccessProtectedResource;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.JsonFactory;
-import com.google.api.client.json.jackson.JacksonFactory;
 import com.korovyansk.android.slideout.SlideoutActivity;
 
 public class MainActivity extends FragmentActivity implements
@@ -56,22 +48,19 @@ public class MainActivity extends FragmentActivity implements
 
 	private FragmentRoster fragmentRoster;
 
-	private ABasicGTalkAccount account;
+	private Account account;
 
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		Log.d("MainActivity", "on create");
 		this.initUI();
 		this.installListeners();
-
-		try {
-			Application.configure("com.chessyoup.context.AndroidContext",
-					this.getApplicationContext());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-//		this.runLogintask();
+		this.account = Application.getContext().listAccounts().get(0);
+		this.account.getGameController().addGameControllerListener(this);
+		GameManager.getManager().addGameController(
+				(ChessGameController) account.getGameController());
+		this.account.getRoster().addListener(this);
+		this.rosterAdapter.addAccount(this.account);
 	}
 
 	@Override
@@ -90,15 +79,13 @@ public class MainActivity extends FragmentActivity implements
 	public void onResume() {
 		super.onResume();
 		Log.d("MainActivity", "on resume");
-		if( this.account == null ){
-			this.runLogintask();
-		}
-		
-		if(UIActionRegister.action.contains("Accounts")){
+
+		if (UIActionRegister.action.contains("Accounts")) {
 			WebView webview = new WebView(this);
-			PopupWindow popup = new PopupWindow(webview,300,400);
-			popup.showAtLocation(findViewById(R.id.contactsButton), Gravity.CENTER, 0, 0);
-			webview.loadUrl("http://chessbase.com");			
+			PopupWindow popup = new PopupWindow(webview, 300, 400);
+			popup.showAtLocation(findViewById(R.id.contactsButton),
+					Gravity.CENTER, 0, 0);
+			webview.loadUrl("http://chessbase.com");
 			UIActionRegister.action = "";
 		}
 	}
@@ -106,14 +93,17 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	protected void onStop() {
 		super.onStop();
-		Log.d("MainActivity", "on stop");
+		Log.d("MainActivity", "on stop");		
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
 		Log.d("MainActivity", "on destroy");
-		account.logout();
+		
+		if( this.account != null ){
+			this.account.logout();
+		}
 	}
 
 	@Override
@@ -265,79 +255,6 @@ public class MainActivity extends FragmentActivity implements
 			}
 		});
 	}
-	
-	private static final HttpTransport TRANSPORT = new NetHttpTransport();	
-	private static final JsonFactory JSON_FACTORY = new JacksonFactory();
-	private static final String SCOPE = "https://www.googleapis.com/auth/googletalk";
-	private static final String CALLBACK_URL = "http://localhost";
-	private static final String CLIENT_ID = "824424892358.apps.googleusercontent.com";
-	private static final String CLIENT_SECRET = "3ng2GDWbloODjOxs4d1r_Jti";
-	
-	private void runLogintask() {
-		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
-
-			@Override
-			protected Void doInBackground(Void... params) {
-				SharedPreferencesCredentialStore store = new SharedPreferencesCredentialStore( PreferenceManager.getDefaultSharedPreferences(MainActivity.this));
-				AccessTokenResponse account = store.read();
-				System.out.println("stored account :"+account.toString());
-				if( account.refreshToken != null && account.refreshToken.trim().length() > 0  ){
-					
-					GoogleAccessProtectedResource access = new GoogleAccessProtectedResource(account.accessToken,
-					        TRANSPORT, JSON_FACTORY, CLIENT_ID, CLIENT_SECRET, account.refreshToken);
-					try {
-						access.refreshToken();					
-						store.write(access);
-						account.accessToken = access.getAccessToken();
-						System.out.println("after refresh :"+account.toString());
-					} catch (IOException e) {					
-						e.printStackTrace();
-					}
-					
-					MainActivity.this.account = new ABasicGTalkAccount(CLIENT_ID, account.accessToken);
-					MainActivity.this.account.login(new Account.LoginCallback() {
-
-						@Override
-						public void onLogginSuccess() {
-							MainActivity.this.account.getGameController().addGameControllerListener(
-									MainActivity.this);
-							GameManager.getManager().addGameController(
-									MainActivity.this.account.getGameController());
-
-							MainActivity.this.account.getRoster().addListener(MainActivity.this);
-
-							MainActivity.this.runOnUiThread(new Runnable() {
-
-								@Override
-								public void run() {
-									MainActivity.this.rosterAdapter.addAccount(MainActivity.this.account);
-								}
-							});
-						}
-
-						@Override
-						public void onLogginError(String errorMessage) {
-						}
-					});
-					
-				}
-				else{
-					MainActivity.this.runOnUiThread(new Runnable() {
-						
-						@Override
-						public void run() {
-							Intent googleAuhIntent = new Intent(MainActivity.this,GoogleOauth2Activity.class);
-							startActivity(googleAuhIntent);														
-						}
-					});										
-				}
-			
-				return null;
-			}
-		};
-
-		task.execute();
-	}
 
 	private void runAcceptChallengeTask(final IChallenge challenge) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
@@ -374,25 +291,25 @@ public class MainActivity extends FragmentActivity implements
 
 		task.execute();
 	}
-	
+
 	private void runLoadAvatarsTask() {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
-			protected Void doInBackground(Void... params) {				
+			protected Void doInBackground(Void... params) {
 				VCard vCard = new VCard();
-				
-				for(Contact contact : account.getRoster().getContacts() ){
-//					vCard.load(account.Connection(), "");
-				}				
-				
+
+				for (Contact contact : account.getRoster().getContacts()) {
+					// vCard.load(account.Connection(), "");
+				}
+
 				return null;
 			}
 		};
 
 		task.execute();
 	}
-	
+
 	private int getMenuWidth() {
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
@@ -415,7 +332,7 @@ public class MainActivity extends FragmentActivity implements
 			@Override
 			public void run() {
 				rosterAdapter.notifyDataSetChanged();
-				
+
 				for (int i = 0; i < rosterAdapter.getGroupCount(); i++) {
 					fragmentRoster.getRosterView().expandGroup(i);
 				}
@@ -425,19 +342,19 @@ public class MainActivity extends FragmentActivity implements
 
 	@Override
 	public void contactUpdated(Contact arg0) {
-		Log.d("MainActivity", "contactUpdated :"+arg0.toString());
-		
+		Log.d("MainActivity", "contactUpdated :" + arg0.toString());
+
 		runOnUiThread(new Runnable() {
 
 			@Override
 			public void run() {
-				rosterAdapter.notifyDataSetChanged();								
+				rosterAdapter.notifyDataSetChanged();
 			}
 		});
 	}
 
 	@Override
 	public void contactDisconected(Contact arg0) {
-		Log.d("MainActivity", "contactDisconected :"+arg0.toString());		
+		Log.d("MainActivity", "contactDisconected :" + arg0.toString());
 	}
 }

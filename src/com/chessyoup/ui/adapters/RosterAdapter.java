@@ -153,12 +153,16 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 	}
 
 	@Override
-	public int getChildrenCount(int groupPosition) {
+	public int getChildrenCount(int groupPosition) {						
 		if (groupPosition == 0) {
 			return this.gameContacts.size();
 		} else {
-			return this.accounts.get(groupPosition - 1).getRoster()
-					.getContacts().size();
+			if( this.accounts.get(groupPosition - 1) != null && this.accounts.get(groupPosition - 1).getRoster() != null ){
+				return this.accounts.get(groupPosition - 1).getRoster().getContacts().size();
+			}			
+			else{ 
+				return 0;			
+			}
 		}
 	}
 
