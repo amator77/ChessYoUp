@@ -21,7 +21,10 @@ import android.view.View;
 import android.view.WindowManager;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
+import android.widget.LinearLayout.LayoutParams;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
@@ -48,9 +51,7 @@ public class StartActivity extends Activity {
 	private ImageButton gtalkButton;
 	
 	private WebView webview;
-	
-//	private PopupWindow webViewPopup;
-	
+		
 	private static final String SCOPE = "https://www.googleapis.com/auth/googletalk";
 	
 	private static final String CALLBACK_URL = "http://localhost";
@@ -99,13 +100,12 @@ public class StartActivity extends Activity {
 			@Override
 			public void onClick(View v) {															
 				String authorizationUrl = new GoogleAuthorizationRequestUrl(CLIENT_ID,CALLBACK_URL, SCOPE).build();
-				System.out.println("authorizationUrl : " + authorizationUrl);								
-//				webViewPopup.showAtLocation(gtalkButton, Gravity.CENTER, 0, 0);				
+				System.out.println("authorizationUrl : " + authorizationUrl);										
 				alert.show();				
 				webview.loadUrl(authorizationUrl);
 			}
 		});
-//		webview.setFocusable(true);
+		webview.setFocusable(true);
 		webview.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
@@ -161,11 +161,13 @@ public class StartActivity extends Activity {
 		this.webview.setVisibility(View.VISIBLE);
 		this.webview.setWebViewClient(new MyWebViewClient());
 		alert = new AlertDialog.Builder(this).create();
-		alert.setView(webview);
-		alert.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE);
-		this.webview.setFocusable(false);
-//		this.webViewPopup = createPopupWindow();
-//		this.webViewPopup.setFocusable(true);
+		LinearLayout ll = new LinearLayout(this);
+		EditText dummy = new EditText(this);
+		dummy.setVisibility(View.INVISIBLE);
+		ll.addView(dummy,0,0);
+		ll.addView(this.webview);		
+		alert.setView(ll);
+		this.webview.setFocusable(true);
 		this.accountTextView = (TextView)findViewById(R.id.startViewAccountTextView);
 		this.progressView = (ProgressBar)findViewById(R.id.startViewProgressBar);
 		this.gtalkButton = (ImageButton)findViewById(R.id.startViewGTalkImageButton);
@@ -175,8 +177,7 @@ public class StartActivity extends Activity {
 		BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bmp);
 		bitmapDrawable.setTileModeXY(Shader.TileMode.REPEAT,
 				Shader.TileMode.REPEAT);
-		this.findViewById(R.id.startLayout).setBackgroundDrawable(
-				bitmapDrawable);
+		this.findViewById(R.id.startLayout).setBackgroundDrawable(bitmapDrawable);
 	}
 	
 	private void runLoginTask(final AccessTokenResponse accessTokenResponse) {		
@@ -231,8 +232,6 @@ public class StartActivity extends Activity {
 		@Override
 		public void onPageFinished(WebView view, String url) {			
 			if (url.startsWith(CALLBACK_URL)) {
-				System.out.println("after  CALLBACK_URL: ");
-
 				if (url.indexOf("code=") != -1) {
 
 					String code = extractCodeFromUrl(url);
@@ -246,11 +245,8 @@ public class StartActivity extends Activity {
 					new SharedPreferencesCredentialStore(prefs)
 							.clearCredentials();
 					alert.dismiss();
-//					webViewPopup.dismiss();
 				}
 			}
-
-			System.out.println("onPageFinished : " + url);
 		}
 
 		private String extractCodeFromUrl(String url) {
@@ -277,7 +273,6 @@ public class StartActivity extends Activity {
 						public void run() {
 							view.setVisibility(View.INVISIBLE);
 							alert.dismiss();
-//							webViewPopup.dismiss();
 							runLoginTask(accessTokenResponse);
 						}
 					});
@@ -292,17 +287,4 @@ public class StartActivity extends Activity {
 		task.execute();
 	}
 	
-	private PopupWindow createPopupWindow(){
-		DisplayMetrics displaymetrics = new DisplayMetrics();
-		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
-		float width = displaymetrics.widthPixels;
-		float heigh = displaymetrics.widthPixels;
-		Configuration config = getResources().getConfiguration();
-
-		if (config.orientation == Configuration.ORIENTATION_PORTRAIT) {
-			return new PopupWindow(this.webview,(int)(width * 0.80),(int)(heigh * 0.90));			
-		} else {
-			return new PopupWindow(this.webview,(int)(width * 0.80),(int)(heigh * 0.60));		
-		}
-	}		
 }
