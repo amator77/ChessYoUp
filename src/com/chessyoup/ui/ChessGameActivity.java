@@ -113,8 +113,7 @@ public class ChessGameActivity extends FragmentActivity implements
 
 		if (game != null) {
 			this.initUI();
-			this.installListeners();
-			this.runSendReadyTask();
+			this.installListeners();			
 		} else {
 			Log.d("ChessboardActivity", "No game found!");
 			finish();
@@ -164,6 +163,7 @@ public class ChessGameActivity extends FragmentActivity implements
 	public void onResume() {
 		super.onResume();
 		Log.d("ChessboardActivity", "on resume");
+		this.runSendReadyTask();
 	}
 
 	@Override
@@ -1084,10 +1084,7 @@ public class ChessGameActivity extends FragmentActivity implements
 			@Override
 			public void run() {
 				ctrl.makeRemoteMove(move);
-				gameViewPager.setCurrentItem(0);
-				Toast.makeText(ChessGameActivity.this,
-						"Opponent closed the board!", Toast.LENGTH_SHORT)
-						.show();
+				gameViewPager.setCurrentItem(0);				
 			}
 		});
 	}
