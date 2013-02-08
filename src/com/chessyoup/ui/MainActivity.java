@@ -17,7 +17,9 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.webkit.WebView;
+import android.widget.AdapterView;
 import android.widget.PopupWindow;
+import android.widget.Toast;
 
 import com.chessyoup.R;
 import com.chessyoup.game.GameManager;
@@ -88,6 +90,9 @@ public class MainActivity extends FragmentActivity implements
 			webview.loadUrl("http://chessbase.com");
 			UIActionRegister.action = "";
 		}
+		
+		final ViewPager viewPager = (ViewPager) MainActivity.this.findViewById(R.id.mainViewPager);
+		viewPager.setCurrentItem(0);
 	}
 
 	@Override
@@ -112,7 +117,7 @@ public class MainActivity extends FragmentActivity implements
 		account.getGameController().startGame(arg0);
 		Intent startChessActivityIntent = new Intent(this,
 				ChessGameActivity.class);
-		startChessActivityIntent.putExtra("remoteId", arg0.getRemoteId());
+		startChessActivityIntent.putExtra("remoteId", arg0.getRemoteContact().getId());
 		startChessActivityIntent.putExtra("gameId", arg0.getTime());
 		startActivity(startChessActivityIntent);
 	}
@@ -131,13 +136,15 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public void challengeReceived(final IChallenge arg0) {
-		Log.d("challengeReceived", arg0.toString());
+	public void challengeReceived(final IChallenge challenge) {
+		Log.d("challengeReceived", challenge.toString());
 		runOnUiThread(new Runnable() {
 
 			@Override
 			public void run() {
-				chalangesAdapter.addChallenge(arg0);
+				chalangesAdapter.addChallenge(challenge);
+				final ViewPager viewPager = (ViewPager) MainActivity.this.findViewById(R.id.mainViewPager);
+				viewPager.setCurrentItem(1);
 			}
 		});
 	}
@@ -203,57 +210,26 @@ public class MainActivity extends FragmentActivity implements
 		this.fragmentChallenges.setOnChallengeSelected(new Runnable() {
 
 			@Override
-			public void run() {
-				AlertDialog.Builder db = new AlertDialog.Builder(
-						MainActivity.this);
-				db.setTitle("Challange");
-				String actions[] = new String[3];
-				actions[0] = "Accept";
-				actions[1] = "Reject";
-				actions[2] = "Cancel";
-				db.setItems(actions, new DialogInterface.OnClickListener() {
-
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						IChallenge challenge = fragmentChallenges
-								.getSelectedChallenge();
-
-						if (challenge != null) {
-
-							switch (which) {
-							case 0:
-								account.getGameController()
-										.startGame(challenge);
-								Intent startChessActivityIntent = new Intent(
-										MainActivity.this,
-										ChessGameActivity.class);
-								startChessActivityIntent.putExtra("remoteId",
-										challenge.getRemoteId());
-								startChessActivityIntent.putExtra("gameId",
-										challenge.getTime());
-								startActivity(startChessActivityIntent);
-								runAcceptChallengeTask(challenge);
-								break;
-							case 1:
-								chalangesAdapter.removeChallenge(challenge);
-								runRejectChallengeTask(challenge);
-								break;
-							case 2:
-								break;
-							default:
-
-								break;
-							}
-						}
-					}
-				});
-
-				AlertDialog ad = db.create();
-				ad.setCancelable(true);
-				ad.setCanceledOnTouchOutside(false);
-				ad.show();
-			}
+			public void run() {				
+				showChallengeDialog(fragmentChallenges.getSelectedChallenge());	
+			}			
 		});
+		
+		
+		this.fragmentRoster.setOnChallengeSelected(new Runnable() {
+			
+			@Override
+			public void run() {				
+				Contact contact = fragmentRoster.getSelectedContact();				
+				
+				if( contact.isCompatible() ){
+					showSendChallengeDialog(contact);
+				}
+				else{
+					showSendInviteDialog(contact);
+				}
+			}			
+		});				
 	}
 
 	private void runAcceptChallengeTask(final IChallenge challenge) {
@@ -263,9 +239,17 @@ public class MainActivity extends FragmentActivity implements
 			protected Void doInBackground(Void... params) {
 				try {
 					account.getGameController().acceptChallenge(challenge);
+					account.getGameController().startGame(challenge);					
+					Intent startChessActivityIntent = new Intent(
+							MainActivity.this,
+							ChessGameActivity.class);
+					startChessActivityIntent.putExtra("remoteId",
+							challenge.getRemoteContact().getId());
+					startChessActivityIntent.putExtra("gameId",
+							challenge.getTime());
+					startActivity(startChessActivityIntent);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					handleCommunicationError(e);					
 				}
 				return null;
 			}
@@ -282,8 +266,7 @@ public class MainActivity extends FragmentActivity implements
 				try {
 					account.getGameController().rejectChallenge(challenge);
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					handleCommunicationError(e);
 				}
 				return null;
 			}
@@ -291,25 +274,69 @@ public class MainActivity extends FragmentActivity implements
 
 		task.execute();
 	}
-
-	private void runLoadAvatarsTask() {
+	
+	private void runAbortChallengeTask(final IChallenge challenge) {
 		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				VCard vCard = new VCard();
-
-				for (Contact contact : account.getRoster().getContacts()) {
-					// vCard.load(account.Connection(), "");
+				try {
+					account.getGameController().abortChallenge(challenge);
+				} catch (IOException e) {
+					handleCommunicationError(e);
 				}
-
 				return null;
 			}
 		};
 
 		task.execute();
 	}
+	
+	private void runSendChallengeTask(final Contact contact) {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
 
+			@Override
+			protected Void doInBackground(Void... params) {
+				try {
+					final IChallenge newChallenge =  account.getGameController().sendChallenge(contact, null);
+					
+					runOnUiThread(new Runnable() {
+
+						@Override
+						public void run() {
+							chalangesAdapter.addChallenge(newChallenge);
+							final ViewPager viewPager = (ViewPager) MainActivity.this.findViewById(R.id.mainViewPager);
+							viewPager.setCurrentItem(1);
+						}
+					});
+					
+				} catch (IOException e) {
+					handleCommunicationError(e);					
+				}
+				return null;
+			}			
+		};
+
+		task.execute();
+	}
+	
+	private void runSendInvitationTask(final Contact contact) {
+		AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>() {
+
+			@Override
+			protected Void doInBackground(Void... params) {
+//				try {					
+//					account.sendInvitation(contact);
+//				} catch (IOException e) {
+//					handleCommunicationError(e);					
+//				}
+				return null;
+			}			
+		};
+
+		task.execute();		
+	}		
+	
 	private int getMenuWidth() {
 		DisplayMetrics displaymetrics = new DisplayMetrics();
 		getWindowManager().getDefaultDisplay().getMetrics(displaymetrics);
@@ -331,7 +358,7 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			public void run() {
-				rosterAdapter.notifyDataSetChanged();
+				rosterAdapter.refresh();
 
 				for (int i = 0; i < rosterAdapter.getGroupCount(); i++) {
 					fragmentRoster.getRosterView().expandGroup(i);
@@ -348,7 +375,7 @@ public class MainActivity extends FragmentActivity implements
 
 			@Override
 			public void run() {
-				rosterAdapter.notifyDataSetChanged();
+				rosterAdapter.refresh();
 			}
 		});
 	}
@@ -356,5 +383,150 @@ public class MainActivity extends FragmentActivity implements
 	@Override
 	public void contactDisconected(Contact arg0) {
 		Log.d("MainActivity", "contactDisconected :" + arg0.toString());
+	}
+	
+	private void showChallengeDialog(final IChallenge challenge) {
+		
+		if( challenge.isReceived() )
+		{
+			AlertDialog.Builder db = new AlertDialog.Builder(
+					MainActivity.this);
+			db.setTitle("Challange");
+			String actions[] = new String[3];
+			actions[0] = "Accept";
+			actions[1] = "Reject";
+			actions[2] = "Dismiss";
+			db.setItems(actions, new DialogInterface.OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+					if (challenge != null) {
+
+						switch (which) {
+						case 0:							
+							chalangesAdapter.removeChallenge(challenge);
+							runAcceptChallengeTask(challenge);							
+							break;
+						case 1:
+							chalangesAdapter.removeChallenge(challenge);
+							runRejectChallengeTask(challenge);
+							break;
+						case 2:
+							dialog.dismiss();
+							break;
+						default:
+
+							break;
+						}
+					}
+				}
+			});
+
+			AlertDialog ad = db.create();
+			ad.setCancelable(true);
+			ad.setCanceledOnTouchOutside(false);
+			ad.show();		
+		}
+		else{
+			AlertDialog.Builder db = new AlertDialog.Builder(
+					MainActivity.this);
+			db.setTitle("Challange");
+			String actions[] = new String[2];
+			actions[0] = "Abort";
+			actions[1] = "Dismiss";
+			db.setItems(actions, new DialogInterface.OnClickListener() {
+
+				@Override
+				public void onClick(DialogInterface dialog, int which) {
+					
+					if (challenge != null) {
+
+						switch (which) {
+						case 0:
+							chalangesAdapter.removeChallenge(challenge);
+							runAbortChallengeTask(challenge);
+							break;
+						case 1:
+							dialog.dismiss();
+							break;						
+						default:
+
+							break;
+						}
+					}
+				}				
+			});
+
+			AlertDialog ad = db.create();
+			ad.setCancelable(true);
+			ad.setCanceledOnTouchOutside(false);
+			ad.show();		
+		}				
+	}
+	
+	private void showSendChallengeDialog(final Contact contact) {
+		AlertDialog.Builder db = new AlertDialog.Builder(
+				MainActivity.this);
+		db.setTitle("Challange");
+		String actions[] = new String[2];
+		actions[0] = "Send Challenge";
+		actions[1] = "Dismiss";
+		db.setItems(actions, new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {								
+				switch (which) {
+				case 0:					
+					runSendChallengeTask(contact);
+					break;
+				case 1:
+					dialog.dismiss();
+					break;						
+				default:
+					break;
+				}				
+			}			
+		});
+
+		AlertDialog ad = db.create();
+		ad.setCancelable(true);
+		ad.setCanceledOnTouchOutside(true);
+		ad.show();				
+	}
+	
+	private void showSendInviteDialog(final Contact contact) {
+		AlertDialog.Builder db = new AlertDialog.Builder(
+				MainActivity.this);
+		db.setTitle("Challange");
+		String actions[] = new String[2];
+		actions[0] = "Send Invitation";
+		actions[1] = "Dismiss";
+		db.setItems(actions, new DialogInterface.OnClickListener() {
+
+			@Override
+			public void onClick(DialogInterface dialog, int which) {								
+				switch (which) {
+				case 0:					
+					runSendInvitationTask(contact);
+					break;
+				case 1:
+					dialog.dismiss();
+					break;						
+				default:
+					break;
+				}				
+			}			
+		});
+
+		AlertDialog ad = db.create();
+		ad.setCancelable(true);
+		ad.setCanceledOnTouchOutside(true);
+		ad.show();						
+	}
+	
+	private void handleCommunicationError(IOException e) {
+		Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+		e.printStackTrace();
 	}
 }

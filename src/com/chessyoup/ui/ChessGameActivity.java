@@ -8,7 +8,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,6 +19,8 @@ import android.graphics.drawable.BitmapDrawable;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.app.FragmentActivity;
+import android.support.v4.view.ViewPager;
 import android.text.Html;
 import android.text.Layout;
 import android.text.Spannable;
@@ -41,13 +42,6 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ScrollView;
-import android.widget.TabHost;
-import android.widget.TabHost.TabContentFactory;
-import android.widget.TabHost.TabSpec;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -56,6 +50,9 @@ import com.chessyoup.R;
 import com.chessyoup.game.GameManager;
 import com.chessyoup.game.view.ChessBoardPlay;
 import com.chessyoup.game.view.ColorTheme;
+import com.chessyoup.ui.adapters.MainViewPagerAdapter;
+import com.chessyoup.ui.fragments.FragmenChat;
+import com.chessyoup.ui.fragments.FragmentGame;
 import com.cyp.chess.chessboard.ChessboardController;
 import com.cyp.chess.chessboard.ChessboardMode;
 import com.cyp.chess.chessboard.ChessboardStatus;
@@ -72,7 +69,7 @@ import com.cyp.chess.model.pgn.PgnToken;
 import com.cyp.chess.model.pgn.PgnTokenReceiver;
 import com.cyp.game.IGameCommand;
 
-public class ChessGameActivity extends Activity implements
+public class ChessGameActivity extends FragmentActivity implements
 		ChessboardUIInterface, ChessGameListener {
 
 	private boolean boardGestures = true;
@@ -83,25 +80,11 @@ public class ChessGameActivity extends Activity implements
 
 	private PgnScreenText gameTextListener;
 
-	private ScrollView moveListScroll;
+	private FragmentGame fGame;
 
-	private TextView moveListView;
+	private FragmenChat fChat;
 
-	private TextView chatDisplay;
-
-	private Button chatSendMessageButton;
-
-	private ImageButton abortButton;
-
-	private ImageButton resignButton;
-
-	private ImageButton drawButton;
-
-	private ImageButton exitButton;
-
-	private ImageButton rematchButton;
-
-	private EditText chatEditText;
+	private ViewPager gameViewPager;
 
 	private DateFormat dateFormat;
 
@@ -123,6 +106,7 @@ public class ChessGameActivity extends Activity implements
 		this.gameTextListener = new PgnScreenText(pgnOptions);
 		this.ctrl = new ChessboardController(this, this.gameTextListener,
 				pgnOptions);
+
 		game = GameManager.getManager().findGame(
 				getIntent().getExtras().getString("remoteId"),
 				getIntent().getExtras().getLong("gameId"));
@@ -140,25 +124,6 @@ public class ChessGameActivity extends Activity implements
 	private void initUI() {
 		final View chatView = LayoutInflater.from(this).inflate(R.layout.chat,
 				null);
-		final View gameView = LayoutInflater.from(this).inflate(
-				R.layout.chessboard_game, null);
-		this.abortButton = (ImageButton) gameView
-				.findViewById(R.id.abortGameButton);
-		this.resignButton = (ImageButton) gameView
-				.findViewById(R.id.resignGameButton);
-		this.drawButton = (ImageButton) gameView
-				.findViewById(R.id.drawGameButton);
-		this.exitButton = (ImageButton) gameView
-				.findViewById(R.id.exitGameButton);
-		this.rematchButton = (ImageButton) gameView
-				.findViewById(R.id.rematchGameButton);
-		this.moveListView = (TextView) gameView.findViewById(R.id.moveList);
-		this.moveListScroll = (ScrollView) gameView
-				.findViewById(R.id.moveListScroll);
-		this.chatDisplay = (TextView) chatView.findViewById(R.id.chatDisplay);
-		this.chatEditText = (EditText) chatView.findViewById(R.id.editChatText);
-		this.chatSendMessageButton = (Button) chatView
-				.findViewById(R.id.sendChatButton);
 
 		cb = (ChessBoardPlay) findViewById(R.id.chessboard);
 		cb.setFocusable(true);
@@ -166,33 +131,14 @@ public class ChessGameActivity extends Activity implements
 		cb.setClickable(true);
 		cb.setPgnOptions(this.ctrl.getPgnOptions());
 
-		TabHost th = (TabHost) findViewById(android.R.id.tabhost);
-		th.setup();
-
-		TabSpec ts1 = th.newTabSpec("Chat");
-		ts1.setIndicator(createTabView(this, "Chat")).setContent(
-				new TabContentFactory() {
-
-					@Override
-					public View createTabContent(String tag) {
-						return chatView;
-					}
-				});
-
-		TabSpec ts2 = th.newTabSpec("Game");
-		ts2.setIndicator(createTabView(this, "Game")).setContent(
-				new TabContentFactory() {
-
-					@Override
-					public View createTabContent(String tag) {
-						return gameView;
-					}
-				});
-
-		th.addTab(ts2);
-		th.addTab(ts1);
-		th.setCurrentTab(0);
-
+		this.gameViewPager = (ViewPager) this
+				.findViewById(R.id.chessBoardViewPager);
+		this.fChat = new FragmenChat();
+		this.fGame = new FragmentGame();
+		this.gameViewPager.setAdapter(new MainViewPagerAdapter(
+				getSupportFragmentManager(), this.fGame, this.fChat));
+		this.gameViewPager.setCurrentItem(1);
+		this.gameViewPager.setCurrentItem(0);
 		Bitmap bmp = BitmapFactory.decodeResource(getResources(),
 				R.drawable.border);
 		BitmapDrawable bitmapDrawable = new BitmapDrawable(getResources(), bmp);
@@ -229,7 +175,7 @@ public class ChessGameActivity extends Activity implements
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		Log.d("ChessboardActivity", "on destroy");		
+		Log.d("ChessboardActivity", "on destroy");
 	}
 
 	@Override
@@ -329,14 +275,12 @@ public class ChessGameActivity extends Activity implements
 
 	@Override
 	public String whitePlayerName() {
-		// TODO Auto-generated method stub
-		return "white player";
+		return this.game.getWhitePlayer();
 	}
 
 	@Override
 	public String blackPlayerName() {
-		// TODO Auto-generated method stub
-		return "black player";
+		return this.game.getBlackPlayer();
 	}
 
 	@Override
@@ -350,13 +294,14 @@ public class ChessGameActivity extends Activity implements
 
 			@Override
 			public void run() {
-				moveListView.setText(gameTextListener.getSpannableData());
-				Layout layout = moveListView.getLayout();
+				fGame.moveListView.setText(gameTextListener.getSpannableData());
+				Layout layout = fGame.moveListView.getLayout();
 				if (layout != null) {
 					int currPos = gameTextListener.getCurrPos();
 					int line = layout.getLineForOffset(currPos);
-					int y = (int) ((line - 1.5) * moveListView.getLineHeight());
-					moveListScroll.scrollTo(0, y);
+					int y = (int) ((line - 1.5) * fGame.moveListView
+							.getLineHeight());
+					fGame.moveListScroll.scrollTo(0, y);
 				}
 			}
 		});
@@ -431,175 +376,198 @@ public class ChessGameActivity extends Activity implements
 			}
 		});
 
-		chatSendMessageButton.setOnClickListener(new OnClickListener() {
+		fChat.runInstallListener = new Runnable() {
 
 			@Override
-			public void onClick(View v) {
-				Log.d("GCMChatActivity", "Send message request.");
-				runSendMessageTask(chatEditText.getEditableText().toString());
-				chatEditText.setText("");
-			}
-		});
+			public void run() {
+				fChat.chatSendMessageButton
+						.setOnClickListener(new OnClickListener() {
 
-		chatEditText.setOnEditorActionListener(new OnEditorActionListener() {
+							@Override
+							public void onClick(View v) {
+								Log.d("GCMChatActivity",
+										"Send message request.");
+								runSendMessageTask(fChat.chatEditText
+										.getEditableText().toString());
+								fChat.chatEditText.setText("");
+							}
+						});
 
-			@Override
-			public boolean onEditorAction(TextView v, int actionId,
-					KeyEvent event) {
-				if (event != null
-						&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
-						&& (event.getAction() == KeyEvent.ACTION_UP)) {
-					InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-					Log.d("key event", event.toString());
+				fChat.chatEditText
+						.setOnEditorActionListener(new OnEditorActionListener() {
 
-					runSendMessageTask(chatEditText.getEditableText()
-							.toString());
-					chatEditText.setText("");
+							@Override
+							public boolean onEditorAction(TextView v,
+									int actionId, KeyEvent event) {
+								if (event != null
+										&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
+										&& (event.getAction() == KeyEvent.ACTION_UP)) {
+									InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+									Log.d("key event", event.toString());
 
-					in.hideSoftInputFromWindow(v.getApplicationWindowToken(),
-							InputMethodManager.HIDE_NOT_ALWAYS);
+									runSendMessageTask(fChat.chatEditText
+											.getEditableText().toString());
+									fChat.chatEditText.setText("");
 
-					return true;
-				}
-				return false;
-			}
-		});
+									in.hideSoftInputFromWindow(
+											v.getApplicationWindowToken(),
+											InputMethodManager.HIDE_NOT_ALWAYS);
 
-		this.abortButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
-					if (abortRequested) {
-						ctrl.abortGame();
-						moveListView.append(" aborted");
-						abortRequested = false;
-						try {
-							game.acceptAbortRequest();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					} else {
-						try {
-							game.sendAbortRequest();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					}
-				}
-			}
-		});
-
-		this.resignButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
-					ctrl.resignGame();
-
-					try {
-						game.resign();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
-		});
-
-		this.drawButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
-					if (drawRequested) {
-						ctrl.drawGame();
-						drawRequested = false;
-						try {
-							game.acceptDrawRequest();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					} else {
-						try {
-							ctrl.offerDraw();
-							game.sendDrawRequest();
-						} catch (IOException e1) {
-							e1.printStackTrace();
-						}
-					}
-				}
-			}
-		});
-
-		this.rematchButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (ctrl.getGame().getGameState() != GameState.ALIVE) {
-					try {
-						game.sendRematchRequest();
-					} catch (IOException e1) {
-						e1.printStackTrace();
-					}
-				}
-			}
-		});
-
-		this.exitButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-				if (ctrl.getGame().getGameState() == GameState.ALIVE) {
-
-					AlertDialog.Builder db = new AlertDialog.Builder(
-							ChessGameActivity.this);
-					db.setTitle("Resign?");
-					String actions[] = new String[2];
-					actions[0] = "Ok";
-					actions[1] = "Cancel";
-					db.setItems(actions, new DialogInterface.OnClickListener() {
-
-						@Override
-						public void onClick(DialogInterface dialog, int which) {
-							switch (which) {
-							case 0:
-								try {
-									game.resign();
-									game.sendGameClosed();
-								} catch (IOException e) {
-									e.printStackTrace();
+									return true;
 								}
+								return false;
+							}
+						});
+			}
+		};
 
-								ctrl.resignGame();
+		fGame.runInstallListeners = new Runnable() {
+
+			@Override
+			public void run() {
+				fGame.abortButton.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+							if (abortRequested) {
+								ctrl.abortGame();
+								fGame.moveListView.append(" aborted");
+								abortRequested = false;
+								try {
+									game.acceptAbortRequest();
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}
+							} else {
+								try {
+									game.sendAbortRequest();
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}
+							}
+						}
+					}
+				});
+
+				fGame.resignButton.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+							ctrl.resignGame();
+
+							try {
+								game.resign();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						}
+					}
+				});
+
+				fGame.drawButton.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+							if (drawRequested) {
+								ctrl.drawGame();
+								drawRequested = false;
+								try {
+									game.acceptDrawRequest();
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}
+							} else {
+								try {
+									ctrl.offerDraw();
+									game.sendDrawRequest();
+								} catch (IOException e1) {
+									e1.printStackTrace();
+								}
+							}
+						}
+					}
+				});
+
+				fGame.rematchButton.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if (ctrl.getGame().getGameState() != GameState.ALIVE) {
+							try {
+								game.sendRematchRequest();
+							} catch (IOException e1) {
+								e1.printStackTrace();
+							}
+						}
+					}
+				});
+
+				fGame.exitButton.setOnClickListener(new OnClickListener() {
+
+					@Override
+					public void onClick(View v) {
+						if (ctrl.getGame().getGameState() == GameState.ALIVE) {
+
+							AlertDialog.Builder db = new AlertDialog.Builder(
+									ChessGameActivity.this);
+							db.setTitle("Resign?");
+							String actions[] = new String[2];
+							actions[0] = "Ok";
+							actions[1] = "Cancel";
+							db.setItems(actions,
+									new DialogInterface.OnClickListener() {
+
+										@Override
+										public void onClick(
+												DialogInterface dialog,
+												int which) {
+											switch (which) {
+											case 0:
+												try {
+													game.resign();
+													game.sendGameClosed();
+												} catch (IOException e) {
+													e.printStackTrace();
+												}
+
+												ctrl.resignGame();
+												game.getAccount()
+														.getGameController()
+														.closeGame(game);
+												finish();
+												break;
+											case 1:
+												break;
+											default:
+
+												break;
+											}
+										}
+									});
+
+							AlertDialog ad = db.create();
+							ad.setCancelable(true);
+							ad.setCanceledOnTouchOutside(false);
+							ad.show();
+						} else {
+							try {
+								game.sendGameClosed();
+								ctrl.abortGame();
 								game.getAccount().getGameController()
 										.closeGame(game);
 								finish();
-								break;
-							case 1:
-								break;
-							default:
-
-								break;
+							} catch (IOException e1) {
+								e1.printStackTrace();
 							}
 						}
-					});
-
-					AlertDialog ad = db.create();
-					ad.setCancelable(true);
-					ad.setCanceledOnTouchOutside(false);
-					ad.show();
-				} else {
-					try {
-						game.sendGameClosed();
-						ctrl.abortGame();
-						game.getAccount().getGameController().closeGame(game);
-						finish();
-					} catch (IOException e1) {
-						e1.printStackTrace();
 					}
-				}
+				});
 			}
-		});
+		};
+
 	}
 
 	@Override
@@ -991,7 +959,7 @@ public class ChessGameActivity extends Activity implements
 				sb.append(source != null ? source : "null").append(" : ");
 				sb.append(text != null ? text : "null").append("<br/>");
 				Spanned styledText = Html.fromHtml(sb.toString());
-				chatDisplay.append(styledText);
+				fChat.chatDisplay.append(styledText);
 			}
 		});
 	}
@@ -1022,14 +990,32 @@ public class ChessGameActivity extends Activity implements
 
 	@Override
 	public void abortAcceptedReceived() {
-		ctrl.abortGame();
-		moveListView.append(" abort accepted");
+
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				ctrl.abortGame();
+				fGame.moveListView.append(" abort accepted");
+				Toast.makeText(ChessGameActivity.this, "Abort accepted!",
+						Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
 
 	@Override
 	public void abortRequestReceived() {
 		this.abortRequested = true;
-		moveListView.append(" abort requested!");
+
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				fGame.moveListView.append(" abort requested!");
+				Toast.makeText(ChessGameActivity.this, "Abort requested!",
+						Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
 
 	@Override
@@ -1038,25 +1024,57 @@ public class ChessGameActivity extends Activity implements
 
 			@Override
 			public void run() {
-				addMessage(game.getChallenge().getRemoteId(), text);
+				addMessage(game.getChallenge().getRemoteContact().getId(), text);
+				gameViewPager.setCurrentItem(1);
 			}
 		});
 	}
 
 	@Override
 	public void drawAcceptedReceived() {
-		ctrl.drawGame();
+
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				ctrl.drawGame();
+				gameViewPager.setCurrentItem(0);
+				Toast.makeText(ChessGameActivity.this, "Draw accepted!",
+						Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
 
 	@Override
 	public void drawRequestReceived() {
 		this.drawRequested = true;
-		ctrl.offerDraw();
+
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				ctrl.offerDraw();
+				gameViewPager.setCurrentItem(0);
+				Toast.makeText(ChessGameActivity.this, "Draw requested!",
+						Toast.LENGTH_SHORT).show();
+			}
+		});
 	}
 
 	@Override
 	public void gameClosedReceived() {
-		moveListView.append("Game closed!");
+		runOnUIThread(new Runnable() {
+
+			@Override
+			public void run() {
+				fGame.moveListView.append("Game closed!");
+				gameViewPager.setCurrentItem(0);
+				Toast.makeText(ChessGameActivity.this,
+						"Opponent closed the board!", Toast.LENGTH_SHORT)
+						.show();
+			}
+
+		});
 	}
 
 	@Override
@@ -1066,6 +1084,10 @@ public class ChessGameActivity extends Activity implements
 			@Override
 			public void run() {
 				ctrl.makeRemoteMove(move);
+				gameViewPager.setCurrentItem(0);
+				Toast.makeText(ChessGameActivity.this,
+						"Opponent closed the board!", Toast.LENGTH_SHORT)
+						.show();
 			}
 		});
 	}
@@ -1083,6 +1105,63 @@ public class ChessGameActivity extends Activity implements
 						: ChessboardMode.TWO_PLAYERS_BLACK_REMOTE));
 				cb.setFlipped(game.getChallenge().isReceived());
 				ctrl.startGame();
+
+				if (game.getChallenge().isReceived()) {
+
+					if (game.getChallenge().getRemoteContact().getAvatar() != null) {
+						Bitmap bmp = BitmapFactory.decodeByteArray(game
+								.getChallenge().getRemoteContact().getAvatar(),
+								0, game.getChallenge().getRemoteContact()
+										.getAvatar().length);
+						fGame.blackPlayerImageView.setImageBitmap(bmp);
+					} else {
+						fGame.blackPlayerImageView
+								.setImageDrawable(getResources().getDrawable(
+										R.drawable.general_avatar_unknown));
+					}
+
+					if (game.getAccount().getConnection().getAvatar() != null) {
+						Bitmap bmp = BitmapFactory
+								.decodeByteArray(game.getAccount()
+										.getConnection().getAvatar(), 0, game
+										.getAccount().getConnection()
+										.getAvatar().length);
+						fGame.whitePlayerImageView.setImageBitmap(bmp);
+					} else {
+						fGame.whitePlayerImageView
+								.setImageDrawable(getResources().getDrawable(
+										R.drawable.general_avatar_unknown));
+					}
+				} else {
+					if (game.getChallenge().getRemoteContact().getAvatar() != null) {
+						Bitmap bmp = BitmapFactory.decodeByteArray(game
+								.getChallenge().getRemoteContact().getAvatar(),
+								0, game.getChallenge().getRemoteContact()
+										.getAvatar().length);
+						fGame.whitePlayerImageView.setImageBitmap(bmp);
+					} else {
+						fGame.whitePlayerImageView
+								.setImageDrawable(getResources().getDrawable(
+										R.drawable.general_avatar_unknown));
+					}
+
+					if (game.getAccount().getConnection().getAvatar() != null) {
+						Bitmap bmp = BitmapFactory
+								.decodeByteArray(game.getAccount()
+										.getConnection().getAvatar(), 0, game
+										.getAccount().getConnection()
+										.getAvatar().length);
+						fGame.blackPlayerImageView.setImageBitmap(bmp);
+					} else {
+						fGame.blackPlayerImageView
+								.setImageDrawable(getResources().getDrawable(
+										R.drawable.general_avatar_unknown));
+					}
+
+				}
+
+				Toast.makeText(ChessGameActivity.this, "Game started!",
+						Toast.LENGTH_SHORT).show();
 			}
 		});
 	}

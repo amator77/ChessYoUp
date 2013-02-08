@@ -100,7 +100,7 @@ public class GoogleOauth2Activity extends Activity {
 			@Override
 			protected Void doInBackground(Void... params) {
 
-				try {
+				try {					
 					AccessTokenResponse accessTokenResponse = grant.execute();
 					System.out.println("accestoken : "
 							+ accessTokenResponse.accessToken);

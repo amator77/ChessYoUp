@@ -1,9 +1,13 @@
 package com.chessyoup.ui.adapters;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -17,13 +21,16 @@ import com.cyp.accounts.Account;
 import com.cyp.transport.Contact;
 import com.cyp.transport.Presence;
 import com.cyp.transport.Presence.MODE;
+import com.cyp.transport.Util;
 
 public class RosterAdapter extends BaseExpandableListAdapter {
 
 	private List<Account> accounts;
-
-	private List<Contact> gameContacts;
-
+	
+	private List<RosterGroup> groups; 
+	
+	private RosterGroup root;
+	
 	private LayoutInflater layoutInflater;
 
 	private Context context;
@@ -49,22 +56,46 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		this.context = context;
 		layoutInflater = LayoutInflater.from(context);
 		this.accounts = new ArrayList<Account>();
-		this.gameContacts = new ArrayList<Contact>();
+		this.groups = new ArrayList<RosterAdapter.RosterGroup>();
+		this.root = new RosterGroup("ChessYoUp", R.drawable.chessyoup, true);
 	}
-
-	public void addAccount(Account account) {
-		this.accounts.add(account);		
+	
+	public void refresh(){
+		this.root.contacts.clear();
+		this.groups.clear();
+		this.groups.add(root);
+		
+		for(Account account : this.accounts ){
+			RosterGroup group = new RosterGroup(account.getConnection().getAccountId(), Integer.parseInt(account.getIconTypeResource()), false);
+			
+			for(Contact contact : account.getRoster().getContacts() ){
+				
+				if( contact.isCompatible() ){
+					this.root.contacts.add(new RosterContact(contact));
+				}
+				else{					
+					group.contacts.add(new RosterContact(contact));
+				}
+			}
+			
+			Collections.sort(group.contacts);			
+			Collections.sort(this.root.contacts);
+			
+			this.groups.add(group);			
+		}
+		
+		Collections.sort(this.groups);		
 		this.notifyDataSetChanged();
+	}
+	
+	public void addAccount(Account account) {
+		this.accounts.add(account);
+		this.refresh();
 	}
 
 	@Override
 	public Object getChild(int groupPosition, final int childPosition) {
-		if (groupPosition == 0) {
-			return this.gameContacts.get(childPosition);
-		} else {
-			return this.accounts.get(groupPosition - 1).getRoster()
-					.getContacts().get(childPosition);
-		}
+		return this.groups.get(groupPosition).contacts.get(childPosition).contact;		
 	}
 
 	@Override
@@ -97,12 +128,17 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 
 		Contact contact = (Contact) getChild(groupPosition, childPosition);
 
-		// holder.contactName.setText(contact.getName() != null ? contact
-		// .getName() : contact.getId());
-
-		holder.contactName.setText(contact.getId());
-
-		holder.contactStatus.setText(contact.getPresence() != null ? contact.getPresence().getStatus() : "unavailable");
+		holder.contactName.setText(contact.getName() != null ? contact.getName() : Util.getContactFromId(contact.getId()) );
+		
+		if( contact.getAvatar() != null ){
+			Bitmap bmp=BitmapFactory.decodeByteArray(contact.getAvatar(),0,contact.getAvatar().length);			
+			holder.contactAvatar.setImageBitmap(bmp);
+		}
+		else{
+			holder.contactAvatar.setImageDrawable(context.getResources().getDrawable(R.drawable.general_avatar_unknown));
+		}
+		
+		holder.contactStatus.setText(contact.getPresence() != null ? contact.getPresence().getStatus() : "");
 
 		holder.contactName.setCompoundDrawablesWithIntrinsicBounds( contact.getPresence() != null  ? getStatusIcon(contact.getPresence()) : context.getResources().getDrawable(
 				R.drawable.general_status_offline) ,
@@ -138,47 +174,27 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		} else {
 			holder = (GroupViewHolder) convertView.getTag();
 		}
-
-		if (groupPosition == 0) {
-			holder.groupName.setText(getGroup(groupPosition).toString());
-			holder.groupImage.setImageResource(R.drawable.chessyoup);
-		} else {
-			Account account = (Account) getGroup(groupPosition);
-			holder.groupName.setText(account.getId());
-			holder.groupImage.setImageResource(Integer.parseInt(account
-					.getIconTypeResource()));
-		}
-
+		
+		RosterGroup group = (RosterGroup)getGroup(groupPosition);
+		holder.groupName.setText(group.groupName);
+		holder.groupImage.setImageResource(group.imageId);
+		
 		return convertView;
 	}
 
 	@Override
-	public int getChildrenCount(int groupPosition) {						
-		if (groupPosition == 0) {
-			return this.gameContacts.size();
-		} else {
-			if( this.accounts.get(groupPosition - 1) != null && this.accounts.get(groupPosition - 1).getRoster() != null ){
-				return this.accounts.get(groupPosition - 1).getRoster().getContacts().size();
-			}			
-			else{ 
-				return 0;			
-			}
-		}
+	public int getChildrenCount(int groupPosition) {	
+		return this.groups.get(groupPosition).contacts.size();				
 	}
 
 	@Override
-	public Object getGroup(int groupPosition) {
-
-		if (groupPosition == 0) {
-			return "Chessyoup";
-		} else {
-			return this.accounts.get(groupPosition - 1);
-		}
+	public Object getGroup(int groupPosition) {		
+		return this.groups.get(groupPosition);
 	}
 
 	@Override
 	public int getGroupCount() {
-		return 1 + this.accounts.size();
+		return this.groups.size();
 	}
 
 	@Override
@@ -217,6 +233,63 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		default:
 			return context.getResources().getDrawable(
 					R.drawable.general_status_offline);
+		}
+	}
+	
+	class RosterContact implements Comparable<RosterContact>{
+		
+		Contact contact;
+		
+		RosterContact(Contact contact){
+			this.contact = contact;
+		}
+		
+		@Override
+		public int compareTo(RosterContact another) {			
+			return contact.getPresence().getMode().compareTo(another.contact.getPresence().getMode());						
+		}		
+	}
+	
+	class RosterGroup implements Comparable<RosterGroup>{
+		
+		String groupName;
+		int imageId;
+		List<RosterContact> contacts;
+		boolean isRoot;
+		
+		public RosterGroup(String groupName,int imageId , boolean isRoot){
+			this.groupName = groupName;
+			this.imageId = imageId;
+			this.contacts = new ArrayList<RosterAdapter.RosterContact>();
+			this.isRoot= isRoot;		
+		}							
+		
+		@Override
+		public int compareTo(RosterGroup another) {			
+			
+			if( this.isRoot ){
+				return 1;
+			}
+			else{
+				if( this.countOnline() > another.countOnline() ){
+					return 1;
+				}
+				else{
+					return groupName.compareTo(another.groupName);
+				}
+			}
+		}
+		
+		int countOnline(){
+			int count = 0;
+			
+			for( RosterContact rContact : contacts ){
+				if( rContact.contact.getPresence().getMode() == MODE.ONLINE ){
+					count++;
+				}
+			}
+			
+			return count;
 		}
 	}
 }

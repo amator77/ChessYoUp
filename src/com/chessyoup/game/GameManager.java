@@ -21,7 +21,7 @@ public class GameManager {
 	}
 	
 	public ChessGame findGame(String remoteId, long gameId){
-		
+		System.out.println("Find game :"+remoteId+" , "+gameId);
 		for( ChessGameController ctrl : ctrls ){
 			ChessGame game = ctrl.findGame(remoteId,gameId);
 			

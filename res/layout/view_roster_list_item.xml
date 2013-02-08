@@ -11,8 +11,7 @@
         android:layout_height="50dp"
         android:layout_alignParentRight="true"
         android:scaleType="centerInside"
-        android:layout_alignParentTop="true"        
-		android:background="@drawable/avatar_background_shape"
+        android:layout_alignParentTop="true"        		
         android:padding="3dp"
         android:src="@drawable/general_avatar_unknown" />
 

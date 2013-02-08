@@ -5,6 +5,8 @@ import java.util.Date;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -88,8 +90,16 @@ public class ChallengesAdapter extends BaseAdapter {
 		}
 
 		IChallenge challenge = (IChallenge)getItem(position);
-
-		holder.contactName.setText(challenge.getRemoteId());
+		
+		if( challenge.getRemoteContact().getAvatar() != null ){
+			Bitmap bmp=BitmapFactory.decodeByteArray(challenge.getRemoteContact().getAvatar(),0,challenge.getRemoteContact().getAvatar().length);			
+			holder.contactAvatar.setImageBitmap(bmp);
+		}
+		else{
+			holder.contactAvatar.setImageDrawable(context.getResources().getDrawable(R.drawable.general_avatar_unknown));
+		}
+		
+		holder.contactName.setText(challenge.getRemoteContact().getId());
 
 		holder.challangeDetails.setText( (challenge.isReceived() ? "Received at :" : "Sended at :")+new Date(challenge.getTime()).toString() );
 		
