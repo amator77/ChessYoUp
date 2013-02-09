@@ -22,6 +22,7 @@
         android:layout_toRightOf="@+id/roster_group_image"
         android:textSize="16sp"
         android:textStyle="bold" 
+        android:textColor="@color/black"
         android:singleLine="true" />
     
 </RelativeLayout>

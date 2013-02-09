@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import android.app.AlertDialog;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.Bitmap;
@@ -42,6 +43,7 @@ import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 import android.view.Window;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.TextView.OnEditorActionListener;
 import android.widget.Toast;
@@ -68,6 +70,7 @@ import com.cyp.chess.model.pgn.PGNOptions;
 import com.cyp.chess.model.pgn.PgnToken;
 import com.cyp.chess.model.pgn.PgnTokenReceiver;
 import com.cyp.game.IGameCommand;
+import com.cyp.transport.Util;
 
 public class ChessGameActivity extends FragmentActivity implements
 		ChessboardUIInterface, ChessGameListener {
@@ -90,6 +93,16 @@ public class ChessGameActivity extends FragmentActivity implements
 
 	private ChessGame game;
 
+	public ImageButton abortButton;
+
+	public ImageButton resignButton;
+
+	public ImageButton drawButton;
+
+	public ImageButton exitButton;
+
+	public ImageButton rematchButton;
+
 	private boolean drawRequested;
 
 	private boolean abortRequested;
@@ -97,11 +110,8 @@ public class ChessGameActivity extends FragmentActivity implements
 	public void onCreate(Bundle savedInstanceState) {
 		Log.d("ChessboardActivity", "on create");
 		super.onCreate(savedInstanceState);
-		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-		setContentView(R.layout.chessboard);
 		dateFormat = new SimpleDateFormat("EEEE, kk:mm", Locale.getDefault());
-		ColorTheme.instance().readColors(
-				PreferenceManager.getDefaultSharedPreferences(this));
+
 		PGNOptions pgnOptions = new PGNOptions();
 		this.gameTextListener = new PgnScreenText(pgnOptions);
 		this.ctrl = new ChessboardController(this, this.gameTextListener,
@@ -113,22 +123,32 @@ public class ChessGameActivity extends FragmentActivity implements
 
 		if (game != null) {
 			this.initUI();
-			this.installListeners();			
+			this.installListeners();
+			this.runSendReadyTask();
 		} else {
 			Log.d("ChessboardActivity", "No game found!");
 			finish();
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void initUI() {
-		final View chatView = LayoutInflater.from(this).inflate(R.layout.chat,
-				null);
+		this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+		setContentView(R.layout.chessboard);
+		ColorTheme.instance().readColors(
+				PreferenceManager.getDefaultSharedPreferences(this));
 
 		cb = (ChessBoardPlay) findViewById(R.id.chessboard);
 		cb.setFocusable(true);
 		cb.requestFocus();
 		cb.setClickable(true);
 		cb.setPgnOptions(this.ctrl.getPgnOptions());
+
+		this.abortButton = (ImageButton) findViewById(R.id.abortGameButton);
+		this.resignButton = (ImageButton) findViewById(R.id.resignGameButton);
+		this.drawButton = (ImageButton) findViewById(R.id.drawGameButton);
+		this.exitButton = (ImageButton) findViewById(R.id.exitGameButton);
+		this.rematchButton = (ImageButton) findViewById(R.id.rematchGameButton);
 
 		this.gameViewPager = (ViewPager) this
 				.findViewById(R.id.chessBoardViewPager);
@@ -163,7 +183,7 @@ public class ChessGameActivity extends FragmentActivity implements
 	public void onResume() {
 		super.onResume();
 		Log.d("ChessboardActivity", "on resume");
-		this.runSendReadyTask();
+		Toast.makeText(this, "Whiting for oponent!", Toast.LENGTH_SHORT).show();
 	}
 
 	@Override
@@ -242,16 +262,13 @@ public class ChessGameActivity extends FragmentActivity implements
 			str = getString(R.string.resign_black);
 			break;
 		default:
-			throw new RuntimeException();
-		}
-
-		// setStatusString(str);
+			str = "unknown";
+		}		
 	}
-
+	
 	@Override
 	public void requestPromotePiece() {
-		// TODO Auto-generated method stub
-
+		promoteDialog().show();
 	}
 
 	@Override
@@ -305,7 +322,6 @@ public class ChessGameActivity extends FragmentActivity implements
 				}
 			}
 		});
-
 	}
 
 	@Override
@@ -393,31 +409,27 @@ public class ChessGameActivity extends FragmentActivity implements
 							}
 						});
 
-				fChat.chatEditText
-						.setOnEditorActionListener(new OnEditorActionListener() {
+				fChat.chatEditText.setOnKeyListener(new View.OnKeyListener() {
 
-							@Override
-							public boolean onEditorAction(TextView v,
-									int actionId, KeyEvent event) {
-								if (event != null
-										&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)
-										&& (event.getAction() == KeyEvent.ACTION_UP)) {
-									InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
-									Log.d("key event", event.toString());
+					@Override
+					public boolean onKey(View v, int keyCode, KeyEvent event) {
+						Log.d("key event", event.toString());
 
-									runSendMessageTask(fChat.chatEditText
-											.getEditableText().toString());
-									fChat.chatEditText.setText("");
+						if (event != null
+								&& (event.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
+							runSendMessageTask(fChat.chatEditText
+									.getEditableText().toString());
+							fChat.chatEditText.setText("");
+							InputMethodManager in = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+							in.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-									in.hideSoftInputFromWindow(
-											v.getApplicationWindowToken(),
-											InputMethodManager.HIDE_NOT_ALWAYS);
-
-									return true;
-								}
-								return false;
-							}
-						});
+							return true;
+						}
+						else{
+							return false;
+						}
+					}
+				});
 			}
 		};
 
@@ -425,7 +437,7 @@ public class ChessGameActivity extends FragmentActivity implements
 
 			@Override
 			public void run() {
-				fGame.abortButton.setOnClickListener(new OnClickListener() {
+				abortButton.setOnClickListener(new OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
@@ -450,7 +462,7 @@ public class ChessGameActivity extends FragmentActivity implements
 					}
 				});
 
-				fGame.resignButton.setOnClickListener(new OnClickListener() {
+				resignButton.setOnClickListener(new OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
@@ -466,7 +478,7 @@ public class ChessGameActivity extends FragmentActivity implements
 					}
 				});
 
-				fGame.drawButton.setOnClickListener(new OnClickListener() {
+				drawButton.setOnClickListener(new OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
@@ -491,7 +503,7 @@ public class ChessGameActivity extends FragmentActivity implements
 					}
 				});
 
-				fGame.rematchButton.setOnClickListener(new OnClickListener() {
+				rematchButton.setOnClickListener(new OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
@@ -505,7 +517,7 @@ public class ChessGameActivity extends FragmentActivity implements
 					}
 				});
 
-				fGame.exitButton.setOnClickListener(new OnClickListener() {
+				exitButton.setOnClickListener(new OnClickListener() {
 
 					@Override
 					public void onClick(View v) {
@@ -567,7 +579,6 @@ public class ChessGameActivity extends FragmentActivity implements
 				});
 			}
 		};
-
 	}
 
 	@Override
@@ -640,7 +651,7 @@ public class ChessGameActivity extends FragmentActivity implements
 
 			@Override
 			protected Void doInBackground(Void... params) {
-				addMessage("", message);
+				addMessage(Util.getContactFromId(game.getAccount().getConnection().getAccountId()), message);
 
 				try {
 					game.sendChat(message);
@@ -661,8 +672,9 @@ public class ChessGameActivity extends FragmentActivity implements
 			@Override
 			protected Void doInBackground(Void... params) {
 				try {
+					Thread.sleep(500);
 					game.sendReady();
-				} catch (IOException e) {
+				} catch (Exception e) {
 					e.printStackTrace();
 				}
 
@@ -939,14 +951,6 @@ public class ChessGameActivity extends FragmentActivity implements
 		}
 	}
 
-	private static View createTabView(final Context context, final String text) {
-		View view = LayoutInflater.from(context)
-				.inflate(R.layout.tabs_bg, null);
-		TextView tv = (TextView) view.findViewById(R.id.tabsText);
-		tv.setText(text);
-		return view;
-	}
-
 	private void addMessage(final String source, final String text) {
 		this.runOnUIThread(new Runnable() {
 
@@ -1024,7 +1028,7 @@ public class ChessGameActivity extends FragmentActivity implements
 
 			@Override
 			public void run() {
-				addMessage(game.getChallenge().getRemoteContact().getId(), text);
+				addMessage( Util.getContactFromId(game.getChallenge().getRemoteContact().getId()) , text);
 				gameViewPager.setCurrentItem(1);
 			}
 		});
@@ -1084,7 +1088,7 @@ public class ChessGameActivity extends FragmentActivity implements
 			@Override
 			public void run() {
 				ctrl.makeRemoteMove(move);
-				gameViewPager.setCurrentItem(0);				
+				gameViewPager.setCurrentItem(0);
 			}
 		});
 	}
@@ -1217,4 +1221,21 @@ public class ChessGameActivity extends FragmentActivity implements
 			}
 		});
 	}
+	
+	 private final Dialog promoteDialog() {
+	        final CharSequence[] items = {
+	            getString(R.string.queen), getString(R.string.rook),
+	            getString(R.string.bishop), getString(R.string.knight)
+	        };
+	        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+	        builder.setTitle(R.string.promote_pawn_to);
+	        builder.setItems(items, new DialogInterface.OnClickListener() {
+	            public void onClick(DialogInterface dialog, int item) {
+	                ctrl.reportPromotePiece(item);
+	            }
+	        });
+	        AlertDialog alert = builder.create();
+	        return alert;
+	    }
+
 }

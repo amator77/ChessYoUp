@@ -62,7 +62,7 @@ public class MainActivity extends FragmentActivity implements
 		GameManager.getManager().addGameController(
 				(ChessGameController) account.getGameController());
 		this.account.getRoster().addListener(this);
-		this.rosterAdapter.addAccount(this.account);
+		this.rosterAdapter.addAccount(this.account);		
 	}
 
 	@Override
@@ -92,7 +92,7 @@ public class MainActivity extends FragmentActivity implements
 		}
 		
 		final ViewPager viewPager = (ViewPager) MainActivity.this.findViewById(R.id.mainViewPager);
-		viewPager.setCurrentItem(0);
+		viewPager.setCurrentItem(0);		
 	}
 
 	@Override
@@ -112,14 +112,21 @@ public class MainActivity extends FragmentActivity implements
 	}
 
 	@Override
-	public void challengeAccepted(IChallenge arg0) {
+	public void challengeAccepted(final IChallenge arg0) {
 		Log.d("challengeAccepted", arg0.toString());
 		account.getGameController().startGame(arg0);
-		Intent startChessActivityIntent = new Intent(this,
-				ChessGameActivity.class);
-		startChessActivityIntent.putExtra("remoteId", arg0.getRemoteContact().getId());
-		startChessActivityIntent.putExtra("gameId", arg0.getTime());
-		startActivity(startChessActivityIntent);
+		
+		runOnUiThread(new Runnable() {
+
+			@Override
+			public void run() {
+				chalangesAdapter.removeChallenge(arg0);
+				Intent startChessActivityIntent = new Intent(MainActivity.this,ChessGameActivity.class);
+				startChessActivityIntent.putExtra("remoteId", arg0.getRemoteContact().getId());
+				startChessActivityIntent.putExtra("gameId", arg0.getTime());
+				startActivity(startChessActivityIntent);
+			}
+		});						
 	}
 
 	@Override
@@ -132,7 +139,6 @@ public class MainActivity extends FragmentActivity implements
 				chalangesAdapter.removeChallenge(arg0);
 			}
 		});
-
 	}
 
 	@Override
@@ -376,6 +382,9 @@ public class MainActivity extends FragmentActivity implements
 			@Override
 			public void run() {
 				rosterAdapter.refresh();
+				for (int i = 0; i < rosterAdapter.getGroupCount(); i++) {
+					fragmentRoster.getRosterView().expandGroup(i);
+				}
 			}
 		});
 	}

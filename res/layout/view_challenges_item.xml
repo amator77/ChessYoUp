@@ -6,33 +6,42 @@
     android:gravity="center_vertical">
 
     <ImageView
+        android:id="@+id/challenge_status_image"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:layout_alignParentLeft="true"
+        android:scaleType="centerInside"
+        android:layout_alignParentTop="true"        		
+        android:padding="3dp"
+        android:src="@drawable/general_avatar_unknown" />
+	
+    <TextView
+        android:id="@+id/challenge_item_text_contact_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"        
+        android:layout_alignParentRight="true"
+        android:layout_toRightOf="@+id/challenge_status_image"
+        android:ellipsize="end"
+        android:singleLine="true"
+        android:textColor="@color/black" />
+            
+    <ImageView
         android:id="@+id/challenge_item_image_avatar"
         android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:layout_alignParentRight="true"
+        android:layout_height="50dp"        
         android:scaleType="centerInside"
+        android:layout_alignParentRight="true"
         android:layout_alignParentTop="true"        		
         android:padding="3dp"
         android:src="@drawable/general_avatar_unknown" />
 
     <TextView
-        android:id="@+id/challenge_item_text_contact_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:singleLine="true"
-        android:ellipsize="end"
-        android:layout_alignParentLeft="true"
-        android:layout_alignTop="@id/challenge_item_image_avatar"
-        android:layout_toLeftOf="@id/challenge_item_image_avatar"        
-         />
-
-    <TextView
-        android:id="@+id/challenge_item_text_details"        
+        android:id="@+id/challenge_item_text_details"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:singleLine="true"
+        android:layout_alignLeft="@+id/challenge_item_text_contact_name"
+        android:layout_alignParentBottom="true"
         android:ellipsize="end"
-        android:layout_alignLeft="@id/challenge_item_text_contact_name"
-        android:layout_alignRight="@id/challenge_item_text_contact_name"
-        android:layout_below="@id/challenge_item_text_contact_name" />
+        android:singleLine="true" />
+    
 </RelativeLayout>

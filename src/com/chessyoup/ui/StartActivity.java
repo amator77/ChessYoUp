@@ -2,30 +2,29 @@ package com.chessyoup.ui;
 
 import java.io.IOException;
 
+import android.accounts.AccountManager;
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Shader;
 import android.graphics.drawable.BitmapDrawable;
+import android.net.ConnectivityManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
-import android.widget.LinearLayout.LayoutParams;
-import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -83,19 +82,25 @@ public class StartActivity extends Activity {
 		SharedPreferencesCredentialStore store = new SharedPreferencesCredentialStore(
 				PreferenceManager
 						.getDefaultSharedPreferences(StartActivity.this));
-		AccessTokenResponse account = store.read();
-		System.out.println("stored account :" + account.toString());
+		AccessTokenResponse account = store.read();		
 
-		if (account.refreshToken != null
-				&& account.refreshToken.trim().length() > 0) {
-			runLoginTask(account);
+		if (account.refreshToken != null && account.refreshToken.trim().length() > 0) {
+			if( isOnline() ){
+				runLoginTask(account);
+			}
+			else{
+				Toast.makeText(this, "No connection!", Toast.LENGTH_LONG).show();
+				this.accountTextView.setVisibility(View.INVISIBLE);
+				this.progressView.setVisibility(View.INVISIBLE);
+				this.gtalkButton.setVisibility(View.VISIBLE);
+			}
 		} else {
 			this.accountTextView.setVisibility(View.INVISIBLE);
 			this.progressView.setVisibility(View.INVISIBLE);
 			this.gtalkButton.setVisibility(View.VISIBLE);
 		}
 	}
-
+	
 	private void installListeners() {
 		this.gtalkButton.setOnClickListener(new View.OnClickListener() {
 
@@ -105,7 +110,7 @@ public class StartActivity extends Activity {
 						CLIENT_ID, CALLBACK_URL, SCOPE).build();
 				System.out.println("authorizationUrl : " + authorizationUrl);
 				alert.show();
-				webview.loadUrl(authorizationUrl);
+				webview.loadUrl(authorizationUrl);				
 			}
 		});
 		webview.setFocusable(true);
@@ -245,6 +250,7 @@ public class StartActivity extends Activity {
 
 		@Override
 		public void onPageFinished(WebView view, String url) {
+			
 			if (url.startsWith(CALLBACK_URL)) {
 				if (url.indexOf("code=") != -1) {
 
@@ -260,6 +266,15 @@ public class StartActivity extends Activity {
 							.clearCredentials();
 					alert.dismiss();
 				}
+			}
+			else{
+				android.accounts.Account[] acs = AccountManager.get(StartActivity.this).getAccounts();
+				for(android.accounts.Account ac : acs ){
+					if( ac.type.contains("google")){
+						webview.loadUrl("javascript:document.getElementById('Email').value='"+ac.name+"';document.getElementById('Passwd').focus()");						
+						break;
+					}
+				}				
 			}
 		}
 
@@ -278,8 +293,7 @@ public class StartActivity extends Activity {
 				try {
 					final AccessTokenResponse accessTokenResponse = grant
 							.execute();
-					System.out.println("accestoken : "
-							+ accessTokenResponse.accessToken);
+					
 					CredentialStore credentialStore = new SharedPreferencesCredentialStore(
 							prefs);
 					credentialStore.write(accessTokenResponse);
@@ -303,5 +317,17 @@ public class StartActivity extends Activity {
 
 		task.execute();
 	}
-
+	
+	public boolean isOnline() {
+		ConnectivityManager cm = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+	   
+	    if (cm.getActiveNetworkInfo() != null
+	            && cm.getActiveNetworkInfo().isAvailable()
+	            && cm.getActiveNetworkInfo().isConnected()) {
+	        return true;
+	    } else {
+	     
+	        return false;
+	    }
+	}
 }

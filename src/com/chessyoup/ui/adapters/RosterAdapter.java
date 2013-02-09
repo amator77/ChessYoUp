@@ -66,7 +66,7 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 		this.groups.add(root);
 		
 		for(Account account : this.accounts ){
-			RosterGroup group = new RosterGroup(account.getConnection().getAccountId(), Integer.parseInt(account.getIconTypeResource()), false);
+			RosterGroup group = new RosterGroup( Util.getContactFromId(account.getConnection().getAccountId()), Integer.parseInt(account.getIconTypeResource()), false);
 			
 			for(Contact contact : account.getRoster().getContacts() ){
 				
@@ -84,8 +84,8 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 			this.groups.add(group);			
 		}
 		
-		Collections.sort(this.groups);		
-		this.notifyDataSetChanged();
+		Collections.sort(this.groups);				
+		this.notifyDataSetChanged();				
 	}
 	
 	public void addAccount(Account account) {
@@ -138,18 +138,11 @@ public class RosterAdapter extends BaseExpandableListAdapter {
 			holder.contactAvatar.setImageDrawable(context.getResources().getDrawable(R.drawable.general_avatar_unknown));
 		}
 		
-		holder.contactStatus.setText(contact.getPresence() != null ? contact.getPresence().getStatus() : "");
+		holder.contactStatus.setText(contact.getPresence() != null ? contact.getPresence().getStatus() : "available");
 
 		holder.contactName.setCompoundDrawablesWithIntrinsicBounds( contact.getPresence() != null  ? getStatusIcon(contact.getPresence()) : context.getResources().getDrawable(
 				R.drawable.general_status_offline) ,
 				null, null, null);
-				
-		if( contact.getPresence().getMode() != MODE.OFFLINE ){
-			holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds( contact.isCompatible() ? context.getResources().getDrawable(R.drawable.chessyoup)  :  null , null, null, null);
-		}
-		else{
-			holder.contactStatus.setCompoundDrawablesWithIntrinsicBounds(  null , null, null, null);
-		}
 				
 		return convertView;
 	}

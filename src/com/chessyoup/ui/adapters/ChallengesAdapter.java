@@ -1,8 +1,10 @@
 package com.chessyoup.ui.adapters;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -17,6 +19,7 @@ import android.widget.TextView;
 
 import com.chessyoup.R;
 import com.cyp.game.IChallenge;
+import com.cyp.transport.Util;
 
 public class ChallengesAdapter extends BaseAdapter {
 	
@@ -30,9 +33,11 @@ public class ChallengesAdapter extends BaseAdapter {
 	 * The Class ViewHolder.
 	 */
 	private static class ItemViewHolder {
+		ImageView statusImage;
 		ImageView contactAvatar;
 		TextView contactName;
 		TextView challangeDetails;
+		SimpleDateFormat dateFormat = new SimpleDateFormat("EEEE, kk:mm:ss", Locale.getDefault());		
 	}
 	
 	public ChallengesAdapter(Context context){
@@ -83,7 +88,8 @@ public class ChallengesAdapter extends BaseAdapter {
 					.findViewById(R.id.challenge_item_text_contact_name);
 			holder.challangeDetails = (TextView) convertView
 					.findViewById(R.id.challenge_item_text_details);
-
+			holder.statusImage = (ImageView) convertView
+					.findViewById(R.id.challenge_status_image);
 			convertView.setTag(holder);
 		} else {
 			holder = (ItemViewHolder) convertView.getTag();
@@ -99,9 +105,10 @@ public class ChallengesAdapter extends BaseAdapter {
 			holder.contactAvatar.setImageDrawable(context.getResources().getDrawable(R.drawable.general_avatar_unknown));
 		}
 		
-		holder.contactName.setText(challenge.getRemoteContact().getId());
-
-		holder.challangeDetails.setText( (challenge.isReceived() ? "Received at :" : "Sended at :")+new Date(challenge.getTime()).toString() );
+		holder.contactName.setText( Util.getContactFromId(challenge.getRemoteContact().getId()));				
+		holder.challangeDetails.setText( (challenge.isReceived() ? "Received at :" : "Sended at :")+ holder.dateFormat.format(new Date(challenge.getTime())) );		
+		holder.statusImage.setImageDrawable(context.getResources().getDrawable( challenge.isReceived() ? R.drawable.receive : R.drawable.send ));
+		
 		
 		return convertView;
 	}

@@ -13,17 +13,7 @@ import android.widget.TextView;
 import com.chessyoup.R;
 
 public class FragmentGame extends Fragment {
-
-	public ImageButton abortButton;
-
-	public ImageButton resignButton;
-
-	public ImageButton drawButton;
-
-	public ImageButton exitButton;
-
-	public ImageButton rematchButton;
-
+	
 	public ScrollView moveListScroll;
 
 	public TextView moveListView;
@@ -40,15 +30,7 @@ public class FragmentGame extends Fragment {
 
 		View view = inflater
 				.inflate(R.layout.chessboard_game, container, false);
-
-		this.abortButton = (ImageButton) view
-				.findViewById(R.id.abortGameButton);
-		this.resignButton = (ImageButton) view
-				.findViewById(R.id.resignGameButton);
-		this.drawButton = (ImageButton) view.findViewById(R.id.drawGameButton);
-		this.exitButton = (ImageButton) view.findViewById(R.id.exitGameButton);
-		this.rematchButton = (ImageButton) view
-				.findViewById(R.id.rematchGameButton);
+		
 		this.whitePlayerImageView = (ImageView) view
 				.findViewById(R.id.chessboard_white_player_image_view);
 		this.blackPlayerImageView = (ImageView) view
