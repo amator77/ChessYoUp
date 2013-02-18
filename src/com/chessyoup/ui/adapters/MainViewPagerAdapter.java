@@ -1,31 +1,32 @@
 package com.chessyoup.ui.adapters;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 public class MainViewPagerAdapter  extends FragmentStatePagerAdapter {
 
-	private Fragment f1 , f2 ;
+	private List<Fragment> fList;
 
-    public MainViewPagerAdapter(FragmentManager fm , Fragment f1 , Fragment f2 ) {
-        super(fm);
-        this.f1 = f1;
-        this.f2 = f2;
+    public MainViewPagerAdapter(FragmentManager fm) {
+        super(fm);        
+        this.fList = new ArrayList<Fragment>();
     }
-
+    
+    public void addFragment(Fragment f){
+    	fList.add(f);
+    }
+    
     @Override
     public int getCount() {
-        return 2;
+        return this.fList.size();
     }
 
     @Override
     public Fragment getItem(int position) {
-    	if( position == 0){
-    		return f1;
-    	}
-    	else{
-    		return f2;
-    	}        	
+    	return fList.get(position);      	
     }
 }

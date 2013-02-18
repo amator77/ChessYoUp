@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <item
+        android:id="@+id/menu"
+        android:icon="@drawable/menu"
+        android:showAsAction="always"
+        android:title="Menu"
+        android:titleCondensed="Menu"
+        android:visible="true">
+        <menu>
+            <item
+                android:id="@+id/contactsMenuItem"
+                android:icon="@drawable/contacts"
+                android:showAsAction="always"
+                android:title="Contacts"
+                android:titleCondensed="Contacts"
+                android:visible="true">
+            </item>
+            <item
+                android:id="@+id/challangesMenuItem"
+                android:icon="@drawable/challenges"
+                android:showAsAction="always"
+                android:title="Challenges"
+                android:titleCondensed="Challanges"
+                android:visible="true">
+            </item>
+            <item
+                android:id="@+id/roomMenuItem"
+                android:icon="@drawable/receive"
+                android:showAsAction="always"
+                android:title="MainRoom"
+                android:titleCondensed="MainRoom"
+                android:visible="true">
+            </item>
+        </menu>
+    </item>
+    <item
+        android:id="@+id/exit"
+        android:icon="@drawable/exit"
+        android:showAsAction="always"
+        android:title="Exit"
+        android:titleCondensed="Exit"
+        android:visible="true">
+    </item>
+
+</menu>

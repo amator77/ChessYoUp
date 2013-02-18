@@ -1,21 +1,20 @@
 package com.chessyoup.ui.fragments;
 
-
-import com.chessyoup.ui.UIActionRegister;
-
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-public class MenuFragment extends ListFragment {
+import com.chessyoup.ui.UIActionRegister;
+
+public class RoomMenuFragment extends ListFragment {
 
 	@Override
 	public void onActivityCreated(Bundle savedInstanceState) {
 		super.onActivityCreated(savedInstanceState);
 		setListAdapter(new ArrayAdapter<String>(getActivity(),
-				android.R.layout.simple_list_item_1, new String[] { " Accounts", " Settings", " Exit", " About"}));
+				android.R.layout.simple_list_item_1, new String[] { "amator77", "gigel", "leo", "grasu"," amator77", "gigel", "leo", "grasu"," amator77", "gigel", "leo", "grasu"}));
 		getListView().setCacheColorHint(0);
 	}
 

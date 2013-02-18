@@ -154,8 +154,10 @@ public class ChessGameActivity extends FragmentActivity implements
 				.findViewById(R.id.chessBoardViewPager);
 		this.fChat = new FragmenChat();
 		this.fGame = new FragmentGame();
-		this.gameViewPager.setAdapter(new MainViewPagerAdapter(
-				getSupportFragmentManager(), this.fGame, this.fChat));
+		MainViewPagerAdapter fAdapter = new MainViewPagerAdapter(getSupportFragmentManager());
+		fAdapter.addFragment(this.fGame);
+		fAdapter.addFragment(this.fChat);
+		this.gameViewPager.setAdapter(fAdapter);
 		this.gameViewPager.setCurrentItem(1);
 		this.gameViewPager.setCurrentItem(0);
 		Bitmap bmp = BitmapFactory.decodeResource(getResources(),
